@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pass-blue: #EBF4FF;
+  --color-pass-purple: #F5F3FF;
+  --color-pass-brand-blue: #3B82F6;
+  --color-pass-brand-purple: #8B5CF6;
+}
+
+@layer base {
+  body {
+    @apply bg-[#FDFCF9] text-gray-800 antialiased;
+    font-family: 'Pretendard Variable', Pretendard, 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+}
+
+.mobile-container {
+  @apply max-w-md mx-auto min-h-screen bg-[#FDFCF9] flex flex-col relative w-full shadow-2xl shadow-gray-200/50;
+}
