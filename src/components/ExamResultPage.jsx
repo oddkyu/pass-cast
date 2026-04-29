@@ -33,19 +33,6 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }
     >
       <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 space-y-12">
         
-        {/* 📢 728x90 Ad Area (Hidden for Premium) */}
-        {showAds && (
-          <section className="flex justify-center">
-             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
-             `}>
-               <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded-full text-[8px] font-black tracking-widest uppercase">AD</div>
-               <p className="text-sm font-bold opacity-50 text-center uppercase tracking-widest">728 x 90 Advertising Area</p>
-               <p className="text-[10px] font-black opacity-30 mt-1 uppercase">유료 구독 시 이 광고가 제거됩니다.</p>
-             </div>
-          </section>
-        )}
-
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
@@ -63,6 +50,19 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }
           </div>
           <div className={`absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 ${isPass ? 'bg-gold' : 'bg-slate-400'}`} />
         </section>
+
+        {/* 📢 728x90 Ad Area (점수 하단 배치, 유료 회원 제외) */}
+        {showAds && (
+          <section className="flex justify-center">
+             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+             `}>
+               <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded-full text-[8px] font-black tracking-widest uppercase">AD</div>
+               <p className="text-sm font-bold opacity-50 text-center uppercase tracking-widest">728 x 90 Advertising Area</p>
+               <p className="text-[10px] font-black opacity-30 mt-1 uppercase">유료 구독 시 이 광고가 제거됩니다.</p>
+             </div>
+          </section>
+        )}
 
         {/* 📋 Analysis Grid */}
         <section className={`rounded-[4rem] p-12 md:p-20 space-y-12 transition-all duration-500 ${isDarkMode ? 'glass-card border-white/5' : 'bg-white border-white shadow-2xl shadow-slate-200'}`}>
