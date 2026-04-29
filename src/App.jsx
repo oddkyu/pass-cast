@@ -72,19 +72,10 @@ const App = () => {
     setCurrentPage('exam_result');
   };
 
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ko-KR';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
+  // 🛡️ Gating Logic: 회원 전용 접근 제어
   const requireAuth = (callback) => {
     if (!user) {
-      if (window.confirm("사장님, 이 기능은 회원 전용입니다.\n지금 로그인하고 체계적인 관리를 시작하시겠습니까?")) {
+      if (window.confirm("사장님, 이 기능은 회원 전용입니다.\n지금 가입하고 나만의 오답노트 관리를 시작하시겠습니까?")) {
         setCurrentPage('login');
       }
     } else {
@@ -96,8 +87,6 @@ const App = () => {
     switch (currentPage) {
       case 'login':
         return <LoginPage isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onLoginSuccess={(u) => { setUser(u); setCurrentPage('home'); }} />;
-      case 'landing':
-        return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
       case 'home':
         return (
           <HomePage 
@@ -105,7 +94,7 @@ const App = () => {
             user={user}
             isDarkMode={isDarkMode}
             onToggleTheme={toggleDarkMode}
-            onGoToLanding={() => {}} // 팝업 제거를 위해 동작 비활성화
+            onGoToLanding={() => {}}
             onGoToExamSelection={() => setCurrentPage('exam_selection')}
             onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
             onGoToPremium={() => setCurrentPage('premium')}
@@ -119,9 +108,9 @@ const App = () => {
       case 'full_exam':
         return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => setCurrentPage('exam_selection')} onFinish={handleFinishExam} />;
       case 'exam_result':
-        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} onSpeak={speakText} user={user} />;
+        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} user={user} />;
       case 'wrong_note':
-        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} onSpeak={speakText} />;
+        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
       case 'premium':
         return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} />;
       default:

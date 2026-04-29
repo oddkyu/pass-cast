@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) => {
+const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const isGuest = !user;
 
@@ -47,7 +47,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) 
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
-            <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Result' : 'Personal Analysis Report'}</p>
+            <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Analysis' : 'Personal Study Report'}</p>
             <div className="flex items-baseline justify-center space-x-6">
               <span className={`text-[150px] md:text-[240px] font-black leading-none tracking-tighter ${isPass ? 'text-gold glow-gold' : 'text-slate-400'}`}>{score}</span>
               <span className="text-5xl md:text-8xl font-black text-gold">점</span>
@@ -56,7 +56,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) 
               <span>{isPass ? '🎊 합격 안정권입니다!' : '💪 오답 분석으로 약점을 보완하세요'}</span>
             </div>
             {isGuest && (
-              <p className="text-lg font-bold text-red-500 mt-8 animate-pulse">※ 주의: 로그아웃 상태이므로 브라우저 종료 시 오답 데이터가 소멸됩니다.</p>
+              <p className="text-lg font-bold text-red-500 mt-8 animate-pulse">※ 데이터 가두리: 로그아웃 상태에서는 학습 기록이 영구 저장되지 않습니다.</p>
             )}
           </div>
           <div className={`absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 ${isPass ? 'bg-gold' : 'bg-slate-400'}`} />
@@ -108,7 +108,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) 
         </section>
       </main>
 
-      {/* 🔍 Explanation Modal */}
+      {/* 🔍 Explanation Modal (AI Audio Completely Removed) */}
       <AnimatePresence>
         {reviewIndex !== null && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
@@ -119,18 +119,9 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) 
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black text-gold tracking-widest uppercase">{year}년 {subject} 문항 해설</span>
-                <div className="flex items-center space-x-4">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onSpeak(questions[reviewIndex].question_text); }}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/30 hover:bg-gold/20 transition-all"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-                    <span className="font-black text-sm uppercase">AI Audio</span>
-                  </button>
-                  <button onClick={() => setReviewIndex(null)} className="w-12 h-12 rounded-full hover:bg-white/5 flex items-center justify-center text-gold">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
+                <button onClick={() => setReviewIndex(null)} className="w-12 h-12 rounded-full hover:bg-white/5 flex items-center justify-center text-gold">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
               </div>
 
               <div className="space-y-10">
