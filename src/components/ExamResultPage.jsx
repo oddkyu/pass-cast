@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const isGuest = !user;
   const showAds = !isPremium;
+
+  // 페이지 진입 시 상단으로 자동 스크롤 → 점수가 바로 보이도록
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   if (!result || !result.questions) {
     return (
