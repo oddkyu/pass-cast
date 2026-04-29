@@ -16,8 +16,13 @@ const App = () => {
   const [examResult, setExamResult] = useState(null);
   
   const [wrongAnswers, setWrongAnswers] = useState(() => {
-    const saved = localStorage.getItem('pass-cast-wrong-answers');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('pass-cast-wrong-answers');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load wrong answers from localStorage", e);
+      return [];
+    }
   });
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);

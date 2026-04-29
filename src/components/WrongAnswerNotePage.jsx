@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => {
+const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove, onSpeak }) => {
   const [filter, setFilter] = useState('전체');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
-  const subjects = ['전체', ...new Set(wrongAnswers.map(q => q.subject))];
+  const subjects = ['전체', ...new Set((Array.isArray(wrongAnswers) ? wrongAnswers : []).map(q => q.subject))];
   const filteredAnswers = filter === '전체' 
     ? wrongAnswers 
     : wrongAnswers.filter(q => q.subject === filter);
@@ -118,9 +118,18 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black text-gold tracking-widest uppercase">{selectedQuestion.year} {selectedQuestion.subject}</span>
-                <button onClick={() => setSelectedQuestion(null)} className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
+                <div className="flex items-center space-x-4">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onSpeak(selectedQuestion.question_text); }}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/30 hover:bg-gold/20 transition-all"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                    <span className="font-black text-sm uppercase">AI Audio</span>
+                  </button>
+                  <button onClick={() => setSelectedQuestion(null)} className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
               </div>
               <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep">{selectedQuestion.question_text}</h2>
               <div className="space-y-3">
