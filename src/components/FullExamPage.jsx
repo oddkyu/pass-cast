@@ -8,7 +8,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
   const [answers, setAnswers] = useState({});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
-  const [showHoldTooltip, setShowHoldTooltip] = useState(false);
   
   const [timeLeft, setTimeLeft] = useState(3000);
   const [isPaused, setIsPaused] = useState(false);
@@ -140,6 +139,17 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
           </div>
           
           <div className="flex items-center space-x-6">
+            {/* 🚩 보류 문항 수 표시 및 검토 버튼 */}
+            {heldQuestions.size > 0 && (
+              <button 
+                onClick={goToNextHeld} 
+                className="hidden lg:flex items-center space-x-3 px-5 py-2.5 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 font-black text-sm hover:bg-amber-500/20 transition-all shadow-sm"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span>보류 문항 ({heldQuestions.size})</span>
+              </button>
+            )}
+
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
             </div>
