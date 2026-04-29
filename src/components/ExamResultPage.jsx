@@ -35,11 +35,12 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
         {/* 📢 Ads Area (Gated: Guest Only) */}
         {isGuest && (
           <section className="flex justify-center">
-             <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
+             <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
                ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
              `}>
-               <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
-               <p className="text-sm font-bold opacity-50 text-center">회원 가입 시 결과 페이지의 광고가 제거됩니다.</p>
+               <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded-full text-[8px] font-black tracking-widest uppercase">AD</div>
+               <p className="text-sm font-bold opacity-50 text-center">Google AdSense Area</p>
+               <p className="text-[10px] font-black opacity-30 uppercase tracking-widest mt-1">프리미엄 패스 가입 시 광고가 제거됩니다.</p>
              </div>
           </section>
         )}
@@ -55,9 +56,6 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
             <div className="inline-flex items-center space-x-6 px-12 py-5 bg-midnight text-gold rounded-full font-black text-2xl shadow-2xl">
               <span>{isPass ? '🎊 합격 안정권입니다!' : '💪 오답 분석으로 약점을 보완하세요'}</span>
             </div>
-            {isGuest && (
-              <p className="text-lg font-bold text-red-500 mt-8 animate-pulse">※ 데이터 가두리: 로그아웃 상태에서는 학습 기록이 영구 저장되지 않습니다.</p>
-            )}
           </div>
           <div className={`absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 ${isPass ? 'bg-gold' : 'bg-slate-400'}`} />
         </section>
@@ -108,7 +106,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
         </section>
       </main>
 
-      {/* 🔍 Explanation Modal (AI Audio Completely Removed) */}
+      {/* 🔍 Explanation Modal */}
       <AnimatePresence>
         {reviewIndex !== null && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
@@ -143,9 +141,9 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
               <div className={`p-12 rounded-[2.5rem] space-y-6 border-l-8 border-gold ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
                 <div className="flex items-center space-x-4 text-gold">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9.663 17h4.674M12 3v1m0 16v1m5.657-13.657l-.707.707m-10.606 8.485l-.707.707M3 12h1m16 0h1M5.657 5.657l.707.707m8.485 10.606l.707.707M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5z"/></svg>
-                  <h4 className="text-2xl font-black">비공개 정답 해설</h4>
+                  <h4 className="text-2xl font-black">심층 정답 해설</h4>
                 </div>
-                <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
+                <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
               </div>
             </motion.div>
           </div>

@@ -35,12 +35,7 @@ const HomePage = ({
             </div>
 
             {isGuest ? (
-              <button 
-                onClick={onLogin}
-                className="px-6 py-2.5 bg-gold text-midnight rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20"
-              >
-                무료 시작하기
-              </button>
+              <button onClick={onLogin} className="px-6 py-2.5 bg-gold text-midnight rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20">무료 시작하기</button>
             ) : (
               <div className="flex items-center space-x-6">
                 <span className="text-[12px] font-black opacity-40 hidden md:block">{user.email} 사장님</span>
@@ -59,112 +54,100 @@ const HomePage = ({
         </div>
       </nav>
 
-      {/* 🚀 Specialized Hero Banner */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-8 md:px-12 py-12 md:py-20 space-y-12">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-8 md:px-12 py-12 md:py-20 space-y-16">
+        {/* 🚀 Dynamic Banner */}
         <header className="space-y-6 text-center md:text-left">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-center md:justify-start space-x-3">
             <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
-            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">{isGuest ? 'Scientific Analysis' : 'Personal Growth'}</span>
+            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">{isGuest ? 'Membership Required' : 'Personal Analytics'}</span>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-7xl font-black tracking-tighter leading-[1.1] break-keep">
             {isGuest ? (
-              <>Pass-Cast: <br/> 공인중개사 <span className="text-gold glow-gold">30일 합격의 과학</span></>
+              <>지금 로그인하고 <br/> <span className="text-gold glow-gold">나만의 합격 통계</span>를 확인하세요</>
             ) : (
-              <>{user.email.split('@')[0]} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85%</span> 기록 중</>
+              <>{user.email.split('@')[0]} 사장님, <br/> 합격까지 <span className="text-gold glow-gold">15%</span> 남았습니다.</>
             )}
           </motion.h2>
-
-          {/* 🎁 10-Second Signup CTA (Guest Only) */}
-          {isGuest && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="pt-8"
-            >
-              <button 
-                onClick={onLogin}
-                className="group flex items-center space-x-4 px-10 py-5 bg-midnight text-white rounded-[2rem] font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-2xl border border-white/10"
-              >
-                <span>단 10초 만에 가입하고 오답노트 만들기</span>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-gold group-hover:translate-x-2 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </button>
-            </motion.div>
-          )}
         </header>
 
-        {/* 📊 Advanced Data Visualization (Global Stats for Guests) */}
+        {/* 📊 Central Ad Slot (Guest Only) */}
+        {isGuest && (
+          <motion.section 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className={`w-full max-w-[800px] h-[150px] mx-auto rounded-[2.5rem] flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
+              ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+            `}
+          >
+            <div className="absolute top-4 left-6 px-3 py-1 bg-midnight/10 rounded-full text-[10px] font-black tracking-widest uppercase">AD</div>
+            <p className="text-lg font-bold opacity-50">Google AdSense Area</p>
+            <p className="text-xs font-black uppercase tracking-widest mt-2">프리미엄 구독 시 광고가 제거됩니다.</p>
+          </motion.section>
+        )}
+
+        {/* 📊 Stats Card */}
         <motion.section 
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className={`group glass-card rounded-[4rem] p-12 md:p-20 flex flex-col md:flex-row items-center justify-between gap-16 relative overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/10' : 'bg-white border-white shadow-2xl shadow-slate-100'}`}
         >
           <div className="relative z-10 space-y-10 flex-1">
             <div className="space-y-3">
-              <h3 className="text-3xl font-black tracking-tight">{isGuest ? '오늘의 전체 수험생 학습 현황' : '지능형 합격 데이터 분석'}</h3>
-              <p className="font-bold text-lg opacity-40 break-keep">
-                {isGuest ? '현재 12,432명의 수험생이 Pass-Cast의 과학적 분석으로 실전 대비 중입니다.' : '현재까지의 학습 패턴을 분석하여 과목별 강점과 약점을 분류했습니다.'}
-              </p>
+              <h3 className="text-3xl font-black tracking-tight">{isGuest ? '전체 수험생 합격 추이' : '나의 합격 가능성 분석'}</h3>
+              <p className="font-bold text-lg opacity-40 break-keep">최신 기출 데이터를 기반으로 합격에 가장 최적화된 학습 패턴을 도출합니다.</p>
             </div>
             <div className="space-y-8">
               <div className="flex items-end justify-between">
-                <span className="text-6xl font-black text-gold tracking-tighter">
-                  {isGuest ? '1,200,432' : '85'}<span className="text-2xl ml-1 font-bold opacity-30">{isGuest ? '건' : '%'}</span>
-                </span>
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30">{isGuest ? 'Analyzed Questions' : 'Success Rate'}</span>
+                <span className="text-6xl font-black text-gold tracking-tighter">{isGuest ? '78.4' : '85'}%</span>
               </div>
-              <div className="w-full h-5 bg-midnight/5 rounded-full overflow-hidden border border-white/5">
-                <motion.div initial={{ width: 0 }} animate={{ width: isGuest ? '95%' : '85%' }} transition={{ duration: 2, ease: "easeOut" }} className="h-full bg-gold" />
+              <div className="w-full h-5 bg-midnight/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <motion.div initial={{ width: 0 }} animate={{ width: isGuest ? '78.4%' : '85%' }} transition={{ duration: 2, ease: "easeOut" }} className="h-full bg-gold" />
               </div>
             </div>
           </div>
-          
-          <div className="w-full md:w-96 h-64 bg-midnight/5 rounded-[3rem] border border-white/5 relative overflow-hidden flex items-end px-8 pb-8 space-x-3">
-             {[40, 70, 45, 90, 65, 85, 95].map((h, i) => (
-                <div key={i} className="flex-1 bg-gold/20 rounded-t-xl" style={{ height: `${h}%` }} />
+          <div className="w-full md:w-96 h-64 bg-midnight/5 rounded-[3rem] border border-white/5 flex items-end px-8 pb-8 space-x-3 overflow-hidden">
+             {[50, 60, 45, 85, 70, 80, 95].map((h, i) => (
+                <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${h}%` }} transition={{ delay: 0.6 + (i * 0.1) }} className="flex-1 bg-gold/20 rounded-t-xl" />
              ))}
-             <div className="absolute inset-0 flex items-center justify-center font-black text-[10px] text-gold uppercase tracking-[0.4em] bg-gold/5 backdrop-blur-[2px]">Real-time Global Sync</div>
           </div>
         </motion.section>
 
-        {/* 🛠️ Strategic Gating Action Grid */}
+        {/* 🛠️ Action Grid */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <ActionButton 
-            title={isGuest ? "무료 기출문제 체험하기" : "회차별 기출 풀기"}
-            subtitle="연도별/과목별 실전 데이터"
+            title="회차별 기출 풀기"
+            subtitle="누구나 이용 가능한 체험 모드"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
             onClick={onGoToExamSelection}
             isDarkMode={isDarkMode}
             delay={0.6}
-            highlight={isGuest ? "GUEST OK" : "HOT"}
+            highlight="FREE"
           />
           <ActionButton 
             title="스마트 오답노트"
-            subtitle={isGuest ? "가입 후 오답 관리 가능" : `${wrongCount}개의 오답 정복 중`}
+            subtitle={isGuest ? "가입 후 이용 가능" : `${wrongCount}개의 오답 관리 중`}
             badge={!isGuest && wrongCount > 0 ? wrongCount : null}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}
             onClick={onGoToWrongNote}
             isDarkMode={isDarkMode}
             delay={0.7}
-            highlight={isGuest ? "MEMBER ONLY" : null}
             isLocked={isGuest}
           />
           <ActionButton 
-            title="프리미엄 합격 패스"
-            subtitle="광고 제거 및 무제한 PDF"
+            title="프리미엄 패스"
+            subtitle="광고 제거 및 해설지 증정"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
             onClick={onGoToPremium}
             isDarkMode={isDarkMode}
             delay={0.8}
-            highlight="PRO"
+            highlight="BEST"
           />
         </section>
       </main>
 
       <footer className={`mt-auto border-t transition-all ${isDarkMode ? 'bg-midnight border-white/5' : 'bg-white border-slate-100'}`}>
-        <div className="max-w-7xl mx-auto px-12 py-24 flex flex-col md:flex-row justify-between items-center gap-16">
-          <div className="space-y-6 text-center md:text-left">
-            <span className="text-3xl font-black tracking-tighter uppercase">Pass-Cast</span>
-            <p className="text-xl font-bold opacity-30 leading-relaxed max-w-lg break-keep">
-              공인중개사 시험 합격을 위한 <br/> <span className="text-gold">가장 과학적인 대비 플랫폼</span>입니다. <br/> 관리받는 사람이 합격합니다.
-            </p>
+        <div className="max-w-7xl mx-auto px-12 py-20 flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
+          <div className="space-y-4">
+            <span className="text-2xl font-black tracking-tighter uppercase">Pass-Cast</span>
+            <p className="text-sm font-bold opacity-30">공인중개사 시험 합격을 위한 가장 과학적인 분석 플랫폼</p>
           </div>
           <div className="flex space-x-12 text-[11px] font-black uppercase tracking-[0.3em] opacity-40">
             <button className="hover:text-gold transition-colors">Term of Service</button>
@@ -184,7 +167,7 @@ const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge
       ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white shadow-xl shadow-slate-100 border-white hover:shadow-2xl'}
     `}
   >
-    {highlight && <div className={`absolute top-8 right-8 px-3 py-1 text-white text-[10px] font-black rounded-full ${highlight === 'PRO' ? 'bg-gold text-midnight' : highlight === 'MEMBER ONLY' ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>{highlight}</div>}
+    {highlight && <div className={`absolute top-8 right-8 px-3 py-1 text-white text-[10px] font-black rounded-full ${highlight === 'BEST' ? 'bg-gold text-midnight shadow-lg shadow-gold/20' : 'bg-green-500'}`}>{highlight}</div>}
     {isLocked && <div className="absolute top-8 right-8 text-gold opacity-40"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>}
     
     <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform relative
