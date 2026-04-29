@@ -8,14 +8,30 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
   const [answers, setAnswers] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   
-  // 타이머 관련 상태 (50분 = 3000초)
   const [timeLeft, setTimeLeft] = useState(3000);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
 
+  const generateMockQuestions = () => {
+    return Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. 현재 서버 데이터를 불러오는 중이거나 데이터가 없습니다.`,
+      options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
+      answer: 0,
+      subject: subject
+    }));
+  };
+
   const fetchFullExam = async () => {
     setIsLoading(true);
     try {
+      // 🛡️ Supabase 객체가 없으면 즉시 가상 데이터로 전환
+      if (!supabase) {
+        console.warn('Supabase not initialized');
+        setQuestions(generateMockQuestions());
+        return;
+      }
+
       const { data, error } = await supabase
         .from('questions')
         .select('*')
@@ -26,18 +42,13 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
       if (error) throw error;
       
       if (!data || data.length === 0) {
-        setQuestions(Array.from({ length: 40 }).map((_, i) => ({
-          id: i,
-          question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다.`,
-          options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
-          answer: 0,
-          subject: subject
-        })));
+        setQuestions(generateMockQuestions());
       } else {
         setQuestions(data);
       }
     } catch (err) {
       console.error('Error fetching exam:', err);
+      setQuestions(generateMockQuestions());
     } finally {
       setIsLoading(false);
     }
@@ -47,14 +58,12 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     fetchFullExam();
   }, [year, subject]);
 
-  // 타이머 로직
   useEffect(() => {
     if (!isLoading && !isPaused && timeLeft > 0) {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
     } else if (timeLeft === 0) {
-      alert('시험 시간이 종료되었습니다. 최종 제출을 진행해 주세요.');
       setIsPaused(true);
     }
     return () => clearInterval(timerRef.current);
@@ -70,11 +79,13 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: optionIndex }));
   };
 
+  const currentQuestion = questions[currentIndex];
+
   if (isLoading) {
     return (
       <div className={`flex-1 flex flex-col items-center justify-center min-h-screen ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-8"></div>
-        <p className="text-2xl font-black tracking-tight">시험지를 준비 중입니다...</p>
+        <p className="text-2xl font-black tracking-tight">{year}년 {subject} 시험지를 준비 중입니다...</p>
       </div>
     );
   }
@@ -93,20 +104,10 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
             </div>
           </div>
           
-          {/* ⏱️ Professional Timer */}
           <div className="flex items-center space-x-8">
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border transition-all duration-300 ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
-              <button 
-                onClick={() => setIsPaused(!isPaused)} 
-                className={`ml-2 p-1 rounded-lg hover:bg-white/10 transition-colors ${isPaused ? 'text-green-500' : ''}`}
-              >
-                {isPaused ? 
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> : 
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                }
-              </button>
             </div>
             
             <div className="hidden md:flex items-center space-x-4">
@@ -120,7 +121,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
           </div>
         </div>
 
-        {/* 🔢 Navigation Bar */}
         <div className={`border-t transition-all ${isDarkMode ? 'border-white/5' : 'border-slate-50'}`}>
           <div className="max-w-7xl mx-auto px-8 md:px-12 py-4 overflow-x-auto scrollbar-hide flex items-center space-x-3">
             {questions.map((_, i) => {
@@ -164,12 +164,12 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
               <div className="space-y-4">
                 <span className="text-[12px] font-black text-gold uppercase tracking-[0.4em] mb-4 inline-block">{year}년 기출</span>
                 <h2 className="text-[26px] md:text-[32px] font-black leading-snug break-keep">
-                  {currentQuestion?.question_text}
+                  {currentQuestion?.question_text || "문제를 불러올 수 없습니다."}
                 </h2>
               </div>
 
               <div className="space-y-4 pt-12">
-                {currentQuestion?.options.map((option, idx) => {
+                {currentQuestion?.options?.map((option, idx) => {
                   const isSelected = answers[currentIndex] === idx;
                   return (
                     <button

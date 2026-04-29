@@ -14,18 +14,18 @@ const App = () => {
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleStartFullExam = (year, subject) => {
+    console.log("Starting Full Exam:", year, subject);
     setSelectedExam({ year, subject });
     setCurrentPage('full_exam');
   };
 
-  return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
-      <AnimatePresence mode="wait">
-        {currentPage === 'landing' && (
-          <LandingPage key="landing" onBack={() => setCurrentPage('home')} />
-        )}
-        
-        {currentPage === 'home' && (
+  // 현재 페이지 렌더링 함수 (더 확실한 전환을 위해 분리)
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'landing':
+        return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
+      case 'home':
+        return (
           <HomePage 
             key="home" 
             isDarkMode={isDarkMode}
@@ -34,18 +34,18 @@ const App = () => {
             onGoToLanding={() => setCurrentPage('landing')}
             onGoToExamSelection={() => setCurrentPage('exam_selection')}
           />
-        )}
-
-        {currentPage === 'exam_selection' && (
+        );
+      case 'exam_selection':
+        return (
           <ExamSelectionPage 
             key="exam_selection"
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('home')}
             onSelectExam={handleStartFullExam}
           />
-        )}
-
-        {currentPage === 'full_exam' && (
+        );
+      case 'full_exam':
+        return (
           <FullExamPage 
             key="full_exam"
             year={selectedExam.year}
@@ -53,13 +53,22 @@ const App = () => {
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('exam_selection')}
           />
-        )}
-
-        {currentPage === 'quiz' && (
-          <div className="max-w-md mx-auto min-h-screen shadow-2xl">
-            <QuizPage key="quiz" onBack={() => setCurrentPage('home')} />
+        );
+      case 'quiz':
+        return (
+          <div key="quiz" className="max-w-md mx-auto min-h-screen shadow-2xl">
+            <QuizPage onBack={() => setCurrentPage('home')} />
           </div>
-        )}
+        );
+      default:
+        return <LandingPage key="default" onBack={() => setCurrentPage('home')} />;
+    }
+  };
+
+  return (
+    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+      <AnimatePresence mode="wait">
+        {renderPage()}
       </AnimatePresence>
     </div>
   );
