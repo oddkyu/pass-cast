@@ -22,20 +22,20 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="midnightblue" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       </div>
       <div className="space-y-4">
-        <h3 className="text-3xl font-black tracking-tight leading-tight break-keep">합격생만 아는 오답 관리 비법, <br/> <span className="text-gold">로그인 후 시작하세요.</span></h3>
-        <p className="text-lg font-bold opacity-40 break-keep">지금 가입하면 10개년 기출 오답노트를 무료로 소장할 수 있습니다.</p>
+        <h3 className="text-3xl font-black tracking-tight leading-tight break-keep text-gold">합격생만 아는 오답 관리 비법, <br/> 로그인 후 시작하세요.</h3>
+        <p className="text-lg font-bold opacity-40 break-keep">지금 가입하면 나만의 분석 데이터를 평생 소장할 수 있습니다.</p>
       </div>
       <div className="space-y-4">
         <button onClick={onLogin} className="w-full py-6 bg-gold text-midnight rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all">무료 회원가입 / 로그인</button>
         <button onClick={onClose} className="text-sm font-black opacity-30 hover:opacity-100 transition-opacity uppercase tracking-widest">나중에 하기</button>
       </div>
-      <div className="absolute -top-20 -right-20 w-40 h-40 bg-gold/10 rounded-full blur-[80px]" />
     </motion.div>
   </div>
 );
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [isPremium, setIsPremium] = useState(false); // 유료 회원 여부 상태
   const [currentPage, setCurrentPage] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
@@ -47,10 +47,19 @@ const App = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      // 실제 서비스 시에는 여기서 유저의 결제 상태(is_premium 등)를 DB에서 조회합니다.
+      if (session?.user) {
+        setIsPremium(session.user.user_metadata?.is_premium || false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setIsPremium(session.user.user_metadata?.is_premium || false);
+      } else {
+        setIsPremium(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -96,7 +105,6 @@ const App = () => {
     setCurrentPage('exam_result');
   };
 
-  // 🛡️ Gating Logic: 이제 모달을 사용합니다
   const requireAuth = (callback) => {
     if (!user) {
       setShowGatingModal(true);
@@ -113,7 +121,7 @@ const App = () => {
         return (
           <>
             <HomePage 
-              key="home" user={user} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
+              key="home" user={user} isPremium={isPremium} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
               onGoToExamSelection={() => setCurrentPage('exam_selection')}
               onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
               onGoToPremium={() => setCurrentPage('premium')}
@@ -137,11 +145,11 @@ const App = () => {
       case 'full_exam':
         return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => setCurrentPage('exam_selection')} onFinish={handleFinishExam} />;
       case 'exam_result':
-        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} user={user} />;
+        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} user={user} />;
       case 'wrong_note':
         return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
       case 'premium':
-        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} />;
+        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onUpgrade={() => { setIsPremium(true); setCurrentPage('home'); }} />;
       default:
         return <HomePage key="default" isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode} onGoToExamSelection={() => setCurrentPage('exam_selection')} onGoToWrongNote={() => requireAuth(() => setCurrentPage('home'))} />;
     }

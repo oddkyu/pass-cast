@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
+const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const isGuest = !user;
+  const showAds = !isPremium;
 
   if (!result || !result.questions) {
     return (
@@ -32,15 +33,15 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
     >
       <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 space-y-12">
         
-        {/* 📢 Ads Area (Gated: Guest Only) */}
-        {isGuest && (
+        {/* 📢 728x90 Ad Area (Hidden for Premium) */}
+        {showAds && (
           <section className="flex justify-center">
-             <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
+             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
                ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
              `}>
                <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded-full text-[8px] font-black tracking-widest uppercase">AD</div>
-               <p className="text-sm font-bold opacity-50 text-center">Google AdSense Area</p>
-               <p className="text-[10px] font-black opacity-30 uppercase tracking-widest mt-1">프리미엄 패스 가입 시 광고가 제거됩니다.</p>
+               <p className="text-sm font-bold opacity-50 text-center uppercase tracking-widest">728 x 90 Advertising Area</p>
+               <p className="text-[10px] font-black opacity-30 mt-1 uppercase">유료 구독 시 이 광고가 제거됩니다.</p>
              </div>
           </section>
         )}
@@ -48,7 +49,10 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
-            <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Analysis' : 'Personal Study Report'}</p>
+            <div className="flex flex-col items-center space-y-2">
+               <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Analysis' : (isPremium ? 'Premium Analysis' : 'Free Analysis')}</p>
+               {isPremium && <span className="px-4 py-1 bg-gold text-midnight text-[10px] font-black rounded-full uppercase tracking-widest">Premium Member</span>}
+            </div>
             <div className="flex items-baseline justify-center space-x-6">
               <span className={`text-[150px] md:text-[240px] font-black leading-none tracking-tighter ${isPass ? 'text-gold glow-gold' : 'text-slate-400'}`}>{score}</span>
               <span className="text-5xl md:text-8xl font-black text-gold">점</span>
@@ -106,7 +110,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
         </section>
       </main>
 
-      {/* 🔍 Explanation Modal */}
+      {/* 🔍 Details Modal */}
       <AnimatePresence>
         {reviewIndex !== null && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
@@ -141,9 +145,9 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, user }) => {
               <div className={`p-12 rounded-[2.5rem] space-y-6 border-l-8 border-gold ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
                 <div className="flex items-center space-x-4 text-gold">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9.663 17h4.674M12 3v1m0 16v1m5.657-13.657l-.707.707m-10.606 8.485l-.707.707M3 12h1m16 0h1M5.657 5.657l.707.707m8.485 10.606l.707.707M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5z"/></svg>
-                  <h4 className="text-2xl font-black">심층 정답 해설</h4>
+                  <h4 className="text-2xl font-black">비공개 정답 해설</h4>
                 </div>
-                <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
+                <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
               </div>
             </motion.div>
           </div>
