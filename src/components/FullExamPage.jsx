@@ -34,6 +34,12 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
 
   const handleSelectAnswer = (idx) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: idx }));
+    // 💡 전처럼 답을 체크하면 다음 문제로 자동 이동 (0.3초 딜레이)
+    if (currentIndex < questions.length - 1) {
+      setTimeout(() => {
+        setCurrentIndex(prev => prev + 1);
+      }, 300);
+    }
   };
 
   const toggleHold = (idx) => {
@@ -50,7 +56,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   return (
     <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-36 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
-      {/* 🏛️ Clean Sticky Header */}
+      {/* 🏛️ Header with Timer and Question Number */}
       <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-8 h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
         <div className="flex items-center space-x-6">
           <button onClick={() => setShowExitConfirm(true)} className="w-10 h-10 border border-gold/30 rounded-xl flex items-center justify-center hover:bg-gold/5 transition-all text-gold">
@@ -62,14 +68,23 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
           </div>
         </div>
 
-        <div className="flex items-center space-x-10">
-           <div className="flex items-center space-x-3 bg-midnight text-gold px-5 py-2.5 rounded-full font-black text-sm border border-gold/30 shadow-lg">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>{formatTime(timeLeft)}</span>
+        <div className="flex items-center space-x-6 md:space-x-10">
+           {/* 💡 전처럼 타이머와 문항 번호를 함께 표시 */}
+           <div className="flex items-center bg-midnight text-gold px-6 py-2.5 rounded-full font-black text-sm border border-gold/30 shadow-lg space-x-4">
+              <div className="flex items-center space-x-2 border-r border-gold/20 pr-4">
+                 <span className="text-[10px] opacity-40 uppercase">Q</span>
+                 <span className="text-base">{currentIndex + 1}</span>
+                 <span className="text-[10px] opacity-40">/ {questions.length}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                 <span>{formatTime(timeLeft)}</span>
+              </div>
            </div>
+           
            <div className="hidden md:flex items-center space-x-3 text-gold">
-              <span className="text-[10px] font-black uppercase opacity-40">보류 문항</span>
-              <span className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-sm font-black border border-gold/20">{heldQuestions.size}</span>
+              <span className="text-[10px] font-black uppercase opacity-40">보류</span>
+              <span className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-xs font-black border border-gold/20">{heldQuestions.size}</span>
            </div>
         </div>
       </header>
@@ -78,14 +93,14 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 space-y-12">
         <section className="space-y-8">
            <div className="flex items-center justify-between">
-              <span className="text-3xl font-black text-gold tracking-tighter">Q{currentIndex + 1}.</span>
+              <span className="text-3xl font-black text-gold tracking-tighter">QUESTION {currentIndex + 1}</span>
               <button 
                 onClick={() => toggleHold(currentIndex)}
                 className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all
                   ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
                 `}
               >
-                {heldQuestions.has(currentIndex) ? '검토 중 (보류)' : '보류하기'}
+                {heldQuestions.has(currentIndex) ? '검토 중 (보류)' : '나중에 다시보기'}
               </button>
            </div>
            <h2 className="text-2xl md:text-4xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
@@ -110,7 +125,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
           ))}
         </section>
 
-        {/* 📢 Bottom Ad Slot (Hidden for Premium) */}
+        {/* 📢 Bottom Ad Slot */}
         {showAds && (
           <div className="pt-20 flex justify-center">
              <div className={`w-full max-w-[728px] h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all
@@ -123,7 +138,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
         )}
       </main>
 
-      {/* 🧭 Original Navigation Bar (Fixed Bottom) */}
+      {/* 🧭 Horizontal Navigation Bar (Fixed Bottom) */}
       <footer className={`fixed bottom-0 left-0 w-full z-50 border-t transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'}`}>
         <div className="max-w-5xl mx-auto px-6 py-4 space-y-4">
            {/* 🔢 Horizontal Number Bar */}
@@ -154,14 +169,14 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
                   disabled={currentIndex === 0}
                   className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
                 >
-                  이전 문항
+                  이전
                 </button>
                 <button 
                   onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
                   disabled={currentIndex === questions.length - 1}
                   className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
                 >
-                  다음 문항
+                  다음
                 </button>
              </div>
 
@@ -169,7 +184,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
                onClick={() => onFinish({ questions, answers, year, subject })}
                className="px-12 py-4 bg-midnight text-gold rounded-2xl font-black text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
              >
-               채점하기
+               제출 및 채점
              </button>
            </div>
         </div>
