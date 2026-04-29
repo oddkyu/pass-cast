@@ -13,8 +13,7 @@ import LoginPage from './components/LoginPage';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // 시작 페이지를 바로 메인으로 변경
-  const [showLandingPopup, setShowLandingPopup] = useState(false);
+  const [currentPage, setCurrentPage] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
   const [examResult, setExamResult] = useState(null);
@@ -32,22 +31,6 @@ const App = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // 📢 팝업 노출 로직: 처음 접속 시 한 번만 노출
-  useEffect(() => {
-    const hasSeenPopup = localStorage.getItem('pass-cast-hide-popup');
-    const today = new Date().toDateString();
-    if (hasSeenPopup !== today) {
-      setShowLandingPopup(true);
-    }
-  }, []);
-
-  const handleClosePopup = (dontShowAgain = false) => {
-    if (dontShowAgain) {
-      localStorage.setItem('pass-cast-hide-popup', new Date().toDateString());
-    }
-    setShowLandingPopup(false);
-  };
 
   // 📊 Load User Specific Data
   useEffect(() => {
@@ -113,33 +96,23 @@ const App = () => {
     switch (currentPage) {
       case 'login':
         return <LoginPage isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onLoginSuccess={(u) => { setUser(u); setCurrentPage('home'); }} />;
+      case 'landing':
+        return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
       case 'home':
         return (
-          <>
-            <HomePage 
-              key="home" 
-              user={user}
-              isDarkMode={isDarkMode}
-              onToggleTheme={toggleDarkMode}
-              onGoToLanding={() => setShowLandingPopup(true)} // 랜딩페이지를 팝업으로 호출
-              onGoToExamSelection={() => setCurrentPage('exam_selection')}
-              onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
-              onGoToPremium={() => setCurrentPage('premium')}
-              onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
-              onLogin={() => setCurrentPage('login')}
-              wrongCount={wrongAnswers.length}
-            />
-            {/* 🎁 Landing Page Popup Overlay */}
-            <AnimatePresence>
-              {showLandingPopup && (
-                <LandingPage 
-                  isDarkMode={isDarkMode} 
-                  onClose={handleClosePopup}
-                  isPopup={true}
-                />
-              )}
-            </AnimatePresence>
-          </>
+          <HomePage 
+            key="home" 
+            user={user}
+            isDarkMode={isDarkMode}
+            onToggleTheme={toggleDarkMode}
+            onGoToLanding={() => {}} // 팝업 제거를 위해 동작 비활성화
+            onGoToExamSelection={() => setCurrentPage('exam_selection')}
+            onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
+            onGoToPremium={() => setCurrentPage('premium')}
+            onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
+            onLogin={() => setCurrentPage('login')}
+            wrongCount={wrongAnswers.length}
+          />
         );
       case 'exam_selection':
         return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onSelectExam={handleStartFullExam} />;
