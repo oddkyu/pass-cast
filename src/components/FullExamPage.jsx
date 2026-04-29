@@ -125,6 +125,18 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
           ))}
         </section>
 
+        {/* 💡 보기 바로 다음에 배치된 '다음 문제로' 버튼 */}
+        <div className="flex justify-end pt-4">
+           <button 
+             onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+             disabled={currentIndex === questions.length - 1}
+             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-10"
+           >
+             <span className="text-lg font-black uppercase tracking-widest">다음 문제로</span>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+           </button>
+        </div>
+
         {/* 📢 Bottom Ad Slot */}
         {showAds && (
           <div className="pt-20 flex justify-center">
