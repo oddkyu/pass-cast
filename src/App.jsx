@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
 import HomePage from './components/HomePage';
@@ -35,7 +35,7 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [isPremium, setIsPremium] = useState(false); // 유료 회원 여부 상태
+  const [isPremium, setIsPremium] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
@@ -43,11 +43,37 @@ const App = () => {
   const [wrongAnswers, setWrongAnswers] = useState([]);
   const [showGatingModal, setShowGatingModal] = useState(false);
 
+  // 🔀 브라우저 히스토리에 페이지를 쌓는 헬퍼 함수
+  const navigate = useCallback((page, state = {}) => {
+    window.history.pushState({ page, ...state }, '', `#${page}`);
+    setCurrentPage(page);
+    // 추가 상태 동기화
+    if (state.selectedExam) setSelectedExam(state.selectedExam);
+    if (state.examResult) setExamResult(state.examResult);
+  }, []);
+
+  // 🔙 브라우저 뒤로 가기 버튼 감지 (popstate)
+  useEffect(() => {
+    const handlePopState = (e) => {
+      const page = e.state?.page || 'home';
+      setCurrentPage(page);
+      if (e.state?.selectedExam) setSelectedExam(e.state.selectedExam);
+      if (e.state?.examResult) setExamResult(e.state.examResult);
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    // 초기 진입 시 home 상태를 히스토리에 세팅
+    if (!window.history.state) {
+      window.history.replaceState({ page: 'home' }, '', '#home');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // 🔐 Auth State Monitoring
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      // 실제 서비스 시에는 여기서 유저의 결제 상태(is_premium 등)를 DB에서 조회합니다.
       if (session?.user) {
         setIsPremium(session.user.user_metadata?.is_premium || false);
       }
@@ -83,8 +109,7 @@ const App = () => {
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleStartFullExam = (year, subject) => {
-    setSelectedExam({ year, subject });
-    setCurrentPage('full_exam');
+    navigate('full_exam', { selectedExam: { year, subject } });
   };
 
   const handleFinishExam = (results) => {
@@ -102,7 +127,7 @@ const App = () => {
     }
 
     setExamResult(results);
-    setCurrentPage('exam_result');
+    navigate('exam_result', { examResult: results });
   };
 
   const requireAuth = (callback) => {
@@ -116,17 +141,17 @@ const App = () => {
   const renderPage = () => {
     switch (currentPage) {
       case 'login':
-        return <LoginPage isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onLoginSuccess={(u) => { setUser(u); setCurrentPage('home'); }} />;
+        return <LoginPage isDarkMode={isDarkMode} onBack={() => navigate('home')} onLoginSuccess={(u) => { setUser(u); navigate('home'); }} />;
       case 'home':
         return (
           <>
             <HomePage 
               key="home" user={user} isPremium={isPremium} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
-              onGoToExamSelection={() => setCurrentPage('exam_selection')}
-              onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
-              onGoToPremium={() => setCurrentPage('premium')}
+              onGoToExamSelection={() => navigate('exam_selection')}
+              onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
+              onGoToPremium={() => navigate('premium')}
               onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
-              onLogin={() => setCurrentPage('login')}
+              onLogin={() => navigate('login')}
               wrongCount={wrongAnswers.length}
             />
             <AnimatePresence>
@@ -134,24 +159,24 @@ const App = () => {
                 <AuthGatingModal 
                   isDarkMode={isDarkMode} 
                   onClose={() => setShowGatingModal(false)}
-                  onLogin={() => { setShowGatingModal(false); setCurrentPage('login'); }}
+                  onLogin={() => { setShowGatingModal(false); navigate('login'); }}
                 />
               )}
             </AnimatePresence>
           </>
         );
       case 'exam_selection':
-        return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onSelectExam={handleStartFullExam} />;
+        return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onSelectExam={handleStartFullExam} />;
       case 'full_exam':
-        return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => setCurrentPage('exam_selection')} onFinish={handleFinishExam} />;
+        return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => navigate('exam_selection')} onFinish={handleFinishExam} />;
       case 'exam_result':
-        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} user={user} />;
+        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => navigate('home')} onRetry={() => navigate('full_exam')} user={user} />;
       case 'wrong_note':
-        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
+        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => navigate('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
       case 'premium':
-        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onUpgrade={() => { setIsPremium(true); setCurrentPage('home'); }} />;
+        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => navigate('home')} onUpgrade={() => { setIsPremium(true); navigate('home'); }} />;
       default:
-        return <HomePage key="default" isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode} onGoToExamSelection={() => setCurrentPage('exam_selection')} onGoToWrongNote={() => requireAuth(() => setCurrentPage('home'))} />;
+        return <HomePage key="default" isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode} onGoToExamSelection={() => navigate('exam_selection')} onGoToWrongNote={() => requireAuth(() => navigate('home'))} />;
     }
   };
 
