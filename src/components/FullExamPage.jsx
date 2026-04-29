@@ -8,8 +8,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
   const [answers, setAnswers] = useState({});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 툴팁 상태 추가
   const [showHoldTooltip, setShowHoldTooltip] = useState(false);
   
   const [timeLeft, setTimeLeft] = useState(3000);
@@ -19,7 +17,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
   const generateMockQuestions = () => {
     return Array.from({ length: 40 }).map((_, i) => ({
       id: i,
-      question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. 실전처럼 풀고 보류 기능을 테스트해 보세요.`,
+      question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. 답을 선택하지 않고 다음으로 넘어가면 자동으로 보류 처리됩니다.`,
       options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
       answer: 0,
       subject: subject
@@ -75,6 +73,18 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: optionIndex }));
   };
 
+  // 문항 이동 시 자동 보류 체크 로직
+  const navigateTo = (newIndex) => {
+    // 현재 문제에 답이 없으면 자동으로 보류 목록에 추가
+    if (answers[currentIndex] === undefined) {
+      const newHeld = new Set(heldQuestions);
+      newHeld.add(currentIndex);
+      setHeldQuestions(newHeld);
+    }
+    setCurrentIndex(newIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const toggleHold = () => {
     const newHeld = new Set(heldQuestions);
     if (newHeld.has(currentIndex)) {
@@ -89,8 +99,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     const heldList = Array.from(heldQuestions).sort((a, b) => a - b);
     const nextHeld = heldList.find(idx => idx > currentIndex) ?? heldList[0];
     if (nextHeld !== undefined) {
-      setCurrentIndex(nextHeld);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigateTo(nextHeld);
     } else {
       alert('보류된 문제가 없습니다.');
     }
@@ -148,7 +157,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
               return (
                 <button
                   key={i}
-                  onClick={() => { setCurrentIndex(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => navigateTo(i)}
                   className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm transition-all duration-300 border relative
                     ${isCurrent ? (isDarkMode ? 'bg-white text-midnight border-white scale-110 shadow-lg' : 'bg-midnight text-white border-midnight scale-110 shadow-lg') : 
                       isHeld ? 'bg-amber-500/20 text-amber-500 border-amber-500/50' :
@@ -186,7 +195,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
                     {currentQuestion?.question_text || "문제를 불러올 수 없습니다."}
                   </h2>
                 </div>
-                {/* 🚩 Hold Toggle Button with Tooltip */}
                 <div className="relative">
                   <button 
                     onMouseEnter={() => setShowHoldTooltip(true)}
@@ -246,7 +254,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
 
             <div className="mt-24 pt-12 border-t border-white/5 flex justify-between items-center relative z-10">
               <button 
-                onClick={() => { setCurrentIndex(prev => Math.max(0, prev - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onClick={() => navigateTo(Math.max(0, currentIndex - 1))}
                 disabled={currentIndex === 0}
                 className={`px-10 py-5 rounded-[2rem] font-black tracking-widest transition-all ${currentIndex === 0 ? 'opacity-20' : 'glass-button hover:scale-105 active:scale-95'}`}
               >
@@ -258,7 +266,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
                  <span className="text-xl opacity-30">{questions.length}</span>
               </div>
               <button 
-                onClick={() => { setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onClick={() => navigateTo(Math.min(questions.length - 1, currentIndex + 1))}
                 disabled={currentIndex === questions.length - 1}
                 className={`px-10 py-5 bg-gold text-midnight rounded-[2rem] font-black tracking-widest shadow-xl shadow-gold/20 transition-all ${currentIndex === questions.length - 1 ? 'opacity-20' : 'hover:scale-105 active:scale-95'}`}
               >
