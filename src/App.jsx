@@ -104,7 +104,6 @@ const App = () => {
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('exam_selection')}
             onFinish={handleFinishExam}
-            onSpeak={speakText}
           />
         );
       case 'exam_result':

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, onSpeak }) => {
+const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -140,15 +140,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, onSpeak }) 
           </div>
           
           <div className="flex items-center space-x-6">
-            {/* 🔊 AI Audio Playback Button */}
-            <button 
-              onClick={() => onSpeak(currentQuestion?.question_text)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/20 hover:bg-gold/20 transition-all"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-              <span className="font-black text-xs uppercase hidden sm:inline">Listen AI</span>
-            </button>
-
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
             </div>
