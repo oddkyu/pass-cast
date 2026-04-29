@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium = false }) => {
@@ -8,6 +8,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   const [timeLeft, setTimeLeft] = useState(50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const showAds = !isPremium;
+  const questionTopRef = useRef(null); // 질문지 상단 참조
 
   // Mock Questions
   const questions = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
@@ -31,6 +32,13 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
     const s = seconds % 60;
     return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
+
+  // 문항 변경 시 질문지 상단으로 자동 스크롤
+  useEffect(() => {
+    if (questionTopRef.current) {
+      questionTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentIndex]);
 
   const handleSelectAnswer = (idx) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: idx }));
@@ -82,6 +90,9 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
 
       {/* 🏁 Wide Question Area */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
+        {/* 🔝 질문지 상단 스크롤 기준점 */}
+        <div ref={questionTopRef} className="scroll-mt-36" />
+
         <section className="space-y-6 md:space-y-8">
            <div className="flex items-center justify-between">
               <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter uppercase italic">Question {currentIndex + 1}</span>
