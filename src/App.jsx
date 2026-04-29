@@ -9,12 +9,12 @@ import FullExamPage from './components/FullExamPage';
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(null);
+  const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-  const handleStartFullExam = (year) => {
-    setSelectedYear(year);
+  const handleStartFullExam = (year, subject) => {
+    setSelectedExam({ year, subject });
     setCurrentPage('full_exam');
   };
 
@@ -41,14 +41,15 @@ const App = () => {
             key="exam_selection"
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('home')}
-            onSelectYear={handleStartFullExam}
+            onSelectExam={handleStartFullExam}
           />
         )}
 
         {currentPage === 'full_exam' && (
           <FullExamPage 
             key="full_exam"
-            year={selectedYear}
+            year={selectedExam.year}
+            subject={selectedExam.subject}
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('exam_selection')}
           />

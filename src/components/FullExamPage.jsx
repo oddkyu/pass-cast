@@ -2,33 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const FullExamPage = ({ year, isDarkMode, onBack }) => {
+const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({}); // { index: selectedOption }
+  const [answers, setAnswers] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchFullExam = async () => {
     setIsLoading(true);
     try {
+      // 연도(year)와 과목(subject)을 모두 조건으로 사용
       const { data, error } = await supabase
         .from('questions')
         .select('*')
         .eq('year', year)
-        .order('id', { ascending: true }); // ID 순서대로 (실제로는 정식 문항 번호 필드가 있다면 그것을 사용)
+        .eq('subject', subject)
+        .order('id', { ascending: true });
 
       if (error) throw error;
-      setQuestions(data);
+      
+      // 만약 검색 결과가 없다면 (데이터베이스가 아직 준비되지 않은 경우) 테스트용 데이터 생성
+      if (!data || data.length === 0) {
+        setQuestions(Array.from({ length: 40 }).map((_, i) => ({
+          id: i,
+          question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. Supabase에 '${subject}' 과목 데이터가 입력되면 실제 문제로 교체됩니다.`,
+          options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
+          answer: 0,
+          subject: subject
+        })));
+      } else {
+        setQuestions(data);
+      }
     } catch (err) {
       console.error('Error fetching full exam:', err);
-      // Mock data for demo if fetch fails
-      setQuestions(Array.from({ length: 40 }).map((_, i) => ({
-        id: i,
-        question_text: `${year}년 제${year-1989}회 기출문제 제${i+1}번 문항입니다. Supabase 데이터 확인이 필요합니다.`,
-        options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
-        answer: 0,
-        subject: "공인중개사법"
-      })));
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +42,7 @@ const FullExamPage = ({ year, isDarkMode, onBack }) => {
 
   useEffect(() => {
     fetchFullExam();
-  }, [year]);
+  }, [year, subject]);
 
   const handleSelect = (optionIndex) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: optionIndex }));
@@ -48,7 +54,7 @@ const FullExamPage = ({ year, isDarkMode, onBack }) => {
     return (
       <div className={`flex-1 flex flex-col items-center justify-center min-h-screen ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-8"></div>
-        <p className="text-2xl font-black tracking-tight">전체 시험지를 불러오는 중입니다...</p>
+        <p className="text-2xl font-black tracking-tight">{year}년 {subject} 시험지를 준비 중입니다...</p>
       </div>
     );
   }
@@ -63,8 +69,8 @@ const FullExamPage = ({ year, isDarkMode, onBack }) => {
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-0.5">Examination Mode</span>
-              <h1 className="text-xl md:text-2xl font-black tracking-tighter">{year}년 기출문제 풀기</h1>
+              <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-0.5">{year} REAA EXAMINATION</span>
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter">{subject}</h1>
             </div>
           </div>
           
@@ -117,7 +123,7 @@ const FullExamPage = ({ year, isDarkMode, onBack }) => {
 
             <div className="relative z-10 space-y-12">
               <div className="space-y-4">
-                <span className="text-[12px] font-black text-gold uppercase tracking-[0.4em] mb-4 inline-block">{currentQuestion?.subject}</span>
+                <span className="text-[12px] font-black text-gold uppercase tracking-[0.4em] mb-4 inline-block">{year}년 기출</span>
                 <h2 className="text-[24px] md:text-[28px] font-black leading-snug break-keep">
                   {currentQuestion?.question_text}
                 </h2>
