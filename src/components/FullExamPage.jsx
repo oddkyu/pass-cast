@@ -162,6 +162,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
                 `}
               >
                 {i + 1}
+                {heldQuestions.has(i) && <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white dark:border-midnight shadow-sm" />}
               </button>
             ))}
           </div>
