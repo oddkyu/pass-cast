@@ -105,6 +105,22 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     }
   };
 
+  const handleSubmit = () => {
+    const unansweredCount = questions.length - Object.keys(answers).length;
+    const message = unansweredCount > 0 
+      ? `아직 풀지 않은 문제가 ${unansweredCount}개 있습니다. 정말 제출하시겠습니까?`
+      : "시험을 마치고 최종 제출하시겠습니까?";
+    
+    if (window.confirm(message)) {
+      onFinish({
+        questions,
+        answers,
+        year,
+        subject
+      });
+    }
+  };
+
   const currentQuestion = questions[currentIndex];
   const isCurrentHeld = heldQuestions.has(currentIndex);
 
@@ -112,7 +128,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
     return (
       <div className={`flex-1 flex flex-col items-center justify-center min-h-screen ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-8"></div>
-        <p className="text-2xl font-black tracking-tight">시험지를 준비 중입니다...</p>
+        <p className="text-2xl font-black tracking-tight">{year}년 {subject} 시험지를 준비 중입니다...</p>
       </div>
     );
   }
@@ -144,7 +160,18 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
             </div>
-            <button className="px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest border border-gold/30">최종 제출</button>
+            
+            <div className="hidden md:flex items-center space-x-4">
+               <div className="px-4 py-2 rounded-xl bg-gold/10 text-gold text-sm font-black border border-gold/20">
+                 {Object.keys(answers).length} / {questions.length} 완료
+               </div>
+               <button 
+                onClick={handleSubmit}
+                className="px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest hover:scale-105 transition-transform border border-gold/30 shadow-lg shadow-gold/10"
+               >
+                 최종 제출
+               </button>
+            </div>
           </div>
         </div>
 

@@ -5,21 +5,26 @@ import QuizPage from './components/QuizPage';
 import LandingPage from './components/LandingPage';
 import ExamSelectionPage from './components/ExamSelectionPage';
 import FullExamPage from './components/FullExamPage';
+import ExamResultPage from './components/ExamResultPage';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
+  const [examResult, setExamResult] = useState(null);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleStartFullExam = (year, subject) => {
-    console.log("Starting Full Exam:", year, subject);
     setSelectedExam({ year, subject });
     setCurrentPage('full_exam');
   };
 
-  // 현재 페이지 렌더링 함수 (더 확실한 전환을 위해 분리)
+  const handleFinishExam = (results) => {
+    setExamResult(results);
+    setCurrentPage('exam_result');
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'landing':
@@ -52,6 +57,17 @@ const App = () => {
             subject={selectedExam.subject}
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('exam_selection')}
+            onFinish={handleFinishExam}
+          />
+        );
+      case 'exam_result':
+        return (
+          <ExamResultPage 
+            key="exam_result"
+            result={examResult}
+            isDarkMode={isDarkMode}
+            onHome={() => setCurrentPage('home')}
+            onRetry={() => setCurrentPage('full_exam')}
           />
         );
       case 'quiz':
