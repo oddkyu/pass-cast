@@ -5,7 +5,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(50 * 60); // 실제 시험 시간: 과목당 50분
+  const [timeLeft, setTimeLeft] = useState(50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const showAds = !isPremium;
 
@@ -34,11 +34,8 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
 
   const handleSelectAnswer = (idx) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: idx }));
-    // 💡 전처럼 답을 체크하면 다음 문제로 자동 이동 (0.3초 딜레이)
     if (currentIndex < questions.length - 1) {
-      setTimeout(() => {
-        setCurrentIndex(prev => prev + 1);
-      }, 300);
+      setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
     }
   };
 
@@ -54,78 +51,71 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   const currentQuestion = questions[currentIndex];
 
   return (
-    <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-36 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
+    <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-28 md:pb-32 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
-      {/* 🏛️ Header with Timer and Question Number */}
-      <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-8 h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
-        <div className="flex items-center space-x-6">
-          <button onClick={() => setShowExitConfirm(true)} className="w-10 h-10 border border-gold/30 rounded-xl flex items-center justify-center hover:bg-gold/5 transition-all text-gold">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      {/* 🏛️ Compact Header */}
+      <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-6 md:px-8 h-16 md:h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className="flex items-center space-x-4 md:space-x-6">
+          <button onClick={() => setShowExitConfirm(true)} className="w-8 h-8 md:w-10 md:h-10 border border-gold/30 rounded-xl flex items-center justify-center text-gold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex flex-col">
-             <span className="text-[10px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
-             <h1 className="text-lg font-black tracking-tight">실전 기출 시험</h1>
+             <span className="text-[9px] md:text-[10px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
+             <h1 className="text-sm md:text-lg font-black tracking-tight">기출 실전 시험</h1>
           </div>
         </div>
 
-        <div className="flex items-center space-x-6 md:space-x-10">
-           {/* 💡 전처럼 타이머와 문항 번호를 함께 표시 */}
-           <div className="flex items-center bg-midnight text-gold px-6 py-2.5 rounded-full font-black text-sm border border-gold/30 shadow-lg space-x-4">
-              <div className="flex items-center space-x-2 border-r border-gold/20 pr-4">
-                 <span className="text-[10px] opacity-40 uppercase">Q</span>
-                 <span className="text-base">{currentIndex + 1}</span>
-                 <span className="text-[10px] opacity-40">/ {questions.length}</span>
+        <div className="flex items-center space-x-4 md:space-x-10">
+           <div className="flex items-center bg-midnight text-gold px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black text-[12px] md:text-sm border border-gold/30 shadow-lg space-x-3 md:space-x-4">
+              <div className="flex items-center space-x-1.5 md:space-x-2 border-r border-gold/20 pr-3 md:pr-4">
+                 <span className="text-[9px] md:text-[10px] opacity-40 uppercase font-black tracking-tighter">Q</span>
+                 <span className="text-sm md:text-base">{currentIndex + 1}</span>
+                 <span className="text-[9px] md:text-[10px] opacity-40">/ {questions.length}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                 <span>{formatTime(timeLeft)}</span>
+              <div className="flex items-center space-x-1.5 md:space-x-2">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                 <span className="tabular-nums">{formatTime(timeLeft)}</span>
               </div>
-           </div>
-           
-           <div className="hidden md:flex items-center space-x-3 text-gold">
-              <span className="text-[10px] font-black uppercase opacity-40">보류</span>
-              <span className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-xs font-black border border-gold/20">{heldQuestions.size}</span>
            </div>
         </div>
       </header>
 
       {/* 🏁 Wide Question Area */}
-        <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
-          <section className="space-y-6 md:space-y-8">
-             <div className="flex items-center justify-between">
-                <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter">QUESTION {currentIndex + 1}</span>
-                <button 
-                  onClick={() => toggleHold(currentIndex)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                    ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
-                  `}
-                >
-                  {heldQuestions.has(currentIndex) ? '검토 중' : '보류'}
-                </button>
-             </div>
-             <h2 className="text-xl md:text-3xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
-          </section>
-
-          <section className="grid grid-cols-1 gap-4 md:gap-5">
-            {currentQuestion.options.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectAnswer(idx)}
-                className={`p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2
-                  ${answers[currentIndex] === idx 
-                    ? 'bg-gold border-gold text-midnight shadow-xl' 
-                    : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30 hover:bg-white/10' : 'bg-white border-slate-100 hover:border-gold/30 shadow-sm')}
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
+        <section className="space-y-6 md:space-y-8">
+           <div className="flex items-center justify-between">
+              <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter uppercase italic">Question {currentIndex + 1}</span>
+              <button 
+                onClick={() => toggleHold(currentIndex)}
+                className={`px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                  ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
                 `}
               >
-                <span className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center font-black text-base md:text-xl
-                   ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
-                `}>{idx + 1}</span>
-                <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
+                {heldQuestions.has(currentIndex) ? '보류 중' : '보류 표시'}
               </button>
-            ))}
-          </section>
+           </div>
+           <h2 className="text-xl md:text-3xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
+        </section>
 
-        {/* 💡 보기 바로 다음에 배치된 '다음 문제로' 버튼 */}
+        <section className="grid grid-cols-1 gap-4 md:gap-5">
+          {currentQuestion.options.map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSelectAnswer(idx)}
+              className={`p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2
+                ${answers[currentIndex] === idx 
+                  ? 'bg-gold border-gold text-midnight shadow-xl' 
+                  : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30' : 'bg-white border-slate-100 hover:border-gold/30 shadow-sm')}
+              `}
+            >
+              <span className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl
+                 ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
+              `}>{idx + 1}</span>
+              <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
+            </button>
+          ))}
+        </section>
+
         <div className="flex justify-end pt-4">
            <button 
              onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
@@ -139,79 +129,75 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
 
         {/* 📢 Bottom Ad Slot */}
         {showAds && (
-          <div className="pt-20 flex justify-center">
-             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+          <div className="pt-16 md:pt-24 flex justify-center">
+             <div className={`w-full max-w-[728px] h-[90px] rounded-xl border border-dashed flex flex-col items-center justify-center transition-all
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/10' : 'bg-slate-50 border-slate-200 text-slate-300'}
              `}>
-                <span className="text-[9px] font-black uppercase tracking-widest mb-1">Advertising Slot</span>
-                <p className="text-xs font-bold opacity-30">학습의 맥을 끊지 않는 하단 광고 영역입니다.</p>
+                <span className="text-[9px] font-black uppercase opacity-30">Ad Slot</span>
              </div>
           </div>
         )}
       </main>
 
-      {/* 🧭 Horizontal Navigation Bar (Fixed Bottom) */}
-      <footer className={`fixed bottom-0 left-0 w-full z-50 border-t transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'}`}>
-        <div className="max-w-5xl mx-auto px-6 py-4 space-y-4">
-           {/* 🔢 Horizontal Number Bar */}
-           <div className="flex overflow-x-auto scrollbar-hide space-x-2 pb-2">
-              {questions.map((q, i) => {
-                const isSelected = currentIndex === i;
-                const isAnswered = answers[i] !== undefined;
-                const isItemHeld = heldQuestions.has(i);
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentIndex(i)}
-                    className={`flex-shrink-0 w-11 h-11 rounded-xl font-black text-sm relative transition-all
-                      ${isSelected ? 'bg-midnight text-gold scale-110 z-10 shadow-lg' : isAnswered ? 'bg-gold/20 text-gold' : 'bg-midnight/5 opacity-40'}
-                    `}
-                  >
-                    {i + 1}
-                    {isItemHeld && <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm" />}
+      {/* 🧭 Re-designed Navigation Bar (Ultra-Compact) */}
+      <footer className={`fixed bottom-0 left-0 w-full z-50 border-t transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.1)]'}`}>
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 md:py-4">
+           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              
+              {/* 🔢 문항 칩 스트립 (더 얇고 세련되게) */}
+              <div className="w-full md:w-auto flex overflow-x-auto scrollbar-hide space-x-1.5 md:space-x-2 px-2 py-1 bg-midnight/5 rounded-xl md:rounded-2xl border border-white/5">
+                {questions.map((q, i) => {
+                  const isSelected = currentIndex === i;
+                  const isAnswered = answers[i] !== undefined;
+                  const isItemHeld = heldQuestions.has(i);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentIndex(i)}
+                      className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl font-black text-[10px] md:text-[12px] relative transition-all
+                        ${isSelected ? 'bg-midnight text-gold scale-105 shadow-md border border-gold/30 z-10' : isAnswered ? 'bg-gold/20 text-gold' : 'opacity-30'}
+                      `}
+                    >
+                      {i + 1}
+                      {isItemHeld && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-2.5 md:h-2.5 bg-orange-500 rounded-full border-2 border-white" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 🕹️ 액션 그룹 */}
+              <div className="flex items-center justify-between w-full md:w-auto gap-3 md:gap-4 border-t md:border-0 pt-3 md:pt-0">
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className="w-10 h-10 md:w-12 md:h-12 bg-midnight/5 rounded-xl flex items-center justify-center disabled:opacity-10 hover:bg-midnight/10 transition-all text-midnight dark:text-white">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
                   </button>
-                );
-              })}
-           </div>
-
-           <div className="flex items-center justify-between gap-4">
-             <div className="flex space-x-4">
+                  <button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentIndex === questions.length - 1} className="w-10 h-10 md:w-12 md:h-12 bg-midnight/5 rounded-xl flex items-center justify-center disabled:opacity-10 hover:bg-midnight/10 transition-all text-midnight dark:text-white">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
+                </div>
+                
                 <button 
-                  onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-                  disabled={currentIndex === 0}
-                  className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
+                  onClick={() => onFinish({ questions, answers, year, subject })}
+                  className="flex-1 md:flex-none px-6 md:px-10 py-3 md:py-3.5 bg-midnight text-gold rounded-xl md:rounded-2xl font-black text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest"
                 >
-                  이전
+                  최종 채점
                 </button>
-                <button 
-                  onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-                  disabled={currentIndex === questions.length - 1}
-                  className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
-                >
-                  다음
-                </button>
-             </div>
+              </div>
 
-             <button 
-               onClick={() => onFinish({ questions, answers, year, subject })}
-               className="px-12 py-4 bg-midnight text-gold rounded-2xl font-black text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
-             >
-               제출 및 채점
-             </button>
            </div>
         </div>
       </footer>
 
-      {/* 🔍 Exit Modal */}
+      {/* 🔍 Exit Confirmation Modal */}
       <AnimatePresence>
         {showExitConfirm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowExitConfirm(false)} className="absolute inset-0 bg-midnight/80 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className={`relative w-full max-w-md rounded-[3rem] p-12 text-center space-y-10 ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}>
-              <h3 className="text-2xl font-black tracking-tight leading-tight">시험을 종료할까요?</h3>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className={`relative w-full max-w-md rounded-[2.5rem] p-10 md:p-12 text-center space-y-8 md:space-y-10 ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}>
+              <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight">시험을 종료할까요?</h3>
               <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => setShowExitConfirm(false)} className="py-4 rounded-2xl font-black opacity-40">취소</button>
-                <button onClick={onBack} className="py-4 bg-red-500 text-white rounded-2xl font-black">종료</button>
+                <button onClick={() => setShowExitConfirm(false)} className="py-3 md:py-4 rounded-xl font-black opacity-40">취소</button>
+                <button onClick={onBack} className="py-3 md:py-4 bg-red-500 text-white rounded-xl font-black shadow-lg">종료</button>
               </div>
             </motion.div>
           </div>
