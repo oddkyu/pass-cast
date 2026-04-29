@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import HomePage from './components/HomePage';
 import QuizPage from './components/QuizPage';
 import LandingPage from './components/LandingPage';
@@ -17,79 +16,65 @@ const App = () => {
 
   const handleStartFullExam = (year, subject) => {
     setSelectedExam({ year, subject });
-    setCurrentPage('full_exam');
+    setCurrentPage('exam_selection_loading'); // 로딩 상태를 거쳐가도록 유도
+    setTimeout(() => setCurrentPage('full_exam'), 10);
   };
 
   const handleFinishExam = (results) => {
-    if (!results) return;
+    console.log("Finishing Exam with results:", results);
     setExamResult(results);
-    // 상태 업데이트 후 페이지 전환이 확실히 일어나도록 유도
-    setTimeout(() => {
-      setCurrentPage('exam_result');
-    }, 10);
+    setCurrentPage('exam_result');
   };
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
-      case 'home':
-        return (
-          <HomePage 
-            key="home" 
-            isDarkMode={isDarkMode}
-            onToggleTheme={toggleDarkMode}
-            onStartQuiz={() => setCurrentPage('quiz')} 
-            onGoToLanding={() => setCurrentPage('landing')}
-            onGoToExamSelection={() => setCurrentPage('exam_selection')}
-          />
-        );
-      case 'exam_selection':
-        return (
-          <ExamSelectionPage 
-            key="exam_selection"
-            isDarkMode={isDarkMode}
-            onBack={() => setCurrentPage('home')}
-            onSelectExam={handleStartFullExam}
-          />
-        );
-      case 'full_exam':
-        return (
-          <FullExamPage 
-            key="full_exam"
-            year={selectedExam.year}
-            subject={selectedExam.subject}
-            isDarkMode={isDarkMode}
-            onBack={() => setCurrentPage('exam_selection')}
-            onFinish={handleFinishExam}
-          />
-        );
-      case 'exam_result':
-        return (
-          <ExamResultPage 
-            key="exam_result"
-            result={examResult}
-            isDarkMode={isDarkMode}
-            onHome={() => setCurrentPage('home')}
-            onRetry={() => setCurrentPage('full_exam')}
-          />
-        );
-      case 'quiz':
-        return (
-          <div key="quiz" className="max-w-md mx-auto min-h-screen shadow-2xl">
-            <QuizPage onBack={() => setCurrentPage('home')} />
-          </div>
-        );
-      default:
-        return <LandingPage key="default" onBack={() => setCurrentPage('home')} />;
-    }
-  };
-
+  // 렌더링 로직을 가장 단순하게 변경
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
-      <AnimatePresence mode="wait">
-        {renderPage()}
-      </AnimatePresence>
+    <div className={`min-h-screen ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+      {currentPage === 'landing' && (
+        <LandingPage onBack={() => setCurrentPage('home')} />
+      )}
+      
+      {currentPage === 'home' && (
+        <HomePage 
+          isDarkMode={isDarkMode}
+          onToggleTheme={toggleDarkMode}
+          onStartQuiz={() => setCurrentPage('quiz')} 
+          onGoToLanding={() => setCurrentPage('landing')}
+          onGoToExamSelection={() => setCurrentPage('exam_selection')}
+        />
+      )}
+
+      {currentPage === 'exam_selection' && (
+        <ExamSelectionPage 
+          isDarkMode={isDarkMode}
+          onBack={() => setCurrentPage('home')}
+          onSelectExam={handleStartFullExam}
+        />
+      )}
+
+      {currentPage === 'full_exam' && (
+        <FullExamPage 
+          year={selectedExam.year}
+          subject={selectedExam.subject}
+          isDarkMode={isDarkMode}
+          onBack={() => setCurrentPage('exam_selection')}
+          onFinish={handleFinishExam}
+        />
+      )}
+
+      {currentPage === 'exam_result' && examResult && (
+        <ExamResultPage 
+          result={examResult}
+          isDarkMode={isDarkMode}
+          onHome={() => setCurrentPage('home')}
+          onRetry={() => setCurrentPage('full_exam')}
+        />
+      )}
+
+      {currentPage === 'quiz' && (
+        <div className="max-w-md mx-auto min-h-screen shadow-2xl">
+          <QuizPage onBack={() => setCurrentPage('home')} />
+        </div>
+      )}
     </div>
   );
 };
