@@ -17,10 +17,11 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
   const generateMockQuestions = () => {
     return Array.from({ length: 40 }).map((_, i) => ({
       id: i,
-      question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. 답을 선택하지 않고 다음으로 넘어가면 자동으로 보류 처리됩니다.`,
-      options: ["1번 선택지", "2번 선택지", "3번 선택지", "4번 선택지", "5번 선택지"],
+      question_text: `[${year}년 ${subject}] 제${i+1}번 문항 예시입니다. 3050 사장님들을 위해 글자 크기와 간격을 시원하게 키웠습니다.`,
+      options: ["1번 선택지 예시입니다.", "2번 선택지 예시입니다.", "3번 선택지 예시입니다.", "4번 선택지 예시입니다.", "5번 선택지 예시입니다."],
       answer: 0,
-      subject: subject
+      subject: subject,
+      explanation: "이 문제에 대한 상세 해설입니다. 정답의 근거를 명확히 제시합니다."
     }));
   };
 
@@ -73,9 +74,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
     setAnswers(prev => ({ ...prev, [currentIndex]: optionIndex }));
   };
 
-  // 문항 이동 시 자동 보류 체크 로직
   const navigateTo = (newIndex) => {
-    // 현재 문제에 답이 없으면 자동으로 보류 목록에 추가
     if (answers[currentIndex] === undefined) {
       const newHeld = new Set(heldQuestions);
       newHeld.add(currentIndex);
@@ -112,12 +111,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
       : "시험을 마치고 최종 제출하시겠습니까?";
     
     if (window.confirm(message)) {
-      onFinish({
-        questions,
-        answers,
-        year,
-        subject
-      });
+      onFinish({ questions, answers, year, subject });
     }
   };
 
@@ -149,10 +143,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
           
           <div className="flex items-center space-x-8">
             {heldQuestions.size > 0 && (
-              <button 
-                onClick={goToNextHeld}
-                className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/30 font-black text-sm hover:bg-amber-500/20 transition-all"
-              >
+              <button onClick={goToNextHeld} className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/30 font-black text-sm hover:bg-amber-500/20 transition-all">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 <span>보류 문항 검토 ({heldQuestions.size})</span>
               </button>
@@ -160,90 +151,61 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
             </div>
-            
             <div className="hidden md:flex items-center space-x-4">
                <div className="px-4 py-2 rounded-xl bg-gold/10 text-gold text-sm font-black border border-gold/20">
                  {Object.keys(answers).length} / {questions.length} 완료
                </div>
-               <button 
-                onClick={handleSubmit}
-                className="px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest hover:scale-105 transition-transform border border-gold/30 shadow-lg shadow-gold/10"
-               >
-                 최종 제출
-               </button>
+               <button onClick={handleSubmit} className="px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest hover:scale-105 transition-transform border border-gold/30 shadow-lg shadow-gold/10">최종 제출</button>
             </div>
           </div>
         </div>
 
         <div className={`border-t transition-all ${isDarkMode ? 'border-white/5' : 'border-slate-50'}`}>
           <div className="max-w-7xl mx-auto px-8 md:px-12 py-4 overflow-x-auto scrollbar-hide flex items-center space-x-3">
-            {questions.map((_, i) => {
-              const isAnswered = answers[i] !== undefined;
-              const isHeld = heldQuestions.has(i);
-              const isCurrent = i === currentIndex;
-              return (
-                <button
-                  key={i}
-                  onClick={() => navigateTo(i)}
-                  className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm transition-all duration-300 border relative
-                    ${isCurrent ? (isDarkMode ? 'bg-white text-midnight border-white scale-110 shadow-lg' : 'bg-midnight text-white border-midnight scale-110 shadow-lg') : 
-                      isHeld ? 'bg-amber-500/20 text-amber-500 border-amber-500/50' :
-                      isAnswered ? (isDarkMode ? 'bg-gold/20 text-gold border-gold/30' : 'bg-gold text-midnight border-gold') : 
-                      (isDarkMode ? 'bg-white/5 text-white/30 border-white/5' : 'bg-slate-100 text-slate-400 border-slate-100')}
-                  `}
-                >
-                  {i + 1}
-                  {isHeld && !isCurrent && <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white dark:border-midnight" />}
-                </button>
-              );
-            })}
+            {questions.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => navigateTo(i)}
+                className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm transition-all duration-300 border relative
+                  ${currentIndex === i ? (isDarkMode ? 'bg-white text-midnight border-white scale-110 shadow-lg' : 'bg-midnight text-white border-midnight scale-110 shadow-lg') : 
+                    heldQuestions.has(i) ? 'bg-amber-500/20 text-amber-500 border-amber-500/50' :
+                    answers[i] !== undefined ? (isDarkMode ? 'bg-gold/20 text-gold border-gold/30' : 'bg-gold text-midnight border-gold') : 
+                    (isDarkMode ? 'bg-white/5 text-white/30 border-white/5' : 'bg-slate-100 text-slate-400 border-slate-100')}
+                `}
+              >
+                {i + 1}
+                {heldQuestions.has(i) && currentIndex !== i && <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white dark:border-midnight" />}
+              </button>
+            ))}
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-8 md:px-12 py-12 md:py-20 flex flex-col">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 flex flex-col">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`flex-1 flex flex-col glass-card rounded-[3.5rem] p-10 md:p-20 relative overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/10' : 'border-white'}`}
+            className={`flex-1 flex flex-col glass-card rounded-[4rem] p-12 md:p-24 relative overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/10' : 'border-white bg-white shadow-2xl shadow-slate-100'}`}
           >
-            <div className="absolute top-0 right-0 p-10 opacity-10 font-black text-[150px] pointer-events-none select-none">
-              {currentIndex + 1}
-            </div>
-
-            <div className="relative z-10 space-y-12">
-              <div className="flex justify-between items-start">
-                <div className="space-y-4">
-                  <span className="text-[12px] font-black text-gold uppercase tracking-[0.4em] mb-4 inline-block">{year}년 기출</span>
-                  <h2 className="text-[26px] md:text-[32px] font-black leading-snug break-keep">
+            <div className="relative z-10 space-y-16">
+              <div className="flex justify-between items-start gap-8">
+                <div className="space-y-6">
+                  <span className="text-[14px] font-black text-gold uppercase tracking-[0.5em] mb-4 inline-block">{year}년 기출</span>
+                  {/* 📏 Font Size Enhanced to 32px */}
+                  <h2 className="text-[28px] md:text-[36px] font-black leading-tight break-keep tracking-tight">
                     {currentQuestion?.question_text || "문제를 불러올 수 없습니다."}
                   </h2>
                 </div>
                 <div className="relative">
-                  <button 
-                    onMouseEnter={() => setShowHoldTooltip(true)}
-                    onMouseLeave={() => setShowHoldTooltip(false)}
-                    onClick={toggleHold}
-                    className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all border-2
-                      ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-200 text-slate-300 hover:border-amber-500/50 hover:text-amber-500'}
-                    `}
-                  >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <button onMouseEnter={() => setShowHoldTooltip(true)} onMouseLeave={() => setShowHoldTooltip(false)} onClick={toggleHold} className={`flex-shrink-0 w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all border-2 ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-100 text-slate-200 hover:border-amber-500/50 hover:text-amber-500'}`}>
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                   </button>
-
                   <AnimatePresence>
                     {showHoldTooltip && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-4 py-2 rounded-xl text-[12px] font-black tracking-widest whitespace-nowrap shadow-2xl z-[60] border pointer-events-none
-                          ${isDarkMode ? 'bg-white text-midnight border-white' : 'bg-midnight text-white border-midnight'}
-                        `}
-                      >
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-6 py-3 rounded-2xl text-[12px] font-black tracking-widest whitespace-nowrap shadow-2xl z-[60] border ${isDarkMode ? 'bg-white text-midnight border-white' : 'bg-midnight text-white border-midnight'}`}>
                         {isCurrentHeld ? '보류 취소하기' : '나중에 다시 풀기 (보류)'}
                         <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 ${isDarkMode ? 'bg-white' : 'bg-midnight'}`} />
                       </motion.div>
@@ -252,25 +214,26 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
                 </div>
               </div>
 
-              <div className="space-y-4 pt-12">
+              {/* 📏 Option Spacing Enhanced (gap-6) and Font Size (text-24px) */}
+              <div className="space-y-8 pt-12 border-t border-slate-50 dark:border-white/5">
                 {currentQuestion?.options?.map((option, idx) => {
                   const isSelected = answers[currentIndex] === idx;
                   return (
                     <button
                       key={idx}
                       onClick={() => handleSelect(idx)}
-                      className={`w-full text-left p-6 md:p-8 rounded-[2.5rem] border-2 transition-all duration-300 flex items-center group
+                      className={`w-full text-left p-8 md:p-10 rounded-[2.5rem] border-2 transition-all duration-300 flex items-center group
                         ${isSelected ? 
-                          (isDarkMode ? 'bg-white text-midnight border-white shadow-2xl' : 'bg-midnight text-white border-midnight shadow-2xl') : 
+                          (isDarkMode ? 'bg-white text-midnight border-white shadow-2xl scale-[1.02]' : 'bg-midnight text-white border-midnight shadow-2xl scale-[1.02]') : 
                           (isDarkMode ? 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:border-gold/30' : 'bg-white border-slate-100 text-midnight hover:border-gold/30 shadow-sm')}
                       `}
                     >
-                      <span className={`w-12 h-12 rounded-full flex items-center justify-center mr-8 font-black text-xl transition-all
+                      <span className={`w-14 h-14 rounded-full flex items-center justify-center mr-10 font-black text-2xl transition-all
                         ${isSelected ? (isDarkMode ? 'bg-gold text-midnight' : 'bg-gold text-midnight') : 'bg-slate-50 border border-slate-100 text-slate-300 group-hover:bg-gold/20 group-hover:text-gold'}
                       `}>
                         {idx + 1}
                       </span>
-                      <span className="flex-1 font-bold text-[22px] md:text-[24px] leading-tight">
+                      <span className="flex-1 font-bold text-[24px] md:text-[28px] leading-tight tracking-tight">
                         {option}
                       </span>
                     </button>
@@ -280,25 +243,13 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
             </div>
 
             <div className="mt-24 pt-12 border-t border-white/5 flex justify-between items-center relative z-10">
-              <button 
-                onClick={() => navigateTo(Math.max(0, currentIndex - 1))}
-                disabled={currentIndex === 0}
-                className={`px-10 py-5 rounded-[2rem] font-black tracking-widest transition-all ${currentIndex === 0 ? 'opacity-20' : 'glass-button hover:scale-105 active:scale-95'}`}
-              >
-                이전 문항
-              </button>
-              <div className="flex items-center space-x-3 text-gold font-black">
-                 <span className="text-3xl">{currentIndex + 1}</span>
-                 <span className="text-xl opacity-30">/</span>
-                 <span className="text-xl opacity-30">{questions.length}</span>
+              <button onClick={() => navigateTo(Math.max(0, currentIndex - 1))} disabled={currentIndex === 0} className={`px-12 py-6 rounded-[2rem] font-black tracking-widest transition-all ${currentIndex === 0 ? 'opacity-20' : 'glass-button hover:scale-105 active:scale-95'}`}>이전 문항</button>
+              <div className="flex items-center space-x-4 text-gold font-black">
+                 <span className="text-4xl">{currentIndex + 1}</span>
+                 <span className="text-2xl opacity-30">/</span>
+                 <span className="text-2xl opacity-30">{questions.length}</span>
               </div>
-              <button 
-                onClick={() => navigateTo(Math.min(questions.length - 1, currentIndex + 1))}
-                disabled={currentIndex === questions.length - 1}
-                className={`px-10 py-5 bg-gold text-midnight rounded-[2rem] font-black tracking-widest shadow-xl shadow-gold/20 transition-all ${currentIndex === questions.length - 1 ? 'opacity-20' : 'hover:scale-105 active:scale-95'}`}
-              >
-                다음 문항
-              </button>
+              <button onClick={() => navigateTo(Math.min(questions.length - 1, currentIndex + 1))} disabled={currentIndex === questions.length - 1} className={`px-12 py-6 bg-gold text-midnight rounded-[2rem] font-black tracking-widest shadow-xl shadow-gold/20 transition-all ${currentIndex === questions.length - 1 ? 'opacity-20' : 'hover:scale-105 active:scale-95'}`}>다음 문항</button>
             </div>
           </motion.div>
         </AnimatePresence>
