@@ -6,8 +6,11 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [heldQuestions, setHeldQuestions] = useState(new Set()); // 보류된 문항 인덱스 저장
+  const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 툴팁 상태 추가
+  const [showHoldTooltip, setShowHoldTooltip] = useState(false);
   
   const [timeLeft, setTimeLeft] = useState(3000);
   const [isPaused, setIsPaused] = useState(false);
@@ -183,15 +186,35 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack }) => {
                     {currentQuestion?.question_text || "문제를 불러올 수 없습니다."}
                   </h2>
                 </div>
-                {/* 🚩 Hold Toggle Button */}
-                <button 
-                  onClick={toggleHold}
-                  className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all border-2
-                    ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-200 text-slate-300 hover:border-amber-500/50 hover:text-amber-500'}
-                  `}
-                >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                </button>
+                {/* 🚩 Hold Toggle Button with Tooltip */}
+                <div className="relative">
+                  <button 
+                    onMouseEnter={() => setShowHoldTooltip(true)}
+                    onMouseLeave={() => setShowHoldTooltip(false)}
+                    onClick={toggleHold}
+                    className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all border-2
+                      ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-200 text-slate-300 hover:border-amber-500/50 hover:text-amber-500'}
+                    `}
+                  >
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  </button>
+
+                  <AnimatePresence>
+                    {showHoldTooltip && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-4 py-2 rounded-xl text-[12px] font-black tracking-widest whitespace-nowrap shadow-2xl z-[60] border pointer-events-none
+                          ${isDarkMode ? 'bg-white text-midnight border-white' : 'bg-midnight text-white border-midnight'}
+                        `}
+                      >
+                        {isCurrentHeld ? '보류 취소하기' : '나중에 다시 풀기 (보류)'}
+                        <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 ${isDarkMode ? 'bg-white' : 'bg-midnight'}`} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               <div className="space-y-4 pt-12">
