@@ -5,7 +5,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(150 * 60);
+  const [timeLeft, setTimeLeft] = useState(50 * 60); // 실제 시험 시간: 과목당 50분
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const showAds = !isPremium;
 
