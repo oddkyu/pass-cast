@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme }) => {
+const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme, onGoToExamSelection }) => {
   const studyStatus = {
     todayProgress: 85,
     completedCount: 17,
@@ -75,7 +75,7 @@ const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme }) => 
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-8 md:px-16 py-12 md:py-24 space-y-16">
         
-        {/* 📊 Analysis Banner */}
+        {/* 📊 Premium Analysis Banner */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className={`lg:col-span-2 glass-card rounded-[3.5rem] p-12 md:p-20 flex flex-col justify-center transition-all duration-500 ${isDarkMode ? 'border-white/10' : 'border-white'}`}>
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
@@ -98,14 +98,10 @@ const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme }) => 
                 className={`h-full bg-gradient-to-r from-gold to-gold-light rounded-full ${isDarkMode ? 'glow-gold' : ''}`}
               />
             </div>
-            <div className={`mt-6 flex justify-between text-[14px] font-black tracking-widest ${isDarkMode ? 'text-white/30' : 'text-slate-300'}`}>
-              <span>PROGRESS STATUS</span>
-              <span>17 / 20 COMPLETED</span>
-            </div>
           </div>
 
-          {/* PC Flow Graph */}
-          <div className={`hidden lg:flex flex-col glass-card rounded-[3.5rem] p-12 border-white/5 overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/5' : 'border-white'}`}>
+          {/* PC Neon Flow Graph */}
+          <div className={`hidden lg:flex flex-col glass-card rounded-[3.5rem] p-12 overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/5' : 'border-white'}`}>
             <h3 className={`text-xs font-black uppercase tracking-[0.3em] mb-12 ${isDarkMode ? 'text-white/30' : 'text-slate-300'}`}>Weekly Intensity</h3>
             <div className="flex-1 flex items-end justify-between px-2 gap-4">
               {[40, 70, 45, 90, 65, 80, 75].map((h, i) => (
@@ -124,30 +120,39 @@ const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme }) => 
           </div>
         </section>
 
-        {/* ⚡ Action Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {/* ⚡ Action Grid (4 Cards) */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
           <ActionButton 
             onClick={onStartQuiz}
             icon={<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>}
-            badge="AI PICKS"
+            badge="QUICK"
             title="지금 바로 5문제 풀기"
-            description="가장 과학적인 지문 엄선"
+            description="과학적인 지문 엄선"
             primary
             isDarkMode={isDarkMode}
           />
           <ActionButton 
+            onClick={onGoToExamSelection}
+            icon={<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>}
+            badge="FULL EXAM"
+            title="회차별 기출 풀기"
+            description="실전과 동일한 40문항"
+            isDarkMode={isDarkMode}
+            highlight
+          />
+          <ActionButton 
             icon={<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>}
-            badge="VOICE RECAP"
-            title="AI 오디오 복습 듣기"
-            description="이동 중에 귀로 공부하는 지문"
+            badge="AI AUDIO"
+            title="AI 오디오 복습"
+            description="귀로 공부하는 지문"
             isDarkMode={isDarkMode}
           />
           <ActionButton 
             onClick={onGoToLanding}
             icon={<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}
-            badge="MEMBERSHIP"
+            badge="PASS"
             title="프리미엄 합격 패스"
-            description="모든 지능형 기능 무제한"
+            description="모든 기능 무제한"
             goldStyle
             isDarkMode={isDarkMode}
           />
@@ -164,21 +169,13 @@ const HomePage = ({ onStartQuiz, onGoToLanding, isDarkMode, onToggleTheme }) => 
               AI가 설계한 공인중개사<br/>합격의 최단 경로, 패스캐스트.
             </p>
           </div>
-          <div>
-            <h5 className="text-[12px] font-black text-gold uppercase tracking-[0.3em] mb-8">Platform</h5>
-            <ul className={`space-y-5 font-bold text-sm ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>
-              <li className="hover:text-gold cursor-pointer transition-colors">서비스 이용약관</li>
-              <li className="hover:text-gold cursor-pointer transition-colors">개인정보 처리방침</li>
-              <li className="hover:text-gold cursor-pointer transition-colors">기술 지원</li>
-            </ul>
-          </div>
-          <div className="flex flex-col items-start lg:items-end col-span-2">
+          <div className="flex flex-col items-start lg:items-end col-span-3">
             <p className={`text-[11px] font-black uppercase tracking-[0.4em] ${isDarkMode ? 'text-white/10' : 'text-slate-200'}`}>© 2026 pass-cast Intelligence</p>
           </div>
         </div>
       </footer>
 
-      {/* Mobile Nav */}
+      {/* Mobile Luxury Nav */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 border-t px-10 py-8 flex justify-between items-center z-50 transition-all duration-500 ${isDarkMode ? 'bg-midnight/60 backdrop-blur-3xl border-white/5' : 'bg-white/90 backdrop-blur-md border-slate-100'}`}>
         <TabItem icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>} label="홈" active isDarkMode={isDarkMode} />
         <TabItem icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>} label="오답" isDarkMode={isDarkMode} />
@@ -202,32 +199,34 @@ const NavMenu = ({ label, active = false, isDarkMode }) => (
   </button>
 );
 
-const ActionButton = ({ onClick, icon, badge, title, description, primary = false, goldStyle = false, isDarkMode }) => (
+const ActionButton = ({ onClick, icon, badge, title, description, primary = false, goldStyle = false, isDarkMode, highlight = false }) => (
   <button 
     onClick={onClick}
-    className={`w-full group relative flex flex-col p-12 rounded-[3.5rem] lift-hover text-left min-h-[320px] overflow-hidden
+    className={`w-full group relative flex flex-col p-10 rounded-[3rem] lift-hover text-left min-h-[300px] overflow-hidden
       ${goldStyle ? 'bg-gradient-to-br from-gold to-gold-light text-midnight' : 'glass-card'}
       ${!goldStyle && !isDarkMode && 'bg-white shadow-xl shadow-slate-100'}
+      ${highlight && isDarkMode ? 'border-gold/30 shadow-[0_0_40px_rgba(212,175,55,0.1)]' : ''}
+      ${highlight && !isDarkMode ? 'border-gold/20' : ''}
     `}
   >
     <div className="flex justify-between items-start mb-auto">
-      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110
+      <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110
         ${primary ? 'bg-midnight text-gold' : goldStyle ? 'bg-midnight text-gold shadow-midnight/30' : (isDarkMode ? 'bg-white/5 text-gold border border-white/5' : 'bg-slate-50 text-midnight')}
       `}>
         {icon}
       </div>
-      <div className={`px-5 py-2 rounded-full text-[12px] font-black tracking-[0.2em]
-        ${primary ? 'bg-gold text-midnight' : goldStyle ? 'bg-midnight text-white' : (isDarkMode ? 'bg-white/5 text-white/50 border border-white/5' : 'bg-midnight text-white')}
+      <div className={`px-4 py-1.5 rounded-full text-[11px] font-black tracking-[0.2em]
+        ${primary || goldStyle || highlight ? 'bg-gold text-midnight glow-gold' : (isDarkMode ? 'bg-white/5 text-white/50 border border-white/5' : 'bg-midnight text-white')}
       `}>
         {badge}
       </div>
     </div>
-    <div className="mt-12 space-y-3">
-      <h3 className={`text-[28px] font-black leading-tight transition-colors ${!goldStyle && (isDarkMode ? 'group-hover:text-gold' : 'text-midnight')}`}>{title}</h3>
-      <p className={`text-[17px] font-bold ${goldStyle ? 'text-midnight/60' : (isDarkMode ? 'text-white/30' : 'text-slate-400')}`}>{description}</p>
+    <div className="mt-10 space-y-2">
+      <h3 className={`text-2xl font-black leading-tight transition-colors ${!goldStyle && (isDarkMode ? 'group-hover:text-gold' : 'text-midnight')}`}>{title}</h3>
+      <p className={`text-[16px] font-bold ${goldStyle ? 'text-midnight/60' : (isDarkMode ? 'text-white/30' : 'text-slate-400')}`}>{description}</p>
     </div>
     {!goldStyle && (
-      <div className={`absolute bottom-0 right-0 p-10 transition-colors pointer-events-none ${isDarkMode ? 'text-gold/5 group-hover:text-gold/10' : 'text-midnight/5 group-hover:text-midnight/10'}`}>
+      <div className={`absolute bottom-0 right-0 p-8 transition-colors pointer-events-none ${isDarkMode ? 'text-gold/5 group-hover:text-gold/10' : 'text-midnight/5 group-hover:text-midnight/10'}`}>
          {icon}
       </div>
     )}
