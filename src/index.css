@@ -1,19 +1,88 @@
 @import "tailwindcss";
 
 @theme {
-  --color-pass-blue: #EBF4FF;
-  --color-pass-purple: #F5F3FF;
-  --color-pass-brand-blue: #3B82F6;
-  --color-pass-brand-purple: #8B5CF6;
+  --color-midnight: #0F172A;
+  --color-gold: #D4AF37;
+  --color-gold-light: #F1E4C0;
+  --color-offwhite: #F8F9FA;
 }
 
 @layer base {
   body {
-    @apply bg-[#FDFCF9] text-gray-800 antialiased;
-    font-family: 'Pretendard Variable', Pretendard, 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    @apply antialiased min-h-screen transition-colors duration-500;
+    font-family: 'Pretendard Variable', Pretendard, 'Inter', 'Noto Sans KR', sans-serif;
   }
 }
 
-.mobile-container {
-  @apply max-w-md mx-auto min-h-screen bg-[#FDFCF9] flex flex-col relative w-full shadow-2xl shadow-gray-200/50;
+@layer components {
+  /* --- 다크 모드 전용 스타일 --- */
+  .dark-theme {
+    @apply bg-midnight text-white;
+  }
+
+  .dark-theme .mesh-bg {
+    background-color: #0F172A;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(30, 41, 59, 0.5) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
+  }
+
+  .dark-theme .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .dark-theme .glow-gold {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  }
+
+  /* --- 라이트 모드 (기본) 스타일 --- */
+  .light-theme {
+    @apply bg-offwhite text-midnight;
+  }
+
+  .light-theme .glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.08);
+  }
+
+  .light-theme .glass-button {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+  }
+
+  /* --- 공용 프리미엄 유틸리티 --- */
+  .noise-texture::before {
+    content: "";
+    position: fixed;
+    top: -150%; left: -150%; width: 300%; height: 300%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.015;
+    pointer-events: none; z-index: 9999;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lift-hover {
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .lift-hover:hover {
+    transform: translateY(-10px) scale(1.01);
+    @apply shadow-2xl;
+  }
+}
+
+p, span, h1, h2, h3 {
+  letter-spacing: -0.03em;
+  line-height: 1.5;
 }
