@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
+const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, onSpeak }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -21,7 +21,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
       options: ["1번 선택지 예시입니다.", "2번 선택지 예시입니다.", "3번 선택지 예시입니다.", "4번 선택지 예시입니다.", "5번 선택지 예시입니다."],
       answer: 0,
       subject: subject,
-      explanation: "이 문제에 대한 상세 해설입니다. 정답의 근거를 명확히 제시합니다."
+      explanation: "이 문제에 대한 상세 해설입니다."
     }));
   };
 
@@ -99,8 +99,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
     const nextHeld = heldList.find(idx => idx > currentIndex) ?? heldList[0];
     if (nextHeld !== undefined) {
       navigateTo(nextHeld);
-    } else {
-      alert('보류된 문제가 없습니다.');
     }
   };
 
@@ -136,27 +134,26 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-0.5">{year} REAA EXAMINATION</span>
+              <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em] mb-0.5">{year} EXAMINATION</span>
               <h1 className="text-xl md:text-2xl font-black tracking-tighter">{subject}</h1>
             </div>
           </div>
           
-          <div className="flex items-center space-x-8">
-            {heldQuestions.size > 0 && (
-              <button onClick={goToNextHeld} className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/30 font-black text-sm hover:bg-amber-500/20 transition-all">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                <span>보류 문항 검토 ({heldQuestions.size})</span>
-              </button>
-            )}
+          <div className="flex items-center space-x-6">
+            {/* 🔊 AI Audio Playback Button */}
+            <button 
+              onClick={() => onSpeak(currentQuestion?.question_text)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/20 hover:bg-gold/20 transition-all"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              <span className="font-black text-xs uppercase hidden sm:inline">Listen AI</span>
+            </button>
+
             <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl border ${timeLeft < 300 ? 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse' : 'bg-midnight/5 border-gold/20 text-gold'}`}>
               <span className="text-2xl font-black font-mono tracking-wider">{formatTime(timeLeft)}</span>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
-               <div className="px-4 py-2 rounded-xl bg-gold/10 text-gold text-sm font-black border border-gold/20">
-                 {Object.keys(answers).length} / {questions.length} 완료
-               </div>
-               <button onClick={handleSubmit} className="px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest hover:scale-105 transition-transform border border-gold/30 shadow-lg shadow-gold/10">최종 제출</button>
-            </div>
+            
+            <button onClick={handleSubmit} className="hidden sm:block px-6 py-2.5 bg-midnight text-gold rounded-xl text-sm font-black tracking-widest hover:scale-105 transition-transform border border-gold/30 shadow-lg shadow-gold/10">최종 제출</button>
           </div>
         </div>
 
@@ -174,7 +171,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
                 `}
               >
                 {i + 1}
-                {heldQuestions.has(i) && currentIndex !== i && <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white dark:border-midnight" />}
               </button>
             ))}
           </div>
@@ -192,29 +188,17 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
           >
             <div className="relative z-10 space-y-16">
               <div className="flex justify-between items-start gap-8">
-                <div className="space-y-6">
+                <div className="space-y-6 flex-1">
                   <span className="text-[14px] font-black text-gold uppercase tracking-[0.5em] mb-4 inline-block">{year}년 기출</span>
-                  {/* 📏 Font Size Enhanced to 32px */}
                   <h2 className="text-[28px] md:text-[36px] font-black leading-tight break-keep tracking-tight">
-                    {currentQuestion?.question_text || "문제를 불러올 수 없습니다."}
+                    {currentQuestion?.question_text}
                   </h2>
                 </div>
-                <div className="relative">
-                  <button onMouseEnter={() => setShowHoldTooltip(true)} onMouseLeave={() => setShowHoldTooltip(false)} onClick={toggleHold} className={`flex-shrink-0 w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all border-2 ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-100 text-slate-200 hover:border-amber-500/50 hover:text-amber-500'}`}>
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  </button>
-                  <AnimatePresence>
-                    {showHoldTooltip && (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-6 py-3 rounded-2xl text-[12px] font-black tracking-widest whitespace-nowrap shadow-2xl z-[60] border ${isDarkMode ? 'bg-white text-midnight border-white' : 'bg-midnight text-white border-midnight'}`}>
-                        {isCurrentHeld ? '보류 취소하기' : '나중에 다시 풀기 (보류)'}
-                        <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 ${isDarkMode ? 'bg-white' : 'bg-midnight'}`} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <button onClick={toggleHold} className={`flex-shrink-0 w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all border-2 ${isCurrentHeld ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/30' : 'border-slate-100 text-slate-200 hover:border-amber-500/50 hover:text-amber-500'}`}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill={isCurrentHeld ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </button>
               </div>
 
-              {/* 📏 Option Spacing Enhanced (gap-6) and Font Size (text-24px) */}
               <div className="space-y-8 pt-12 border-t border-slate-50 dark:border-white/5">
                 {currentQuestion?.options?.map((option, idx) => {
                   const isSelected = answers[currentIndex] === idx;
@@ -229,7 +213,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish }) => {
                       `}
                     >
                       <span className={`w-14 h-14 rounded-full flex items-center justify-center mr-10 font-black text-2xl transition-all
-                        ${isSelected ? (isDarkMode ? 'bg-gold text-midnight' : 'bg-gold text-midnight') : 'bg-slate-50 border border-slate-100 text-slate-300 group-hover:bg-gold/20 group-hover:text-gold'}
+                        ${isSelected ? 'bg-gold text-midnight' : 'bg-slate-50 border border-slate-100 text-slate-300 group-hover:bg-gold/20 group-hover:text-gold'}
                       `}>
                         {idx + 1}
                       </span>

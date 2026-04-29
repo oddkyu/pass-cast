@@ -7,6 +7,7 @@ import ExamSelectionPage from './components/ExamSelectionPage';
 import FullExamPage from './components/FullExamPage';
 import ExamResultPage from './components/ExamResultPage';
 import WrongAnswerNotePage from './components/WrongAnswerNotePage';
+import PremiumPage from './components/PremiumPage';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
@@ -14,7 +15,6 @@ const App = () => {
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
   const [examResult, setExamResult] = useState(null);
   
-  // 📝 오답노트 데이터 상태 (로컬 스토리지에서 초기화)
   const [wrongAnswers, setWrongAnswers] = useState(() => {
     const saved = localStorage.getItem('pass-cast-wrong-answers');
     return saved ? JSON.parse(saved) : [];
@@ -22,7 +22,6 @@ const App = () => {
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-  // 오답 데이터 저장 로직
   useEffect(() => {
     localStorage.setItem('pass-cast-wrong-answers', JSON.stringify(wrongAnswers));
   }, [wrongAnswers]);
@@ -34,15 +33,12 @@ const App = () => {
 
   const handleFinishExam = (results) => {
     const { questions, answers, year, subject } = results;
-    
-    // 틀린 문제 필터링하여 오답노트에 추가
     const newWrongOnes = questions
       .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
 
     if (newWrongOnes.length > 0) {
       setWrongAnswers(prev => {
-        // 중복 제거 (ID 기준)
         const existingIds = new Set(prev.map(item => item.id));
         const uniqueNewOnes = newWrongOnes.filter(item => !existingIds.has(item.id));
         return [...prev, ...uniqueNewOnes];
@@ -51,6 +47,20 @@ const App = () => {
 
     setExamResult(results);
     setCurrentPage('exam_result');
+  };
+
+  // 🔊 AI 오디오 재생 로직 (기초 연결)
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      // 진행 중인 모든 음성 중지
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 0.9; // 조금 천천히 (시니어 배려)
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
+    }
   };
 
   const renderPage = () => {
@@ -67,6 +77,7 @@ const App = () => {
             onGoToLanding={() => setCurrentPage('landing')}
             onGoToExamSelection={() => setCurrentPage('exam_selection')}
             onGoToWrongNote={() => setCurrentPage('wrong_note')}
+            onGoToPremium={() => setCurrentPage('premium')}
             wrongCount={wrongAnswers.length}
           />
         );
@@ -88,6 +99,7 @@ const App = () => {
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('exam_selection')}
             onFinish={handleFinishExam}
+            onSpeak={speakText}
           />
         );
       case 'exam_result':
@@ -98,6 +110,7 @@ const App = () => {
             isDarkMode={isDarkMode}
             onHome={() => setCurrentPage('home')}
             onRetry={() => setCurrentPage('full_exam')}
+            onSpeak={speakText}
           />
         );
       case 'wrong_note':
@@ -108,8 +121,11 @@ const App = () => {
             isDarkMode={isDarkMode}
             onBack={() => setCurrentPage('home')}
             onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))}
+            onSpeak={speakText}
           />
         );
+      case 'premium':
+        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} />;
       case 'quiz':
         return (
           <div key="quiz" className="max-w-md mx-auto min-h-screen shadow-2xl">

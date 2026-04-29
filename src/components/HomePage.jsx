@@ -8,10 +8,9 @@ const HomePage = ({
   onGoToLanding, 
   onGoToExamSelection,
   onGoToWrongNote,
+  onGoToPremium,
   wrongCount = 0 
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
   return (
     <div className={`flex-1 flex flex-col min-h-screen transition-all duration-500 noise-texture ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
@@ -25,12 +24,20 @@ const HomePage = ({
             <span className="text-xl md:text-2xl font-black tracking-tighter uppercase">Pass-Cast</span>
           </div>
           
-          <div className="flex items-center space-x-10">
-            <div className="hidden md:flex items-center space-x-10 text-sm font-black tracking-widest uppercase opacity-40">
-              <button className="hover:opacity-100 transition-opacity">기출문제</button>
+          <div className="flex items-center space-x-6 md:space-x-10">
+            <div className="hidden lg:flex items-center space-x-8 text-sm font-black tracking-widest uppercase opacity-40">
+              <button onClick={onGoToExamSelection} className="hover:opacity-100 transition-opacity">기출문제</button>
               <button onClick={onGoToWrongNote} className="hover:opacity-100 transition-opacity">오답노트</button>
-              <button className="hover:opacity-100 transition-opacity">내 강의실</button>
             </div>
+
+            {/* 💎 Premium Pass Button */}
+            <button 
+              onClick={onGoToPremium}
+              className="px-5 py-2.5 bg-gold text-midnight rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20 flex items-center space-x-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <span>프리미엄 패스</span>
+            </button>
             
             <button onClick={onToggleTheme} className="w-12 h-12 glass-button rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95">
               {isDarkMode ? (
@@ -48,7 +55,7 @@ const HomePage = ({
         <header className="space-y-4 text-center md:text-left">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-center md:justify-start space-x-3">
             <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
-            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">Private Study Space</span>
+            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">Realtime Analytics Space</span>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-7xl font-black tracking-tighter leading-[1.1]">
             사장님, 합격까지 <br/> 단 <span className="text-gold glow-gold">15%</span> 남았습니다.
@@ -63,12 +70,11 @@ const HomePage = ({
           <div className="relative z-10 space-y-10 flex-1">
             <div className="space-y-3">
               <h3 className="text-3xl font-black tracking-tight">오늘의 학습 현황</h3>
-              <p className="font-bold text-lg opacity-40">사장님만을 위한 독립된 학습 데이터를 분석 중입니다.</p>
+              <p className="font-bold text-lg opacity-40">최근 24시간 동안의 학습 데이터를 분석 중입니다.</p>
             </div>
             <div className="space-y-8">
               <div className="flex items-end justify-between">
                 <span className="text-6xl font-black text-gold tracking-tighter">85<span className="text-2xl ml-1 font-bold opacity-30">/ 100</span></span>
-                <span className="text-sm font-black tracking-widest uppercase opacity-40">합격 가능성</span>
               </div>
               <div className="w-full h-5 bg-midnight/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                 <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} transition={{ duration: 2, ease: "easeOut" }} className="h-full bg-gold shadow-[0_0_30px_rgba(212,175,55,0.6)]" />
@@ -85,11 +91,11 @@ const HomePage = ({
           </div>
         </motion.section>
 
-        {/* 🛠️ Refined Action Grid */}
+        {/* 🛠️ Action Grid */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <ActionButton 
             title="회차별 기출 풀기"
-            subtitle="연도별 과목별 집중 훈련"
+            subtitle="연도별 실전 기출 리스트"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>}
             onClick={onGoToExamSelection}
             isDarkMode={isDarkMode}
@@ -97,7 +103,7 @@ const HomePage = ({
           />
           <ActionButton 
             title="나만의 오답노트"
-            subtitle={`${wrongCount}개의 오답을 조용히 정복`}
+            subtitle={`${wrongCount}개의 취약 문항 복습`}
             badge={wrongCount > 0 ? wrongCount : null}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}
             onClick={onGoToWrongNote}
@@ -107,13 +113,23 @@ const HomePage = ({
           />
           <ActionButton 
             title="제35회 전체 풀기"
-            subtitle="가장 최신 기출 실전 모드"
+            subtitle="가장 최신 기출 시험 모드"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
-            onClick={() => onGoToExamSelection()} // 전체 풀기 기능으로 연결
+            onClick={() => onGoToExamSelection()} 
             isDarkMode={isDarkMode}
             delay={0.8}
-            highlight="NEW"
+            highlight="HOT"
           />
+        </section>
+
+        {/* 📢 Ads Area (Home Bottom) */}
+        <section className="flex justify-center py-10">
+           <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
+             ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+           `}>
+             <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
+             <p className="text-sm font-bold opacity-50">광고 준비 중입니다.</p>
+           </div>
         </section>
       </main>
 
@@ -121,7 +137,7 @@ const HomePage = ({
         <div className="max-w-7xl mx-auto px-12 py-16 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex flex-col items-center md:items-start space-y-4">
             <span className="text-2xl font-black tracking-tighter uppercase">Pass-Cast</span>
-            <p className="text-sm font-bold opacity-30">오직 사장님의 합격만을 위한 비공개 학습 공간입니다.</p>
+            <p className="text-sm font-bold opacity-30">대한민국 공인중개사 합격의 표준.</p>
           </div>
           <div className="flex space-x-12 text-[11px] font-black uppercase tracking-[0.3em] opacity-40">
             <button className="hover:text-gold transition-colors">이용약관</button>
@@ -143,11 +159,7 @@ const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge
       ${isPrimary ? 'ring-2 ring-gold/30' : ''}
     `}
   >
-    {highlight && (
-      <div className="absolute top-8 right-8 px-3 py-1 bg-gold text-midnight text-[10px] font-black rounded-full animate-bounce">
-        {highlight}
-      </div>
-    )}
+    {highlight && <div className="absolute top-8 right-8 px-3 py-1 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">{highlight}</div>}
     <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform relative
       ${isDarkMode ? 'bg-white/5 text-gold border border-white/5' : 'bg-midnight text-gold'}
     `}>
