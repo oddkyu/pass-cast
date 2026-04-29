@@ -13,7 +13,8 @@ import LoginPage from './components/LoginPage';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState('landing');
+  const [currentPage, setCurrentPage] = useState('home'); // 시작 페이지를 바로 메인으로 변경
+  const [showLandingPopup, setShowLandingPopup] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
   const [examResult, setExamResult] = useState(null);
@@ -31,6 +32,22 @@ const App = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // 📢 팝업 노출 로직: 처음 접속 시 한 번만 노출
+  useEffect(() => {
+    const hasSeenPopup = localStorage.getItem('pass-cast-hide-popup');
+    const today = new Date().toDateString();
+    if (hasSeenPopup !== today) {
+      setShowLandingPopup(true);
+    }
+  }, []);
+
+  const handleClosePopup = (dontShowAgain = false) => {
+    if (dontShowAgain) {
+      localStorage.setItem('pass-cast-hide-popup', new Date().toDateString());
+    }
+    setShowLandingPopup(false);
+  };
 
   // 📊 Load User Specific Data
   useEffect(() => {
@@ -60,7 +77,6 @@ const App = () => {
       .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
 
-    // Gating: 비회원은 로컬에만 잠시 저장, 회원은 영구 저장 로직
     if (newWrongOnes.length > 0) {
       setWrongAnswers(prev => {
         const existingIds = new Set(prev.map(item => item.id));
@@ -83,7 +99,6 @@ const App = () => {
     }
   };
 
-  // 🛡️ Gating Logic: 회원 전용 접근 제어
   const requireAuth = (callback) => {
     if (!user) {
       if (window.confirm("사장님, 이 기능은 회원 전용입니다.\n지금 로그인하고 체계적인 관리를 시작하시겠습니까?")) {
@@ -98,23 +113,33 @@ const App = () => {
     switch (currentPage) {
       case 'login':
         return <LoginPage isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onLoginSuccess={(u) => { setUser(u); setCurrentPage('home'); }} />;
-      case 'landing':
-        return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
       case 'home':
         return (
-          <HomePage 
-            key="home" 
-            user={user}
-            isDarkMode={isDarkMode}
-            onToggleTheme={toggleDarkMode}
-            onGoToLanding={() => setCurrentPage('landing')}
-            onGoToExamSelection={() => setCurrentPage('exam_selection')}
-            onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
-            onGoToPremium={() => setCurrentPage('premium')}
-            onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
-            onLogin={() => setCurrentPage('login')}
-            wrongCount={wrongAnswers.length}
-          />
+          <>
+            <HomePage 
+              key="home" 
+              user={user}
+              isDarkMode={isDarkMode}
+              onToggleTheme={toggleDarkMode}
+              onGoToLanding={() => setShowLandingPopup(true)} // 랜딩페이지를 팝업으로 호출
+              onGoToExamSelection={() => setCurrentPage('exam_selection')}
+              onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
+              onGoToPremium={() => setCurrentPage('premium')}
+              onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
+              onLogin={() => setCurrentPage('login')}
+              wrongCount={wrongAnswers.length}
+            />
+            {/* 🎁 Landing Page Popup Overlay */}
+            <AnimatePresence>
+              {showLandingPopup && (
+                <LandingPage 
+                  isDarkMode={isDarkMode} 
+                  onClose={handleClosePopup}
+                  isPopup={true}
+                />
+              )}
+            </AnimatePresence>
+          </>
         );
       case 'exam_selection':
         return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onSelectExam={handleStartFullExam} />;
