@@ -88,7 +88,7 @@ const PremiumPage = ({ isDarkMode, onBack }) => {
               `}>
                 지금 구독하기
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       </main>
