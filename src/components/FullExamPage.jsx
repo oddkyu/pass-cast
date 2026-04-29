@@ -90,50 +90,50 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
       </header>
 
       {/* 🏁 Wide Question Area */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 space-y-12">
-        <section className="space-y-8">
-           <div className="flex items-center justify-between">
-              <span className="text-3xl font-black text-gold tracking-tighter">QUESTION {currentIndex + 1}</span>
-              <button 
-                onClick={() => toggleHold(currentIndex)}
-                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all
-                  ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
+        <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
+          <section className="space-y-6 md:space-y-8">
+             <div className="flex items-center justify-between">
+                <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter">QUESTION {currentIndex + 1}</span>
+                <button 
+                  onClick={() => toggleHold(currentIndex)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                    ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
+                  `}
+                >
+                  {heldQuestions.has(currentIndex) ? '검토 중' : '보류'}
+                </button>
+             </div>
+             <h2 className="text-xl md:text-3xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
+          </section>
+
+          <section className="grid grid-cols-1 gap-4 md:gap-5">
+            {currentQuestion.options.map((opt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectAnswer(idx)}
+                className={`p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2
+                  ${answers[currentIndex] === idx 
+                    ? 'bg-gold border-gold text-midnight shadow-xl' 
+                    : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30 hover:bg-white/10' : 'bg-white border-slate-100 hover:border-gold/30 shadow-sm')}
                 `}
               >
-                {heldQuestions.has(currentIndex) ? '검토 중 (보류)' : '나중에 다시보기'}
+                <span className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center font-black text-base md:text-xl
+                   ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
+                `}>{idx + 1}</span>
+                <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
               </button>
-           </div>
-           <h2 className="text-2xl md:text-4xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
-        </section>
-
-        <section className="grid grid-cols-1 gap-5">
-          {currentQuestion.options.map((opt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSelectAnswer(idx)}
-              className={`p-6 md:p-10 rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-6 border-2
-                ${answers[currentIndex] === idx 
-                  ? 'bg-gold border-gold text-midnight shadow-2xl scale-[1.02]' 
-                  : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30 hover:bg-white/10' : 'bg-white border-slate-100 hover:border-gold/30 shadow-md')}
-              `}
-            >
-              <span className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-xl
-                 ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
-              `}>{idx + 1}</span>
-              <span className="text-xl md:text-2xl font-bold break-keep">{opt}</span>
-            </button>
-          ))}
-        </section>
+            ))}
+          </section>
 
         {/* 💡 보기 바로 다음에 배치된 '다음 문제로' 버튼 */}
         <div className="flex justify-end pt-4">
            <button 
              onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
              disabled={currentIndex === questions.length - 1}
-             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-10"
+             className="group flex items-center space-x-2 md:space-x-3 px-6 md:px-8 py-3 md:py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-xl md:rounded-2xl transition-all duration-300 disabled:opacity-10"
            >
-             <span className="text-lg font-black uppercase tracking-widest">다음 문제로</span>
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+             <span className="text-sm md:text-lg font-black uppercase tracking-widest">다음 문제로</span>
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform md:w-6 md:h-6"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
            </button>
         </div>
 

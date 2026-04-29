@@ -63,7 +63,7 @@ const HomePage = ({
             <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">{isGuest ? 'Platform Introduction' : 'Personal Performance'}</span>
           </motion.div>
           
-          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-5xl md:text-8xl font-black tracking-tighter leading-[1.05] break-keep">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-8xl font-black tracking-tighter leading-[1.05] break-keep">
             {isGuest ? (
               <>공인중개사 합격의 <br/> <span className="text-gold glow-gold">가장 과학적인 분석</span></>
             ) : (
@@ -72,7 +72,7 @@ const HomePage = ({
           </motion.h2>
           
           {isGuest && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-xl md:text-2xl font-bold opacity-30 max-w-2xl break-keep">
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-lg md:text-2xl font-bold opacity-30 max-w-2xl break-keep">
               Pass-Cast는 매일 업데이트되는 10개년 기출 데이터를 통해 사장님의 합격을 가장 정교하게 예측하고 관리해 드립니다.
             </motion.p>
           )}
