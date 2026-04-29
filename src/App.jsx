@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { supabase } from './lib/supabase';
 import HomePage from './components/HomePage';
 import QuizPage from './components/QuizPage';
 import LandingPage from './components/LandingPage';
@@ -8,28 +9,45 @@ import FullExamPage from './components/FullExamPage';
 import ExamResultPage from './components/ExamResultPage';
 import WrongAnswerNotePage from './components/WrongAnswerNotePage';
 import PremiumPage from './components/PremiumPage';
+import LoginPage from './components/LoginPage';
 
 const App = () => {
+  const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('landing');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
   const [examResult, setExamResult] = useState(null);
-  
-  const [wrongAnswers, setWrongAnswers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pass-cast-wrong-answers');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load wrong answers from localStorage", e);
-      return [];
-    }
-  });
+  const [wrongAnswers, setWrongAnswers] = useState([]);
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  // 🔐 Auth State Monitoring
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 📊 Load User Specific Data
+  useEffect(() => {
+    const saved = localStorage.getItem(user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest');
+    try {
+      setWrongAnswers(saved ? JSON.parse(saved) : []);
+    } catch (e) {
+      setWrongAnswers([]);
+    }
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('pass-cast-wrong-answers', JSON.stringify(wrongAnswers));
-  }, [wrongAnswers]);
+    const key = user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest';
+    localStorage.setItem(key, JSON.stringify(wrongAnswers));
+  }, [wrongAnswers, user]);
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleStartFullExam = (year, subject) => {
     setSelectedExam({ year, subject });
@@ -42,6 +60,7 @@ const App = () => {
       .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
 
+    // Gating: 비회원은 로컬에만 잠시 저장, 회원은 영구 저장 로직
     if (newWrongOnes.length > 0) {
       setWrongAnswers(prev => {
         const existingIds = new Set(prev.map(item => item.id));
@@ -54,90 +73,61 @@ const App = () => {
     setCurrentPage('exam_result');
   };
 
-  // 🔊 AI 오디오 재생 로직 (기초 연결)
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      // 진행 중인 모든 음성 중지
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ko-KR';
-      utterance.rate = 0.9; // 조금 천천히 (시니어 배려)
+      utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // 🛡️ Gating Logic: 회원 전용 접근 제어
+  const requireAuth = (callback) => {
+    if (!user) {
+      if (window.confirm("사장님, 이 기능은 회원 전용입니다.\n지금 로그인하고 체계적인 관리를 시작하시겠습니까?")) {
+        setCurrentPage('login');
+      }
     } else {
-      alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
+      callback();
     }
   };
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'login':
+        return <LoginPage isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onLoginSuccess={(u) => { setUser(u); setCurrentPage('home'); }} />;
       case 'landing':
         return <LandingPage key="landing" onBack={() => setCurrentPage('home')} />;
       case 'home':
         return (
           <HomePage 
             key="home" 
+            user={user}
             isDarkMode={isDarkMode}
             onToggleTheme={toggleDarkMode}
-            onStartQuiz={() => setCurrentPage('quiz')} 
             onGoToLanding={() => setCurrentPage('landing')}
             onGoToExamSelection={() => setCurrentPage('exam_selection')}
-            onGoToWrongNote={() => setCurrentPage('wrong_note')}
+            onGoToWrongNote={() => requireAuth(() => setCurrentPage('wrong_note'))}
             onGoToPremium={() => setCurrentPage('premium')}
+            onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
+            onLogin={() => setCurrentPage('login')}
             wrongCount={wrongAnswers.length}
           />
         );
       case 'exam_selection':
-        return (
-          <ExamSelectionPage 
-            key="exam_selection"
-            isDarkMode={isDarkMode}
-            onBack={() => setCurrentPage('home')}
-            onSelectExam={handleStartFullExam}
-          />
-        );
+        return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onSelectExam={handleStartFullExam} />;
       case 'full_exam':
-        return (
-          <FullExamPage 
-            key="full_exam"
-            year={selectedExam.year}
-            subject={selectedExam.subject}
-            isDarkMode={isDarkMode}
-            onBack={() => setCurrentPage('exam_selection')}
-            onFinish={handleFinishExam}
-          />
-        );
+        return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => setCurrentPage('exam_selection')} onFinish={handleFinishExam} />;
       case 'exam_result':
-        return (
-          <ExamResultPage 
-            key="exam_result"
-            result={examResult}
-            isDarkMode={isDarkMode}
-            onHome={() => setCurrentPage('home')}
-            onRetry={() => setCurrentPage('full_exam')}
-            onSpeak={speakText}
-          />
-        );
+        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} onHome={() => setCurrentPage('home')} onRetry={() => setCurrentPage('full_exam')} onSpeak={speakText} user={user} />;
       case 'wrong_note':
-        return (
-          <WrongAnswerNotePage 
-            key="wrong_note"
-            wrongAnswers={wrongAnswers}
-            isDarkMode={isDarkMode}
-            onBack={() => setCurrentPage('home')}
-            onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))}
-            onSpeak={speakText}
-          />
-        );
+        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} onSpeak={speakText} />;
       case 'premium':
         return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => setCurrentPage('home')} />;
-      case 'quiz':
-        return (
-          <div key="quiz" className="max-w-md mx-auto min-h-screen shadow-2xl">
-            <QuizPage onBack={() => setCurrentPage('home')} />
-          </div>
-        );
       default:
-        return <LandingPage key="default" onBack={() => setCurrentPage('home')} />;
+        return <HomePage key="default" isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode} onGoToExamSelection={() => setCurrentPage('exam_selection')} onGoToWrongNote={() => requireAuth(() => setCurrentPage('home'))} />;
     }
   };
 

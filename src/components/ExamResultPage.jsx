@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
+const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak, user }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
+  const isGuest = !user;
 
   if (!result || !result.questions) {
     return (
       <div className="min-h-screen flex items-center justify-center font-black text-2xl">
-        데이터를 분석 중입니다...
+        결과 데이터를 분석 중입니다...
       </div>
     );
   }
@@ -23,7 +24,6 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
 
   const score = correctCount * (100 / questions.length);
   const isPass = score >= 60;
-  const unansweredCount = questions.length - Object.keys(answers).length;
 
   return (
     <motion.div 
@@ -32,27 +32,32 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
     >
       <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 space-y-12">
         
-        {/* 📢 Ads Area (Result Top) */}
-        <section className="flex justify-center">
-           <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
-             ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
-           `}>
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
-             <p className="text-sm font-bold opacity-50">광고 준비 중입니다.</p>
-           </div>
-        </section>
+        {/* 📢 Ads Area (Gated: Guest Only) */}
+        {isGuest && (
+          <section className="flex justify-center">
+             <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+             `}>
+               <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
+               <p className="text-sm font-bold opacity-50 text-center">회원 가입 시 결과 페이지의 광고가 제거됩니다.</p>
+             </div>
+          </section>
+        )}
 
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
-            <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">Private Report</p>
+            <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Result' : 'Personal Analysis Report'}</p>
             <div className="flex items-baseline justify-center space-x-6">
               <span className={`text-[150px] md:text-[240px] font-black leading-none tracking-tighter ${isPass ? 'text-gold glow-gold' : 'text-slate-400'}`}>{score}</span>
               <span className="text-5xl md:text-8xl font-black text-gold">점</span>
             </div>
             <div className="inline-flex items-center space-x-6 px-12 py-5 bg-midnight text-gold rounded-full font-black text-2xl shadow-2xl">
-              <span>{isPass ? '🎊 합격권입니다!' : '💪 약점을 보완하세요'}</span>
+              <span>{isPass ? '🎊 합격 안정권입니다!' : '💪 오답 분석으로 약점을 보완하세요'}</span>
             </div>
+            {isGuest && (
+              <p className="text-lg font-bold text-red-500 mt-8 animate-pulse">※ 주의: 로그아웃 상태이므로 브라우저 종료 시 오답 데이터가 소멸됩니다.</p>
+            )}
           </div>
           <div className={`absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 ${isPass ? 'bg-gold' : 'bg-slate-400'}`} />
         </section>
@@ -103,7 +108,7 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
         </section>
       </main>
 
-      {/* 🔍 Explanation Modal with AI Audio */}
+      {/* 🔍 Explanation Modal */}
       <AnimatePresence>
         {reviewIndex !== null && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
@@ -113,14 +118,13 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
               className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[4rem] shadow-2xl p-12 md:p-20 space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-lg font-black text-gold tracking-widest uppercase">{year}년 {subject} 문항 해설</span>
+                <span className="text-sm font-black text-gold tracking-widest uppercase">{year}년 {subject} 문항 해설</span>
                 <div className="flex items-center space-x-4">
-                  {/* 🔊 AI Audio Button */}
                   <button 
                     onClick={(e) => { e.stopPropagation(); onSpeak(questions[reviewIndex].question_text); }}
                     className="flex items-center space-x-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/30 hover:bg-gold/20 transition-all"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
                     <span className="font-black text-sm uppercase">AI Audio</span>
                   </button>
                   <button onClick={() => setReviewIndex(null)} className="w-12 h-12 rounded-full hover:bg-white/5 flex items-center justify-center text-gold">
@@ -151,11 +155,6 @@ const ExamResultPage = ({ result, isDarkMode, onHome, onRetry, onSpeak }) => {
                   <h4 className="text-2xl font-black">비공개 정답 해설</h4>
                 </div>
                 <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
-              </div>
-
-              <div className="flex justify-between items-center pt-8 border-t border-white/5">
-                <button onClick={(e) => { e.stopPropagation(); setReviewIndex(prev => Math.max(0, prev - 1)); }} className="px-10 py-5 rounded-2xl font-black text-xl hover:bg-white/5">이전 해설</button>
-                <button onClick={(e) => { e.stopPropagation(); setReviewIndex(prev => Math.min(questions.length - 1, prev + 1)); }} className="px-12 py-6 bg-gold text-midnight rounded-2xl font-black text-xl hover:scale-105 shadow-xl">다음 해설</button>
               </div>
             </motion.div>
           </div>

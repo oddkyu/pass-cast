@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const HomePage = ({ 
+  user,
   isDarkMode, 
   onToggleTheme, 
-  onStartQuiz, 
   onGoToLanding, 
   onGoToExamSelection,
   onGoToWrongNote,
   onGoToPremium,
+  onLogin,
+  onLogout,
   wrongCount = 0 
 }) => {
+  const isGuest = !user;
+
   return (
     <div className={`flex-1 flex flex-col min-h-screen transition-all duration-500 noise-texture ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
@@ -30,14 +34,19 @@ const HomePage = ({
               <button onClick={onGoToWrongNote} className="hover:opacity-100 transition-opacity">오답노트</button>
             </div>
 
-            {/* 💎 Premium Pass Button */}
-            <button 
-              onClick={onGoToPremium}
-              className="px-5 py-2.5 bg-gold text-midnight rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20 flex items-center space-x-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              <span>프리미엄 패스</span>
-            </button>
+            {isGuest ? (
+              <button 
+                onClick={onLogin}
+                className="px-6 py-2.5 bg-midnight text-gold rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-lg"
+              >
+                로그인 / 가입
+              </button>
+            ) : (
+              <div className="flex items-center space-x-6">
+                <span className="text-[12px] font-black opacity-40 hidden md:block">{user.email} 사장님</span>
+                <button onClick={onLogout} className="text-[11px] font-black opacity-40 uppercase tracking-widest hover:opacity-100">로그아웃</button>
+              </div>
+            )}
             
             <button onClick={onToggleTheme} className="w-12 h-12 glass-button rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95">
               {isDarkMode ? (
@@ -55,94 +64,104 @@ const HomePage = ({
         <header className="space-y-4 text-center md:text-left">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-center md:justify-start space-x-3">
             <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
-            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">Realtime Analytics Space</span>
+            <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">{isGuest ? 'Guest Access' : 'Personal Analytics'}</span>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-7xl font-black tracking-tighter leading-[1.1]">
-            사장님, 합격까지 <br/> 단 <span className="text-gold glow-gold">15%</span> 남았습니다.
+            {isGuest ? (
+              <>사장님, 합격까지 <br/> 단 <span className="text-gold glow-gold">??%</span> 남았습니다.</>
+            ) : (
+              <>{user.email.split('@')[0]} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85%</span> 돌파!</>
+            )}
           </motion.h2>
+          {isGuest && <p className="text-lg font-bold opacity-30 mt-4">로그인하시면 실시간 합격 확률 분석이 시작됩니다.</p>}
         </header>
 
-        {/* 📊 Wide Stats Card */}
+        {/* 📊 Personalized Stats Card */}
         <motion.section 
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className={`group glass-card rounded-[4rem] p-12 md:p-20 flex flex-col md:flex-row items-center justify-between gap-16 relative overflow-hidden transition-all duration-500 ${isDarkMode ? 'border-white/10' : 'bg-white border-white shadow-2xl shadow-slate-100'}`}
         >
+          {isGuest && (
+             <div className="absolute inset-0 bg-midnight/5 backdrop-blur-[2px] z-20 flex items-center justify-center">
+                <button onClick={onLogin} className="px-10 py-5 bg-gold text-midnight rounded-3xl font-black text-xl shadow-2xl hover:scale-105 transition-all">실시간 분석 활성화</button>
+             </div>
+          )}
           <div className="relative z-10 space-y-10 flex-1">
             <div className="space-y-3">
-              <h3 className="text-3xl font-black tracking-tight">오늘의 학습 현황</h3>
-              <p className="font-bold text-lg opacity-40">최근 24시간 동안의 학습 데이터를 분석 중입니다.</p>
+              <h3 className="text-3xl font-black tracking-tight">지능형 학습 분석</h3>
+              <p className="font-bold text-lg opacity-40">최근 10개년 기출 데이터를 기반으로 사장님의 취약점을 분석합니다.</p>
             </div>
             <div className="space-y-8">
               <div className="flex items-end justify-between">
-                <span className="text-6xl font-black text-gold tracking-tighter">85<span className="text-2xl ml-1 font-bold opacity-30">/ 100</span></span>
+                <span className="text-6xl font-black text-gold tracking-tighter">
+                  {isGuest ? '??' : '85'}<span className="text-2xl ml-1 font-bold opacity-30">/ 100</span>
+                </span>
               </div>
-              <div className="w-full h-5 bg-midnight/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                <motion.div initial={{ width: 0 }} animate={{ width: '85%' }} transition={{ duration: 2, ease: "easeOut" }} className="h-full bg-gold shadow-[0_0_30px_rgba(212,175,55,0.6)]" />
+              <div className="w-full h-5 bg-midnight/5 rounded-full overflow-hidden border border-white/5">
+                <motion.div initial={{ width: 0 }} animate={{ width: isGuest ? '20%' : '85%' }} transition={{ duration: 2, ease: "easeOut" }} className="h-full bg-gold" />
               </div>
             </div>
           </div>
-          
-          <div className="w-full md:w-96 h-64 bg-midnight/5 rounded-[3rem] border border-white/5 flex items-center justify-center relative overflow-hidden">
-             <div className="absolute inset-x-0 bottom-0 h-full flex items-end space-x-3 px-8 pb-8">
-                {[40, 70, 45, 90, 65, 85, 95].map((h, i) => (
-                  <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${h}%` }} transition={{ delay: 0.8 + (i * 0.1), duration: 1 }} className="flex-1 bg-gold/20 rounded-t-xl group-hover:bg-gold/50 transition-colors" />
-                ))}
-             </div>
+          <div className="w-full md:w-96 h-64 bg-midnight/5 rounded-[3rem] border border-white/5 relative overflow-hidden flex items-end px-8 pb-8 space-x-3">
+             {[40, 70, 45, 90, 65, 85, 95].map((h, i) => (
+                <div key={i} className="flex-1 bg-gold/20 rounded-t-xl" style={{ height: `${isGuest ? 20 : h}%` }} />
+             ))}
           </div>
         </motion.section>
 
-        {/* 🛠️ Action Grid */}
+        {/* 🛠️ Action Grid with Gating Preview */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <ActionButton 
             title="회차별 기출 풀기"
-            subtitle="연도별 실전 기출 리스트"
-            icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>}
+            subtitle="누구나 참여 가능한 체험 모드"
+            icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
             onClick={onGoToExamSelection}
             isDarkMode={isDarkMode}
             delay={0.6}
           />
           <ActionButton 
             title="나만의 오답노트"
-            subtitle={`${wrongCount}개의 취약 문항 복습`}
-            badge={wrongCount > 0 ? wrongCount : null}
+            subtitle={isGuest ? "로그인 시 42개 오답 저장" : `${wrongCount}개의 오답 정복 중`}
+            badge={!isGuest && wrongCount > 0 ? wrongCount : null}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}
             onClick={onGoToWrongNote}
             isDarkMode={isDarkMode}
             delay={0.7}
-            isPrimary={wrongCount > 0}
+            highlight={isGuest ? "PREVIEW" : null}
           />
           <ActionButton 
-            title="제35회 전체 풀기"
-            subtitle="가장 최신 기출 시험 모드"
+            title="프리미엄 결제"
+            subtitle="광고 제거 및 무제한 기능"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
-            onClick={() => onGoToExamSelection()} 
+            onClick={onGoToPremium}
             isDarkMode={isDarkMode}
             delay={0.8}
-            highlight="HOT"
+            highlight="VIP"
           />
         </section>
 
-        {/* 📢 Ads Area (Home Bottom) */}
-        <section className="flex justify-center py-10">
-           <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
-             ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
-           `}>
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
-             <p className="text-sm font-bold opacity-50">광고 준비 중입니다.</p>
-           </div>
-        </section>
+        {/* 📢 Ads Area (Gated: Guest Only) */}
+        {isGuest && (
+          <section className="flex justify-center py-10">
+            <div className={`w-full max-w-[600px] h-[100px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed transition-all
+              ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+            `}>
+              <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-1">Google AdSense Area</p>
+              <p className="text-sm font-bold opacity-50 text-center">회원 가입 시 광고가 제거됩니다.</p>
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className={`mt-auto border-t transition-all ${isDarkMode ? 'bg-midnight border-white/5' : 'bg-white border-slate-100'}`}>
         <div className="max-w-7xl mx-auto px-12 py-16 flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex flex-col items-center md:items-start space-y-4">
             <span className="text-2xl font-black tracking-tighter uppercase">Pass-Cast</span>
-            <p className="text-sm font-bold opacity-30">대한민국 공인중개사 합격의 표준.</p>
+            <p className="text-sm font-bold opacity-30">관리받는 사람이 합격합니다.</p>
           </div>
           <div className="flex space-x-12 text-[11px] font-black uppercase tracking-[0.3em] opacity-40">
             <button className="hover:text-gold transition-colors">이용약관</button>
             <button className="hover:text-gold transition-colors">개인정보처리방침</button>
-            <button className="hover:text-gold transition-colors">문의하기</button>
           </div>
         </div>
       </footer>
@@ -150,16 +169,15 @@ const HomePage = ({
   );
 };
 
-const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge, isPrimary, highlight }) => (
+const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge, highlight }) => (
   <motion.button
     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
     onClick={onClick}
     className={`group p-12 rounded-[3rem] lift-hover text-left relative overflow-hidden transition-all duration-500
       ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white shadow-xl shadow-slate-100 border-white hover:shadow-2xl'}
-      ${isPrimary ? 'ring-2 ring-gold/30' : ''}
     `}
   >
-    {highlight && <div className="absolute top-8 right-8 px-3 py-1 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">{highlight}</div>}
+    {highlight && <div className={`absolute top-8 right-8 px-3 py-1 text-white text-[10px] font-black rounded-full ${highlight === 'VIP' ? 'bg-gold text-midnight' : 'bg-red-500 animate-pulse'}`}>{highlight}</div>}
     <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform relative
       ${isDarkMode ? 'bg-white/5 text-gold border border-white/5' : 'bg-midnight text-gold'}
     `}>
