@@ -2,6 +2,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const ExamResultPage = ({ result, isDarkMode, onHome, onRetry }) => {
+  // 🛡️ 결과 데이터가 없을 경우를 대비한 안전 장치
+  if (!result) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-black">결과 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
   const { questions, answers, year, subject } = result;
   
   // 점수 계산 (40문항 기준, 한 문제당 2.5점)

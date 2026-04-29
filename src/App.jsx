@@ -21,8 +21,12 @@ const App = () => {
   };
 
   const handleFinishExam = (results) => {
+    if (!results) return;
     setExamResult(results);
-    setCurrentPage('exam_result');
+    // 상태 업데이트 후 페이지 전환이 확실히 일어나도록 유도
+    setTimeout(() => {
+      setCurrentPage('exam_result');
+    }, 10);
   };
 
   const renderPage = () => {
