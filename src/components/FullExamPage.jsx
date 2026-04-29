@@ -127,6 +127,19 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
            </button>
         </div>
 
+        {/* 📢 💡 '다음 문제로' 버튼 바로 밑에 전략적으로 배치된 수익형 광고 */}
+        {showAds && (
+          <div className="pt-10 flex flex-col items-center">
+             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
+             `}>
+                <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
+                <p className="text-xs font-bold opacity-30 tracking-tight text-center px-4">Google AdSense - Commercial Space</p>
+                <p className="text-[9px] font-black opacity-20 mt-1 uppercase">프리미엄 패스 가입 시 이 광고는 제거됩니다.</p>
+             </div>
+          </div>
+        )}
+
         {/* 📢 Bottom Ad Slot */}
         {showAds && (
           <div className="pt-16 md:pt-24 flex justify-center">
