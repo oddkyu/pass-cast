@@ -7,7 +7,6 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(150 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [isGridOpen, setIsGridOpen] = useState(true); // 한눈에 보기 상태 유지
   const showAds = !isPremium;
 
   // Mock Questions
@@ -46,128 +45,155 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
     });
   };
 
+  const currentQuestion = questions[currentIndex];
+
   return (
-    <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-24 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
+    <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-36 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
-      {/* 🏛️ Sticky Top Area (Header + Integrated Grid) */}
-      <div className="sticky top-0 z-50">
-        <header className={`border-b flex items-center justify-between px-6 h-16 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="flex items-center space-x-4">
-            <button onClick={() => setShowExitConfirm(true)} className="w-8 h-8 border border-gold/30 rounded-lg flex items-center justify-center text-gold">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-            <div className="flex flex-col">
-               <span className="text-[9px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
-               <h1 className="text-sm font-black tracking-tight">실전 기출 모드</h1>
-            </div>
+      {/* 🏛️ Clean Sticky Header */}
+      <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-8 h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className="flex items-center space-x-6">
+          <button onClick={() => setShowExitConfirm(true)} className="w-10 h-10 border border-gold/30 rounded-xl flex items-center justify-center hover:bg-gold/5 transition-all text-gold">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <div className="flex flex-col">
+             <span className="text-[10px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
+             <h1 className="text-lg font-black tracking-tight">실전 기출 시험</h1>
           </div>
+        </div>
 
-          <div className="flex items-center space-x-6">
-             <div className="flex items-center space-x-2 bg-midnight text-gold px-4 py-1.5 rounded-lg font-black text-[12px] border border-gold/30">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span>{formatTime(timeLeft)}</span>
-             </div>
-             <button onClick={() => setIsGridOpen(!isGridOpen)} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isGridOpen ? 'bg-gold text-midnight' : 'border border-gold/30 text-gold'}`}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-             </button>
-          </div>
-        </header>
+        <div className="flex items-center space-x-10">
+           <div className="flex items-center space-x-3 bg-midnight text-gold px-5 py-2.5 rounded-full font-black text-sm border border-gold/30 shadow-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{formatTime(timeLeft)}</span>
+           </div>
+           <div className="hidden md:flex items-center space-x-3 text-gold">
+              <span className="text-[10px] font-black uppercase opacity-40">보류 문항</span>
+              <span className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-sm font-black border border-gold/20">{heldQuestions.size}</span>
+           </div>
+        </div>
+      </header>
 
-        {/* 🔢 Question Grid (Visible at a glance) */}
-        <AnimatePresence>
-          {isGridOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              className={`border-b overflow-hidden px-4 py-4 transition-all ${isDarkMode ? 'bg-midnight/80 border-white/5' : 'bg-slate-50 border-slate-100'}`}
-            >
-               <div className="grid grid-cols-10 gap-1.5 md:gap-3 max-w-2xl mx-auto">
-                  {questions.map((q, i) => {
-                    const isSelected = currentIndex === i;
-                    const isAnswered = answers[i] !== undefined;
-                    const isItemHeld = heldQuestions.has(i);
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentIndex(i)}
-                        className={`aspect-square rounded-md font-black text-[10px] md:text-xs relative transition-all border
-                          ${isSelected ? 'bg-midnight text-gold border-gold scale-110 z-10 shadow-lg' : isAnswered ? 'bg-gold/20 text-gold border-gold/30' : 'bg-white border-slate-200 opacity-40'}
-                        `}
-                      >
-                        {i + 1}
-                        {isItemHeld && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white shadow-sm" />}
-                      </button>
-                    );
-                  })}
-               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* 🏁 Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full px-4 md:px-8 py-8 gap-10">
-        
-        {/* 📢 Sidebar Ad (PC) */}
-        {showAds && (
-          <aside className="hidden lg:flex w-64 flex-col flex-shrink-0">
-             <div className={`h-[600px] sticky top-64 rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center p-8 transition-all
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-white border-slate-200 text-slate-300'}
-             `}>
-                <span className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-2">AD Space</span>
-                <p className="text-xs font-bold opacity-30 text-center">Google AdSense Area</p>
-             </div>
-          </aside>
-        )}
-
-        <main className="flex-1 space-y-10">
-          <section className="space-y-6">
-             <div className="flex items-center justify-between">
-                <span className="text-2xl font-black text-gold tracking-tighter">QUESTION {currentIndex + 1}</span>
-                <button 
-                  onClick={() => toggleHold(currentIndex)}
-                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
-                    ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight' : 'bg-midnight/5 text-gold border border-gold/20'}
-                  `}
-                >
-                  보류 표시
-                </button>
-             </div>
-             <h2 className="text-xl md:text-2xl font-black leading-tight break-keep">{questions[currentIndex].question_text}</h2>
-          </section>
-
-          <section className="grid grid-cols-1 gap-3">
-            {questions[currentIndex].options.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectAnswer(idx)}
-                className={`p-5 md:p-6 rounded-2xl text-left transition-all duration-200 flex items-center space-x-5 border-2
-                  ${answers[currentIndex] === idx 
-                    ? 'bg-gold border-gold text-midnight shadow-md' 
-                    : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30' : 'bg-white border-slate-100 hover:border-gold/30 shadow-sm')}
+      {/* 🏁 Wide Question Area */}
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 space-y-12">
+        <section className="space-y-8">
+           <div className="flex items-center justify-between">
+              <span className="text-3xl font-black text-gold tracking-tighter">Q{currentIndex + 1}.</span>
+              <button 
+                onClick={() => toggleHold(currentIndex)}
+                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+                  ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
                 `}
               >
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm
-                   ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
-                `}>{idx + 1}</span>
-                <span className="text-base md:text-lg font-bold break-keep">{opt}</span>
+                {heldQuestions.has(currentIndex) ? '검토 중 (보류)' : '보류하기'}
               </button>
-            ))}
-          </section>
-        </main>
-      </div>
-
-      {/* 🧭 Action Bar (Fixed Bottom) */}
-      <footer className={`fixed bottom-0 left-0 w-full z-50 border-t transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-md'}`}>
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-           <div className="flex space-x-3">
-              <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className="px-5 py-2 bg-midnight/5 rounded-lg font-black text-xs disabled:opacity-10 transition-all hover:bg-midnight/10">이전</button>
-              <button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentIndex === questions.length - 1} className="px-5 py-2 bg-midnight/5 rounded-lg font-black text-xs disabled:opacity-10 transition-all hover:bg-midnight/10">다음</button>
            </div>
-           <button onClick={() => onFinish({ questions, answers, year, subject })} className="px-8 py-2.5 bg-midnight text-gold rounded-lg font-black text-sm shadow-lg hover:scale-105 active:scale-95 transition-all">답안 제출</button>
+           <h2 className="text-2xl md:text-4xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
+        </section>
+
+        <section className="grid grid-cols-1 gap-5">
+          {currentQuestion.options.map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSelectAnswer(idx)}
+              className={`p-6 md:p-10 rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-6 border-2
+                ${answers[currentIndex] === idx 
+                  ? 'bg-gold border-gold text-midnight shadow-2xl scale-[1.02]' 
+                  : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30 hover:bg-white/10' : 'bg-white border-slate-100 hover:border-gold/30 shadow-md')}
+              `}
+            >
+              <span className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-xl
+                 ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
+              `}>{idx + 1}</span>
+              <span className="text-xl md:text-2xl font-bold break-keep">{opt}</span>
+            </button>
+          ))}
+        </section>
+
+        {/* 📢 Bottom Ad Slot (Hidden for Premium) */}
+        {showAds && (
+          <div className="pt-20 flex justify-center">
+             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
+             `}>
+                <span className="text-[9px] font-black uppercase tracking-widest mb-1">Advertising Slot</span>
+                <p className="text-xs font-bold opacity-30">학습의 맥을 끊지 않는 하단 광고 영역입니다.</p>
+             </div>
+          </div>
+        )}
+      </main>
+
+      {/* 🧭 Original Navigation Bar (Fixed Bottom) */}
+      <footer className={`fixed bottom-0 left-0 w-full z-50 border-t transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'}`}>
+        <div className="max-w-5xl mx-auto px-6 py-4 space-y-4">
+           {/* 🔢 Horizontal Number Bar */}
+           <div className="flex overflow-x-auto scrollbar-hide space-x-2 pb-2">
+              {questions.map((q, i) => {
+                const isSelected = currentIndex === i;
+                const isAnswered = answers[i] !== undefined;
+                const isItemHeld = heldQuestions.has(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentIndex(i)}
+                    className={`flex-shrink-0 w-11 h-11 rounded-xl font-black text-sm relative transition-all
+                      ${isSelected ? 'bg-midnight text-gold scale-110 z-10 shadow-lg' : isAnswered ? 'bg-gold/20 text-gold' : 'bg-midnight/5 opacity-40'}
+                    `}
+                  >
+                    {i + 1}
+                    {isItemHeld && <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm" />}
+                  </button>
+                );
+              })}
+           </div>
+
+           <div className="flex items-center justify-between gap-4">
+             <div className="flex space-x-4">
+                <button 
+                  onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+                  disabled={currentIndex === 0}
+                  className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
+                >
+                  이전 문항
+                </button>
+                <button 
+                  onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+                  disabled={currentIndex === questions.length - 1}
+                  className="px-8 py-3.5 bg-midnight/5 rounded-2xl font-black text-sm disabled:opacity-10 transition-all hover:bg-midnight/10"
+                >
+                  다음 문항
+                </button>
+             </div>
+
+             <button 
+               onClick={() => onFinish({ questions, answers, year, subject })}
+               className="px-12 py-4 bg-midnight text-gold rounded-2xl font-black text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
+             >
+               채점하기
+             </button>
+           </div>
         </div>
       </footer>
 
+      {/* 🔍 Exit Modal */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowExitConfirm(false)} className="absolute inset-0 bg-midnight/80 backdrop-blur-md" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className={`relative w-full max-w-md rounded-[3rem] p-12 text-center space-y-10 ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}>
+              <h3 className="text-2xl font-black tracking-tight leading-tight">시험을 종료할까요?</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setShowExitConfirm(false)} className="py-4 rounded-2xl font-black opacity-40">취소</button>
+                <button onClick={onBack} className="py-4 bg-red-500 text-white rounded-2xl font-black">종료</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
     </div>
