@@ -18,6 +18,7 @@ const LoginPage = ({ isDarkMode, onBack, onLoginSuccess }) => {
         provider: 'kakao',
         options: {
           redirectTo: window.location.origin,
+          scopes: 'profile_nickname'
         },
       });
       if (error) throw error;

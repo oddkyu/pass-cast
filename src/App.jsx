@@ -11,14 +11,32 @@ import WrongAnswerNotePage from './components/WrongAnswerNotePage';
 import PremiumPage from './components/PremiumPage';
 import LoginPage from './components/LoginPage';
 
-const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
+const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleKakao = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'kakao',
+        options: { 
+          redirectTo: window.location.origin,
+          scopes: 'profile_nickname'
+        },
+      });
+      if (error) throw error;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  return (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 md:p-12">
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
     <motion.div 
       initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
       className={`relative w-full max-w-lg rounded-[3rem] p-10 md:p-14 text-center space-y-8 overflow-hidden ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
     >
-      {/* 🟡 카카오 캔스코어 */}
       <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl" style={{ backgroundColor: '#FEE500' }}>
         <svg width="36" height="36" viewBox="0 0 24 24" fill="#191919">
           <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
@@ -26,24 +44,32 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
       </div>
       <div className="space-y-3">
         <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight break-keep">합격자의 90%가 활용하는 오답노트</h3>
-        <p className="text-base font-bold opacity-50 break-keep">1초 가입하고 내 오답을 저장하세요.<br/>Manage 맞춴 치면 열습 효율이 3배 올라갑니다.</p>
+        <p className="text-base font-bold opacity-50 break-keep">1초 가입하고 내 오답을 저장하세요.<br/>매일 잘못 맞히는 문제만 열습하면 합격 효율이 3배 올라갑니다.</p>
       </div>
       <div className="space-y-4">
         <button
-          onClick={onLogin}
-          className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg"
+          onClick={handleKakao}
+          disabled={loading}
+          className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg disabled:opacity-60"
           style={{ backgroundColor: '#FEE500', color: '#191919' }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
-            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
-          </svg>
-          카카오로 1초 만에 시작하기
+          {loading ? (
+            <span>화면 이동 중...</span>
+          ) : (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
+                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+              </svg>
+              카카오로 1초 만에 시작하기
+            </>
+          )}
         </button>
         <button onClick={onClose} className="text-sm font-black opacity-30 hover:opacity-100 transition-opacity uppercase tracking-widest">나중에 하기</button>
       </div>
     </motion.div>
   </div>
-);
+  );
+};
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -75,8 +101,13 @@ const App = () => {
     };
     window.addEventListener('popstate', handlePopState);
 
-    // 초기 진입 시 home 상태를 히스토리에 세팅
-    if (!window.history.state) {
+    // ✅ 초기 로드: OAuth 콜백 해시(access_token) 감지 → home으로 정리
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+      // Supabase가 세션을 자동 처리하므로 해시만 제거
+      window.history.replaceState({ page: 'home' }, '', window.location.pathname);
+      setCurrentPage('home');
+    } else if (!window.history.state) {
       window.history.replaceState({ page: 'home' }, '', '#home');
     }
 
@@ -92,10 +123,16 @@ const App = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchMembership(session.user.id);
+        // ✅ OAuth(카카오) 로그인 성공 시 홈으로 이동
+        if (event === 'SIGNED_IN') {
+          setCurrentPage('home');
+          window.history.replaceState({ page: 'home' }, '', '#home');
+          window.scrollTo(0, 0);
+        }
       } else {
         setIsPremium(false);
       }

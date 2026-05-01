@@ -16,6 +16,7 @@ const HomePage = ({
 }) => {
   const isGuest = !user;
   const showAds = !isPremium;
+  const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '예비';
 
   return (
     <div className={`flex-1 flex flex-col min-h-screen transition-all duration-500 noise-texture ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
@@ -50,7 +51,7 @@ const HomePage = ({
             ) : (
               <div className="flex items-center gap-3 text-right">
                 <div className="hidden sm:flex flex-col leading-tight">
-                  <span className="text-[11px] font-semibold opacity-40">{user.email.split('@')[0]} 사장님</span>
+                  <span className="text-[11px] font-semibold opacity-40">{displayName} 사장님</span>
                   <span className={`text-[9px] font-bold uppercase tracking-wider ${isPremium ? 'text-gold' : 'opacity-20'}`}>{isPremium ? 'Premium' : 'Free'}</span>
                 </div>
                 <button onClick={onLogout} className="text-[10px] font-semibold opacity-30 uppercase tracking-widest hover:opacity-100 transition-opacity whitespace-nowrap">로그아웃</button>
@@ -93,7 +94,7 @@ const HomePage = ({
             {isGuest ? (
               <>공인중개사 합격의 <br/> <span className="text-gold glow-gold">가장 과학적인 분석</span></>
             ) : (
-              <>{user.email.split('@')[0]} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
+              <>{displayName} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
             )}
           </motion.h2>
           
