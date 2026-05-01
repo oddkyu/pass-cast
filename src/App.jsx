@@ -16,17 +16,29 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
     <motion.div 
       initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
-      className={`relative w-full max-w-lg rounded-[3rem] p-12 md:p-16 text-center space-y-10 overflow-hidden ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
+      className={`relative w-full max-w-lg rounded-[3rem] p-10 md:p-14 text-center space-y-8 overflow-hidden ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
     >
-      <div className="w-20 h-20 bg-gold rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-gold/30">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="midnightblue" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      {/* 🟡 카카오 캔스코어 */}
+      <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl" style={{ backgroundColor: '#FEE500' }}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="#191919">
+          <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+        </svg>
+      </div>
+      <div className="space-y-3">
+        <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight break-keep">합격자의 90%가 활용하는 오답노트</h3>
+        <p className="text-base font-bold opacity-50 break-keep">1초 가입하고 내 오답을 저장하세요.<br/>Manage 맞춴 치면 열습 효율이 3배 올라갑니다.</p>
       </div>
       <div className="space-y-4">
-        <h3 className="text-3xl font-black tracking-tight leading-tight break-keep text-gold">합격생만 아는 오답 관리 비법, <br/> 로그인 후 시작하세요.</h3>
-        <p className="text-lg font-bold opacity-40 break-keep">지금 가입하면 나만의 분석 데이터를 평생 소장할 수 있습니다.</p>
-      </div>
-      <div className="space-y-4">
-        <button onClick={onLogin} className="w-full py-6 bg-gold text-midnight rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all">무료 회원가입 / 로그인</button>
+        <button
+          onClick={onLogin}
+          className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg"
+          style={{ backgroundColor: '#FEE500', color: '#191919' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
+            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+          </svg>
+          카카오로 1초 만에 시작하기
+        </button>
         <button onClick={onClose} className="text-sm font-black opacity-30 hover:opacity-100 transition-opacity uppercase tracking-widest">나중에 하기</button>
       </div>
     </motion.div>
@@ -76,14 +88,14 @@ const App = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        setIsPremium(session.user.user_metadata?.is_premium || false);
+        fetchMembership(session.user.id);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        setIsPremium(session.user.user_metadata?.is_premium || false);
+        fetchMembership(session.user.id);
       } else {
         setIsPremium(false);
       }
@@ -91,6 +103,26 @@ const App = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // 👑 membership_type 조회 (profiles 테이블 → 폴백: user_metadata)
+  const fetchMembership = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('membership_type')
+        .eq('id', userId)
+        .single();
+      if (!error && data) {
+        setIsPremium(data.membership_type === 'premium');
+      } else {
+        // 테이블 미생성 시 user_metadata 폴백
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsPremium(user?.user_metadata?.is_premium || false);
+      }
+    } catch {
+      setIsPremium(false);
+    }
+  };
 
   // 📊 Load User Specific Data
   useEffect(() => {

@@ -7,7 +7,25 @@ const LoginPage = ({ isDarkMode, onBack, onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [kakaoLoading, setKakaoLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleKakaoLogin = async () => {
+    setKakaoLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'kakao',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError('카카오 로그인 중 오류가 발생했습니다.');
+      setKakaoLoading(false);
+    }
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -47,13 +65,38 @@ const LoginPage = ({ isDarkMode, onBack, onLoginSuccess }) => {
           initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           className={`w-full max-w-lg p-12 md:p-16 rounded-[4rem] shadow-2xl relative overflow-hidden ${isDarkMode ? 'glass-card border-white/10' : 'bg-white border-white'}`}
         >
-          <div className="relative z-10 space-y-12">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-gold rounded-[1.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-gold/20">
-                <span className="text-midnight font-black text-2xl">P</span>
+          <div className="relative z-10 space-y-10">
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 bg-gold rounded-[1.2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-gold/20">
+                <span className="text-midnight font-black text-xl">P</span>
               </div>
-              <h1 className="text-4xl font-black tracking-tighter uppercase">Pass-Cast</h1>
-              <p className="text-lg font-bold opacity-40">{isSignUp ? '합격의 길, 가입부터 시작입니다.' : '사장님, 어서오세요!'}</p>
+              <h1 className="text-3xl font-black tracking-tighter uppercase">Pass-Cast</h1>
+              <p className="text-base font-bold opacity-40">{isSignUp ? '합격의 길, 가입부터 시작입니다.' : '사장님, 어서오세요!'}</p>
+            </div>
+
+            {/* 🟡 카카오 로그인 버튼 */}
+            <button
+              onClick={handleKakaoLogin}
+              disabled={kakaoLoading}
+              className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 shadow-lg"
+              style={{ backgroundColor: '#FEE500', color: '#191919' }}
+            >
+              {kakaoLoading ? (
+                <span>처리 중...</span>
+              ) : (
+                <>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#191919">
+                    <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+                  </svg>
+                  카카오로 1초 만에 시작하기
+                </>
+              )}
+            </button>
+
+            <div className="flex items-center gap-4">
+              <div className={`h-px flex-1 ${isDarkMode ? 'bg-white/10' : 'bg-slate-100'}`} />
+              <span className="text-xs font-bold opacity-30 uppercase tracking-widest">또는 이메일로</span>
+              <div className={`h-px flex-1 ${isDarkMode ? 'bg-white/10' : 'bg-slate-100'}`} />
             </div>
 
             <form onSubmit={handleAuth} className="space-y-6">
