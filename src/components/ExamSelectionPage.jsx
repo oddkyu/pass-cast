@@ -113,9 +113,9 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
               {/* 2차 과목 섹션 */}
               <section className="space-y-8">
                 <div className="flex items-center space-x-4">
-                  <div className="h-px flex-1 bg-white/10" />
-                  <h2 className={`text-sm font-black tracking-[0.4em] uppercase ${isDarkMode ? 'text-white/30' : 'text-slate-300'}`}>2차 시험 과목</h2>
-                  <div className="h-px flex-1 bg-white/10" />
+                  <div className="h-px flex-1 bg-gold/20" />
+                  <h2 className="text-sm font-black text-gold tracking-[0.4em] uppercase">2차 시험 과목</h2>
+                  <div className="h-px flex-1 bg-gold/20" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {subjects.second.map((sub, i) => (

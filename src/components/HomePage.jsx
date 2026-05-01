@@ -27,7 +27,10 @@ const HomePage = ({
             <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-lg shadow-gold/20">
               <span className="text-midnight font-black text-xl">P</span>
             </div>
-            <span className="text-xl md:text-2xl font-black tracking-tighter uppercase">Pass-Cast</span>
+            <div className="flex flex-col">
+              <span className="text-xl md:text-2xl font-black tracking-tighter uppercase leading-tight">Pass-Cast</span>
+              <span className="text-[10px] md:text-[11px] font-black text-gold tracking-[0.2em] uppercase">공인중개사 전용</span>
+            </div>
           </div>
           
           <div className="flex items-center space-x-6">
@@ -43,12 +46,13 @@ const HomePage = ({
               </div>
             )}
             
-            <button onClick={onToggleTheme} className="w-12 h-12 glass-button rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 ml-4">
+            <button onClick={onToggleTheme} className="flex items-center space-x-2 glass-button rounded-2xl px-4 h-12 transition-all hover:scale-105 active:scale-95 ml-4">
               {isDarkMode ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2m-18.78 6.36l1.42-1.42m12.72-12.72l1.42-1.42"/></svg>
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
               )}
+              <span className="text-[11px] font-black tracking-tight hidden sm:inline">{isDarkMode ? '밝게 보기' : '눈이 편한 모드'}</span>
             </button>
           </div>
         </div>
