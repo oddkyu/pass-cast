@@ -123,38 +123,20 @@ const HomePage = ({
           )}
         </header>
 
-        {/* 🚀 Daily Routine 10 (Tab-style Inline Menu) */}
-        <div className="w-full flex md:justify-end mb-4">
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            onClick={onGoToExamSelection}
-            className={`w-full md:w-auto flex items-center justify-between gap-6 px-6 py-4 md:px-8 md:py-4 rounded-2xl md:rounded-full border transition-all duration-300 shadow-sm hover:shadow-md
-              ${isDarkMode 
-                ? 'bg-blue-900/10 border-blue-900/30 hover:bg-blue-900/20' 
-                : 'bg-[#F4F9FF] border-blue-100/50 hover:bg-[#EBF4FF]'
-              }
-            `}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-lg md:text-xl">⚡</span>
-              <div className="text-left flex flex-col md:flex-row md:items-baseline md:gap-2">
-                <h3 className={`text-sm md:text-base font-black ${isDarkMode ? 'text-blue-400' : 'text-[#0052CC]'}`}>데일리 루틴 10</h3>
-                <p className={`text-[10px] md:text-[11px] font-bold mt-0.5 md:mt-0 ${isDarkMode ? 'text-blue-400/60' : 'text-[#0052CC]/60'}`}>매일 10문제로 실력 쌓기</p>
-              </div>
-            </div>
-            
-            <div className={`shrink-0 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black tracking-widest uppercase shadow-sm border
-              ${isDarkMode ? 'bg-blue-900/50 text-blue-300 border-blue-800' : 'bg-white text-[#0052CC] border-blue-50'}
-            `}>
-              Run
-            </div>
-          </motion.button>
-        </div>
+
 
         {/* 🛠️ Strategic Gating Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+          <ActionButton 
+            title="📅 데일리 루틴 10"
+            subtitle="매일 10문제로 다지는 합격 습관"
+            icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+            onClick={onGoToExamSelection}
+            isDarkMode={isDarkMode}
+            delay={0.4}
+            highlight="추천"
+            customClass={isDarkMode ? 'border-2 border-[#FEE500]/30 hover:border-[#FEE500]/60' : 'border-2 border-blue-500/30 hover:border-blue-500/60'}
+          />
           <ActionButton 
             title={isGuest ? "무료 기출문제 체험" : "회차별 기출 풀기"}
             subtitle="연도별/과목별 실전 데이터"
@@ -216,15 +198,16 @@ const HomePage = ({
   );
 };
 
-const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge, highlight, isLocked }) => (
+const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge, highlight, isLocked, customClass }) => (
   <motion.button
     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
     onClick={onClick}
-    className={`group p-12 rounded-[4rem] lift-hover text-left relative overflow-hidden transition-all duration-500
+    className={`group p-10 md:p-12 rounded-[3.5rem] md:rounded-[4rem] lift-hover text-left relative overflow-hidden transition-all duration-500
       ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white shadow-xl shadow-slate-100 border-white hover:shadow-2xl'}
+      ${customClass || ''}
     `}
   >
-    {highlight && <div className={`absolute top-8 right-8 px-3 py-1 text-white text-[10px] font-black rounded-full ${highlight === 'PRO' ? 'bg-gold text-midnight shadow-lg shadow-gold/20' : 'bg-green-500'}`}>{highlight}</div>}
+    {highlight && <div className={`absolute top-8 right-8 px-3 py-1 text-white text-[10px] font-black rounded-full z-10 ${highlight === 'PRO' ? 'bg-gold text-midnight shadow-lg shadow-gold/20' : highlight === '추천' ? 'bg-blue-500 shadow-lg shadow-blue-500/20' : 'bg-green-500'}`}>{highlight}</div>}
     {isLocked && <div className="absolute top-8 right-8 text-gold opacity-40 animate-pulse"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>}
     
     <div className={`w-16 h-16 rounded-[2rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform relative
