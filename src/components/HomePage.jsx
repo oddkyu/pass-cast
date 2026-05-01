@@ -108,14 +108,14 @@ const HomePage = ({
           {isGuest && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
               <button
-                onClick={onLogin}
+                onClick={() => alert('준비 중입니다')}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg shadow-xl transition-all hover:scale-105 active:scale-95"
                 style={{ backgroundColor: '#FEE500', color: '#191919' }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#191919">
                   <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
                 </svg>
-                카카오로 1초 만에 시작하기
+                카카오로 시작하기
               </button>
               <p className="mt-3 text-xs font-bold opacity-30">회원가입 시 오답노트 무료 제공 · 불필요한 개인정보 요청 없음</p>
             </motion.div>

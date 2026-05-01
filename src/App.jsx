@@ -15,21 +15,7 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
   const [loading, setLoading] = useState(false);
 
   const handleKakao = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'kakao',
-        options: { 
-          redirectTo: window.location.origin,
-          queryParams: {
-            scope: 'profile_nickname'
-          }
-        },
-      });
-      if (error) throw error;
-    } catch {
-      setLoading(false);
-    }
+    alert('준비 중입니다');
   };
 
   return (
@@ -45,26 +31,19 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
         </svg>
       </div>
       <div className="space-y-3">
-        <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight break-keep">합격자의 90%가 활용하는 오답노트</h3>
-        <p className="text-base font-bold opacity-50 break-keep">1초 가입하고 내 오답을 저장하세요.<br/>매일 잘못 맞히는 문제만 열습하면 합격 효율이 3배 올라갑니다.</p>
+        <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight break-keep">합격자의 90%가 활용하는 오답노트!</h3>
+        <p className="text-base font-bold opacity-50 break-keep">1초 가입하고 나만의 오답 저장하기</p>
       </div>
       <div className="space-y-4">
         <button
           onClick={handleKakao}
-          disabled={loading}
-          className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg disabled:opacity-60"
+          className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg"
           style={{ backgroundColor: '#FEE500', color: '#191919' }}
         >
-          {loading ? (
-            <span>화면 이동 중...</span>
-          ) : (
-            <>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
-                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
-              </svg>
-              카카오로 1초 만에 시작하기
-            </>
-          )}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
+            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+          </svg>
+          카카오로 시작하기
         </button>
         <button onClick={onClose} className="text-sm font-black opacity-30 hover:opacity-100 transition-opacity uppercase tracking-widest">나중에 하기</button>
       </div>

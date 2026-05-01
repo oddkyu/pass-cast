@@ -11,23 +11,7 @@ const LoginPage = ({ isDarkMode, onBack, onLoginSuccess }) => {
   const [error, setError] = useState(null);
 
   const handleKakaoLogin = async () => {
-    setKakaoLoading(true);
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'kakao',
-        options: {
-          redirectTo: window.location.origin,
-          queryParams: {
-            scope: 'profile_nickname'
-          }
-        },
-      });
-      if (error) throw error;
-    } catch (err) {
-      setError('카카오 로그인 중 오류가 발생했습니다.');
-      setKakaoLoading(false);
-    }
+    alert('준비 중입니다');
   };
 
   const handleAuth = async (e) => {
