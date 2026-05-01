@@ -10,6 +10,7 @@ const HomePage = ({
   onGoToExamSelection,
   onGoToWrongNote,
   onGoToPremium,
+  onGoToTestPage,
   onLogin,
   onLogout,
   wrongCount = 0 

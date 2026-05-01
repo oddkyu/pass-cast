@@ -202,6 +202,7 @@ const App = () => {
               onGoToExamSelection={() => navigate('exam_selection')}
               onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
               onGoToPremium={() => navigate('premium')}
+              onGoToTestPage={() => navigate('test_preview')}
               onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
               onLogin={() => navigate('login')}
               wrongCount={wrongAnswers.length}
