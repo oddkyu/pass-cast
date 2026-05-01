@@ -123,6 +123,37 @@ const HomePage = ({
           )}
         </header>
 
+        {/* 🚀 Quick Action Banner: 짬짬이 10문제 */}
+        <section className="w-full">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            onClick={onGoToExamSelection}
+            className={`w-full group p-8 md:p-12 rounded-[3rem] text-left relative overflow-hidden transition-all duration-500 shadow-2xl hover:scale-[1.02] active:scale-95
+              bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white border-0
+            `}
+          >
+            {/* 장식용 배경 도형 */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/4 group-hover:scale-150 transition-transform duration-700"></div>
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full backdrop-blur-sm mb-2">
+                  <span className="text-xl">🕒</span>
+                  <span className="text-[11px] font-black tracking-widest uppercase text-white/90">Quick Mode</span>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">바쁜 시간을 위한 선택,<br/>지금 바로 짬짬이 10문제 풀기</h3>
+                <p className="text-sm md:text-base font-bold text-white/70">출퇴근 시간, 자기 전 10분만 투자해서 합격 확률을 높이세요.</p>
+              </div>
+              
+              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm group-hover:bg-white group-hover:text-indigo-600 transition-colors shrink-0">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </motion.button>
+        </section>
+
         {/* 🛠️ Strategic Gating Section */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <ActionButton 

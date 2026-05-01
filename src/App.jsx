@@ -225,7 +225,7 @@ const App = () => {
       case 'full_exam':
         return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => navigate('exam_selection')} onFinish={handleFinishExam} />;
       case 'exam_result':
-        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => navigate('home')} onRetry={() => navigate('full_exam')} user={user} />;
+        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => navigate('home')} onRetry={() => navigate('full_exam')} user={user} onRequireAuthForSave={() => setShowGatingModal(true)} />;
       case 'wrong_note':
         return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => navigate('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
       case 'premium':

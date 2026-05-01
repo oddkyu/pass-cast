@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }) => {
+const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, onRequireAuthForSave }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const isGuest = !user;
   const showAds = !isPremium;
@@ -105,14 +105,41 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user }
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <button onClick={onRetry} className={`p-12 rounded-[3.5rem] flex flex-col items-center justify-center space-y-6 transition-all hover:scale-[1.02] active:scale-95 ${isDarkMode ? 'bg-white/5 text-white border border-white/5' : 'bg-white text-midnight border border-slate-100 shadow-xl shadow-slate-100'}`}>
-            <h4 className="text-3xl font-black">다시 풀어보기</h4>
+        {/* 📚 Action Buttons */}
+        <div className="space-y-6">
+          <button 
+            onClick={() => {
+              if (isGuest) {
+                onRequireAuthForSave();
+              } else {
+                alert('이미 오답노트에 안전하게 저장되어 있습니다!');
+              }
+            }}
+            className="w-full p-8 rounded-[3rem] flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95 shadow-xl border-2 border-gold/30 bg-gold/5 group"
+          >
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gold flex items-center justify-center shadow-lg shadow-gold/20 text-midnight group-hover:scale-110 transition-transform">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              </div>
+              <div className="text-left space-y-1">
+                <h4 className="text-2xl font-black text-gold">오답노트 저장하기</h4>
+                <p className={`text-sm font-bold ${isDarkMode ? 'text-white/50' : 'text-midnight/50'}`}>틀린 문제만 모아서 합격 효율을 3배 높이세요</p>
+              </div>
+            </div>
+            <div className="hidden md:flex text-gold">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
           </button>
-          <button onClick={onHome} className="p-12 bg-midnight text-gold rounded-[3.5rem] flex flex-col items-center justify-center space-y-6 transition-all hover:scale-[1.02] active:scale-95 shadow-2xl">
-            <h4 className="text-3xl font-black">대시보드로 이동</h4>
-          </button>
-        </section>
+
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button onClick={onRetry} className={`p-10 rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 ${isDarkMode ? 'bg-white/5 text-white border border-white/5' : 'bg-white text-midnight border border-slate-100 shadow-xl shadow-slate-100'}`}>
+              <h4 className="text-2xl font-black">다시 풀어보기</h4>
+            </button>
+            <button onClick={onHome} className="p-10 bg-midnight text-gold rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 shadow-2xl">
+              <h4 className="text-2xl font-black">대시보드로 이동</h4>
+            </button>
+          </section>
+        </div>
       </main>
 
       {/* 🔍 Details Modal */}
