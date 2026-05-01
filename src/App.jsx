@@ -10,6 +10,7 @@ import ExamResultPage from './components/ExamResultPage';
 import WrongAnswerNotePage from './components/WrongAnswerNotePage';
 import PremiumPage from './components/PremiumPage';
 import LoginPage from './components/LoginPage';
+import TestPreviewPage from './components/TestPreviewPage';
 
 const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
   const [loading, setLoading] = useState(false);
@@ -216,6 +217,8 @@ const App = () => {
             </AnimatePresence>
           </>
         );
+      case 'test_preview':
+        return <TestPreviewPage key="test_preview" isDarkMode={isDarkMode} onBack={() => navigate('home')} />;
       case 'exam_selection':
         return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onSelectExam={handleStartFullExam} />;
       case 'full_exam':
