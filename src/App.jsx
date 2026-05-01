@@ -47,6 +47,7 @@ const App = () => {
   const navigate = useCallback((page, state = {}) => {
     window.history.pushState({ page, ...state }, '', `#${page}`);
     setCurrentPage(page);
+    window.scrollTo(0, 0);
     // 추가 상태 동기화
     if (state.selectedExam) setSelectedExam(state.selectedExam);
     if (state.examResult) setExamResult(state.examResult);
