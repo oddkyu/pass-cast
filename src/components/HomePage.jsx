@@ -22,37 +22,59 @@ const HomePage = ({
       
       {/* 🏛️ Professional Navigation */}
       <nav className={`sticky top-0 z-50 border-b transition-all duration-500 ${isDarkMode ? 'bg-midnight/60 border-white/5 backdrop-blur-2xl' : 'bg-white/80 border-slate-100 backdrop-blur-md'}`}>
-        <div className="max-w-7xl mx-auto px-8 md:px-12 h-20 md:h-24 flex items-center justify-between">
-          <div className="flex items-center space-x-4 group cursor-pointer" onClick={onGoToLanding}>
-            <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center shadow-lg shadow-gold/20">
-              <span className="text-midnight font-black text-xl">P</span>
+        <div className="max-w-7xl mx-auto px-4 md:px-10 h-14 md:h-16 flex items-center justify-between gap-2">
+          {/* 로고: clamp 폰트 + nowrap으로 깨짐 방지 */}
+          <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={onGoToLanding}>
+            <div className="w-8 h-8 md:w-9 md:h-9 bg-gold rounded-lg flex items-center justify-center shadow-md shadow-gold/20 shrink-0">
+              <span className="text-midnight font-black text-base">P</span>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl md:text-2xl font-black tracking-tighter uppercase leading-tight">Pass-Cast</span>
-              <span className="text-[10px] md:text-[11px] font-black text-gold tracking-[0.2em] uppercase">공인중개사 전용</span>
+            <div className="flex flex-col leading-none">
+              <span
+                className="font-black tracking-tighter uppercase whitespace-nowrap"
+                style={{ fontSize: 'clamp(14px, 4vw, 20px)' }}
+              >Pass-Cast</span>
+              <span
+                className="font-bold text-gold uppercase tracking-widest whitespace-nowrap"
+                style={{ fontSize: 'clamp(8px, 2vw, 11px)' }}
+              >공인중개사 전용</span>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-6">
+
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {isGuest ? (
-              <button onClick={onLogin} className="px-6 py-2.5 bg-midnight text-gold rounded-full text-[12px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all">로그인 / 회원가입</button>
+              <button
+                onClick={onLogin}
+                className="px-3 md:px-5 py-1.5 bg-midnight text-gold rounded-full font-semibold hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                style={{ fontSize: 'clamp(10px, 2.5vw, 12px)' }}
+              >로그인 / 회원가입</button>
             ) : (
-              <div className="flex items-center space-x-6 text-right">
-                <div className="hidden sm:flex flex-col">
-                   <span className="text-[12px] font-black opacity-40">{user.email.split('@')[0]} 사장님</span>
-                   <span className={`text-[9px] font-black uppercase tracking-widest ${isPremium ? 'text-gold' : 'opacity-20'}`}>{isPremium ? 'Premium' : 'Free'} Member</span>
+              <div className="flex items-center gap-3 text-right">
+                <div className="hidden sm:flex flex-col leading-tight">
+                  <span className="text-[11px] font-semibold opacity-40">{user.email.split('@')[0]} 사장님</span>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${isPremium ? 'text-gold' : 'opacity-20'}`}>{isPremium ? 'Premium' : 'Free'}</span>
                 </div>
-                <button onClick={onLogout} className="text-[11px] font-black opacity-40 uppercase tracking-widest hover:opacity-100">로그아웃</button>
+                <button onClick={onLogout} className="text-[10px] font-semibold opacity-30 uppercase tracking-widest hover:opacity-100 transition-opacity whitespace-nowrap">로그아웃</button>
               </div>
             )}
-            
-            <button onClick={onToggleTheme} className="flex items-center space-x-2 glass-button rounded-2xl px-4 h-12 transition-all hover:scale-105 active:scale-95 ml-4">
+
+            {/* 다크모드 토글: 모바일에서도 텍스트 표시 */}
+            <button
+              onClick={onToggleTheme}
+              className="flex items-center gap-1.5 glass-button rounded-xl px-2.5 md:px-3.5 h-9 transition-all hover:scale-105 active:scale-95"
+            >
               {isDarkMode ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2m-18.78 6.36l1.42-1.42m12.72-12.72l1.42-1.42"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0">
+                  <circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2m-18.78 6.36l1.42-1.42m12.72-12.72l1.42-1.42"/>
+                </svg>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
               )}
-              <span className="text-[11px] font-black tracking-tight hidden sm:inline">{isDarkMode ? '밝게 보기' : '눈이 편한 모드'}</span>
+              <span
+                className="font-semibold whitespace-nowrap"
+                style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}
+              >{isDarkMode ? '밝게' : '어둡게'}</span>
             </button>
           </div>
         </div>
