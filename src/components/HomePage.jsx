@@ -123,32 +123,35 @@ const HomePage = ({
           )}
         </header>
 
-        {/* 🚀 Daily Routine 10 Inline Section */}
-        <section className="w-full">
+        {/* 🚀 Daily Routine 10 (Tab-style Inline Menu) */}
+        <div className="w-full flex md:justify-end mb-4">
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             onClick={onGoToExamSelection}
-            className={`w-full group px-6 py-5 md:px-8 md:py-6 rounded-3xl text-left flex items-center justify-between transition-all duration-300 hover:shadow-md
-              ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-slate-200'}
+            className={`w-full md:w-auto flex items-center justify-between gap-6 px-6 py-4 md:px-8 md:py-4 rounded-2xl md:rounded-full border transition-all duration-300 shadow-sm hover:shadow-md
+              ${isDarkMode 
+                ? 'bg-blue-900/10 border-blue-900/30 hover:bg-blue-900/20' 
+                : 'bg-[#F4F9FF] border-blue-100/50 hover:bg-[#EBF4FF]'
+              }
             `}
           >
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isDarkMode ? 'bg-gold/10 text-gold group-hover:bg-gold group-hover:text-midnight' : 'bg-gold/10 text-amber-600 group-hover:bg-amber-600 group-hover:text-white'}`}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <div>
-                <p className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${isDarkMode ? 'text-white/40' : 'text-slate-400'}`}>오늘의 학습 습관</p>
-                <h3 className="text-base md:text-lg font-bold">데일리 루틴 10</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-lg md:text-xl">⚡</span>
+              <div className="text-left flex flex-col md:flex-row md:items-baseline md:gap-2">
+                <h3 className={`text-sm md:text-base font-black ${isDarkMode ? 'text-blue-400' : 'text-[#0052CC]'}`}>데일리 루틴 10</h3>
+                <p className={`text-[10px] md:text-[11px] font-bold mt-0.5 md:mt-0 ${isDarkMode ? 'text-blue-400/60' : 'text-[#0052CC]/60'}`}>매일 10문제로 실력 쌓기</p>
               </div>
             </div>
             
-            <div className={`opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 ${isDarkMode ? 'text-gold' : 'text-amber-600'}`}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <div className={`shrink-0 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black tracking-widest uppercase shadow-sm border
+              ${isDarkMode ? 'bg-blue-900/50 text-blue-300 border-blue-800' : 'bg-white text-[#0052CC] border-blue-50'}
+            `}>
+              Run
             </div>
           </motion.button>
-        </section>
+        </div>
 
         {/* 🛠️ Strategic Gating Section */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
