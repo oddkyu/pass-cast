@@ -54,7 +54,7 @@ const HomePage = ({
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
                 </svg>
-                로그인
+                로그인 / 회원가입
               </button>
             ) : (
               <div className="flex items-center gap-3 text-right">
