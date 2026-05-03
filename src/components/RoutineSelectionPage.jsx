@@ -100,44 +100,60 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
             <span className="text-sm font-bold opacity-40">10문제씩 나누어 학습하세요</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {sets.map((set) => {
               const isCompleted = completedSets.has(set.id);
               return (
                 <motion.button
                   key={set.id}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ y: -5, scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onStartRoutine(selectedYear, selectedSubject, set.id)}
-                  className={`relative p-8 rounded-[2.5rem] border-2 flex items-center justify-between group transition-all
+                  className={`relative p-10 rounded-[3.5rem] border flex flex-col items-start text-left group transition-all duration-500 overflow-hidden
                     ${isCompleted 
-                      ? (isDarkMode ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200')
-                      : (isDarkMode ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-xl shadow-slate-100')
+                      ? (isDarkMode ? 'bg-green-500/5 border-green-500/20' : 'bg-green-50/50 border-green-200/50')
+                      : (isDarkMode ? 'bg-white/[0.03] border-white/5 shadow-2xl shadow-black/20' : 'bg-white border-slate-100 shadow-2xl shadow-slate-200/50')
                     }
                   `}
                 >
-                  <div className="flex items-center gap-6">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg transition-transform group-hover:rotate-12
+                  {/* Decorative Background Element */}
+                  <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 transition-all group-hover:scale-150 ${isCompleted ? 'bg-green-500' : 'bg-gold'}`} />
+
+                  <div className="w-full flex justify-between items-start mb-8">
+                    <div className={`px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-sm
                       ${isCompleted ? 'bg-green-500 text-white' : 'bg-gold text-midnight'}
                     `}>
                       {set.label}
                     </div>
-                    <div className="text-left">
-                      <h4 className="text-2xl font-black">{set.range}</h4>
-                      <p className="text-sm font-bold opacity-40">오늘의 루틴 {set.id + 1}</p>
-                    </div>
+                    {isCompleted && (
+                      <div className="flex items-center gap-1.5 text-green-500 font-black text-[11px] uppercase tracking-tighter">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                        COMPLETED
+                      </div>
+                    )}
                   </div>
-                  
-                  {isCompleted ? (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-full font-black text-xs">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                      완료
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-full border-2 border-gold/20 flex items-center justify-center text-gold group-hover:bg-gold group-hover:text-midnight transition-all">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </div>
-                  )}
+
+                  <div className="space-y-2">
+                    <h4 className={`text-4xl font-black tracking-tighter ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
+                      {set.range}
+                    </h4>
+                    <p className="text-sm font-bold opacity-30 uppercase tracking-widest">
+                      Daily Routine Stage {set.id + 1}
+                    </p>
+                  </div>
+
+                  <div className="mt-10 w-full flex items-center justify-between">
+                     <span className={`text-[12px] font-black uppercase tracking-widest transition-all group-hover:translate-x-1 ${isCompleted ? 'text-green-500/50' : 'text-gold'}`}>
+                       {isCompleted ? '다시 학습하기' : '지금 시작하기 →'}
+                     </span>
+                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500
+                        ${isCompleted ? 'bg-green-500/10 text-green-500' : 'bg-midnight text-gold shadow-lg shadow-midnight/20 group-hover:bg-gold group-hover:text-midnight'}
+                     `}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          {isCompleted ? <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /> : <path d="M5 12h14M12 5l7 7-7 7" />}
+                        </svg>
+                     </div>
+                  </div>
                 </motion.button>
               );
             })}
