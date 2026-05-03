@@ -45,7 +45,7 @@ const LandingPage = ({ isDarkMode, onClose, isPopup }) => {
               </li>
               <li className="flex items-center space-x-2">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-gold"><polyline points="20 6 9 17 4 12"/></svg>
-                <span>최신 10개년 기출 완벽 복원</span>
+                <span>매년 업데이트되는 최신 5개년 기출 제공</span>
               </li>
             </ul>
           </div>

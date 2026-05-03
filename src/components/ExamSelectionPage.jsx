@@ -19,9 +19,9 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
       { id: 'civil', name: '민법 및 민사특별법', info: '1교시 / 40문항' },
     ],
     second: [
-      { id: 'law', name: '중개사법령 및 실무', info: '1교시 / 40문항' },
+      { id: 'law', name: '공인중개사법', info: '1교시 / 40문항' },
       { id: 'public', name: '부동산공법', info: '1교시 / 40문항' },
-      { id: 'tax', name: '공시법 및 세법', info: '2교시 / 40문항' },
+      { id: 'tax', name: '부동산공시법 및 세법', info: '2교시 / 40문항' },
     ]
   };
 

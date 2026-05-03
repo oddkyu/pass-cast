@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const QuizPage = ({ onBack }) => {
+const QuizPage = ({ onBack, isDarkMode }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -20,8 +20,9 @@ const QuizPage = ({ onBack }) => {
           id: 0,
           subject: "설정 오류",
           question_text: "Supabase 설정이 누락되었습니다. .env 파일에 VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY가 있는지 확인해주세요.",
+          content: "Supabase 설정이 누락되었습니다.",
           options: ["확인"],
-          answer: 0
+          answer: 1
         }
       ]);
       setIsLoading(false);
@@ -45,8 +46,9 @@ const QuizPage = ({ onBack }) => {
           id: 0,
           subject: "에러 발생",
           question_text: "데이터를 불러오는 중 오류가 발생했습니다. .env 설정을 확인해주세요.",
+          content: "데이터를 불러오는 중 오류가 발생했습니다.",
           options: ["확인"],
-          answer: 0
+          answer: 1
         }
       ]);
     } finally {
@@ -62,7 +64,7 @@ const QuizPage = ({ onBack }) => {
     if (selectedOption !== null) return;
     
     const currentQ = questions[currentIndex];
-    const correct = index === currentQ.answer;
+    const correct = (index + 1) === currentQ.answer;
     
     setSelectedOption(index);
     setIsCorrect(correct);
@@ -177,14 +179,27 @@ const QuizPage = ({ onBack }) => {
                <span className="text-slate-200 font-black text-8xl opacity-20">0{currentIndex + 1}</span>
             </div>
 
-            <h2 className="text-[24px] md:text-[28px] font-black leading-snug text-midnight mb-12 relative z-10 break-keep">
-              {currentQuestion?.question_text}
-            </h2>
+            <div className="space-y-6 relative z-10">
+              <h2 className="text-[24px] md:text-[28px] font-black leading-snug text-midnight mb-6 break-keep">
+                {currentQuestion?.title}
+              </h2>
+
+              {/* 📦 박스형 지문 (content_box 데이터가 있는 경우) */}
+              {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                  <div className="space-y-2">
+                    {currentQuestion.content_box.map((line, idx) => (
+                      <p key={idx} className="text-[16px] md:text-[18px] font-medium opacity-70 leading-relaxed">{line}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="space-y-4 mt-auto relative z-10">
               {currentQuestion?.options.map((option, index) => {
                 const isSelected = selectedOption === index;
-                const isCorrectAns = index === currentQuestion.answer;
+                const isCorrectAns = (index + 1) === currentQuestion.answer;
                 
                 let stateClass = "bg-white/50 border-slate-100 text-midnight hover:border-gold/30 hover:bg-white";
                 if (selectedOption !== null) {

@@ -1,30 +1,78 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
-const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium = false }) => {
+const FullExamPage = ({ 
+  year, 
+  subject, 
+  isDarkMode, 
+  onBack, 
+  onFinish, 
+  isPremium = false,
+  mode = 'practice',
+  userAnswers = {},
+  user = null
+}) => {
+  const [questions, setQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState(mode === 'review' ? userAnswers : {});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const isReviewMode = mode === 'review';
   const showAds = !isPremium;
-  const questionTopRef = useRef(null); // 질문지 상단 참조
+  const questionTopRef = useRef(null);
 
-  // Mock Questions
-  const questions = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
-    id: i + 1,
-    question_text: `[제${year}회 ${subject}] ${i + 1}번 문제입니다. 공인중개사법령상 중개대상물에 관한 설명으로 옳은 것을 모두 고른 것은?`,
-    options: ["① 법령상 중개대상물에는 토지, 건물 그 밖의 토지의 정착물이 포함된다.", "② 입목에 관한 법률에 따른 입목은 중개대상물에 해당하지 않는다.", "③ 공장 및 광업재단 저당법에 따른 공장재단은 중개대상물이다.", "④ 중개보조원은 중개대상물의 확인·설명의 의무가 있다.", "⑤ 개업공인중개사는 소속공인중개사의 행위에 대해 책임을 지지 않는다."],
-    answer: 2,
-    explanation: "해당 문항의 정답은 ③번입니다."
-  })), [year, subject]);
+  // Fetch Questions from Supabase
+  const fetchQuestions = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Get exam_id first to avoid complex join issues
+      const { data: examData, error: examError } = await supabase
+        .from('exams')
+        .select('id')
+        .eq('year', year)
+        .limit(1);
+      
+      if (examError || !examData || examData.length === 0) {
+        throw new Error(`해당 연도(${year})의 시험 정보를 찾을 수 없습니다.`);
+      }
+
+      const examId = examData[0].id;
+
+      // 2. Fetch questions for that exam and subject
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('exam_id', examId)
+        .eq('subject', subject)
+        .order('number', { ascending: true });
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error(`${subject} 과목의 문제를 찾을 수 없습니다.`);
+      }
+      setQuestions(data);
+    } catch (err) {
+      console.error('Error fetching exam questions:', err);
+      alert(err.message || '데이터를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchQuestions();
+  }, [year, subject]);
+
+  useEffect(() => {
+    if (isReviewMode) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isReviewMode]);
 
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -41,6 +89,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   }, [currentIndex]);
 
   const handleSelectAnswer = (idx) => {
+    if (isReviewMode) return;
     setAnswers(prev => ({ ...prev, [currentIndex]: idx }));
     if (currentIndex < questions.length - 1) {
       setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
@@ -48,6 +97,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
   };
 
   const toggleHold = (idx) => {
+    if (isReviewMode) return;
     setHeldQuestions(prev => {
       const next = new Set(prev);
       if (next.has(idx)) next.delete(idx);
@@ -55,6 +105,15 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
       return next;
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-offwhite min-h-screen">
+        <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-6"></div>
+        <p className="text-xl font-black text-midnight tracking-tight">시험지를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
 
   const currentQuestion = questions[currentIndex];
 
@@ -64,27 +123,39 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
       {/* 🏛️ Compact Header */}
       <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-6 md:px-8 h-16 md:h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
         <div className="flex items-center space-x-4 md:space-x-6">
-          <button onClick={() => setShowExitConfirm(true)} className="w-8 h-8 md:w-10 md:h-10 border border-gold/30 rounded-xl flex items-center justify-center text-gold">
+          <button onClick={() => isReviewMode ? onBack() : setShowExitConfirm(true)} className="w-8 h-8 md:w-10 md:h-10 border border-gold/30 rounded-xl flex items-center justify-center text-gold">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex flex-col">
              <span className="text-[9px] md:text-[10px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
-             <h1 className="text-sm md:text-lg font-black tracking-tight">기출 실전 시험</h1>
+             <h1 className="text-sm md:text-lg font-black tracking-tight">{isReviewMode ? '오답 분석 리뷰' : '기출 실전 시험'}</h1>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 md:space-x-10">
-           <div className="flex items-center bg-midnight text-gold px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black text-[12px] md:text-sm border border-gold/30 shadow-lg space-x-3 md:space-x-4">
-              <div className="flex items-center space-x-1.5 md:space-x-2 border-r border-gold/20 pr-3 md:pr-4">
+        {/* 🏛️ Center: Question Stats & Timer (Moved to Center) */}
+        <div className="flex items-center">
+           <div className={`flex items-center px-4 md:px-6 py-2 md:py-2.5 rounded-full font-black text-[12px] md:text-sm border shadow-lg space-x-3 md:space-x-4 bg-midnight border-gold/30 text-gold`}>
+              <div className={`flex items-center space-x-1.5 md:space-x-2 border-r pr-3 md:pr-4 border-gold/20`}>
                  <span className="text-[9px] md:text-[10px] opacity-40 uppercase font-black tracking-tighter">Q</span>
                  <span className="text-sm md:text-base">{currentIndex + 1}</span>
                  <span className="text-[9px] md:text-[10px] opacity-40">/ {questions.length}</span>
               </div>
               <div className="flex items-center space-x-1.5 md:space-x-2">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                 <span className="tabular-nums">{formatTime(timeLeft)}</span>
+                 <span className="tabular-nums">{isReviewMode ? '리뷰 중' : formatTime(timeLeft)}</span>
               </div>
            </div>
+        </div>
+
+        {/* 🏛️ Right: Logo (Moved to Right) */}
+        <div className="hidden md:flex items-center gap-2 cursor-pointer shrink-0" onClick={onBack}>
+          <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center shadow-lg shadow-gold/20">
+            <span className="text-midnight font-black text-sm">P</span>
+          </div>
+          <div className="flex flex-col leading-none">
+            <span className="font-black tracking-tighter uppercase text-[12px]">Pass-Cast</span>
+            <span className="text-[7px] font-bold text-gold uppercase tracking-widest">Premium</span>
+          </div>
         </div>
       </header>
 
@@ -95,46 +166,137 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
 
         <section className="space-y-6 md:space-y-8">
            <div className="flex items-center justify-between">
-              <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter uppercase italic">Question {currentIndex + 1}</span>
-              <button 
-                onClick={() => toggleHold(currentIndex)}
-                className={`px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                  ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
-                `}
-              >
-                {heldQuestions.has(currentIndex) ? '보류 중' : '보류 표시'}
-              </button>
+              <div className="flex items-center space-x-4">
+                <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter uppercase italic">Question {currentIndex + 1}</span>
+                {isReviewMode && (
+                  <span className={`px-4 py-1 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg ${answers[currentIndex] === currentQuestion?.answer ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                    {answers[currentIndex] === currentQuestion?.answer ? '정답 O' : '오답 X'}
+                  </span>
+                )}
+              </div>
+              {!isReviewMode && (
+                <button 
+                  onClick={() => toggleHold(currentIndex)}
+                  className={`px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                    ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
+                  `}
+                >
+                  {heldQuestions.has(currentIndex) ? '보류 중' : '보류 표시'}
+                </button>
+              )}
            </div>
-           <h2 className="text-xl md:text-3xl font-black leading-tight break-keep">{currentQuestion.question_text}</h2>
+           <div className="space-y-8">
+             {/* 🏷️ 질문 타이틀 (굵게 처리) */}
+             <h2 className="text-[24px] md:text-[28px] font-black leading-[1.4] break-keep text-midnight tracking-tight">
+               <span className="text-gold mr-3">{currentQuestion?.number}.</span>
+               {currentQuestion?.title}
+             </h2>
+
+             {/* 📦 박스형 지문 (content_box 데이터가 있는 경우에만 출력) */}
+             {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+               <div className={`mt-8 p-8 md:p-10 rounded-[2.5rem] border ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'} relative`}>
+                 <div className="absolute -top-3.5 left-10 px-4 py-1 bg-midnight text-gold text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg">보기</div>
+                 <div className="space-y-4">
+                   {currentQuestion.content_box.map((line, idx) => (
+                     <p 
+                       key={idx} 
+                       className={`text-[17px] md:text-[19px] leading-[1.7] break-keep font-medium ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                     >
+                       {line}
+                     </p>
+                   ))}
+                 </div>
+               </div>
+             )}
+           </div>
         </section>
 
         <section className="grid grid-cols-1 gap-4 md:gap-5">
-          {currentQuestion.options.map((opt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSelectAnswer(idx)}
-              className={`p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2
-                ${answers[currentIndex] === idx 
-                  ? 'bg-gold border-gold text-midnight shadow-xl' 
-                  : (isDarkMode ? 'bg-white/5 border-white/5 hover:border-gold/30' : 'bg-white border-slate-100 hover:border-gold/30 shadow-sm')}
-              `}
-            >
-              <span className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl
-                 ${answers[currentIndex] === idx ? 'bg-midnight/10' : 'bg-midnight/5'}
-              `}>{idx + 1}</span>
-              <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
-            </button>
-          ))}
+          {currentQuestion.options.map((opt, idx) => {
+            const optionNumber = idx + 1;
+            const isSelected = answers[currentIndex] === optionNumber;
+            const isCorrectAnswer = currentQuestion.answer === optionNumber;
+            
+            let bgStyle = isDarkMode ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm';
+            if (isReviewMode) {
+              if (isCorrectAnswer) bgStyle = 'bg-green-500/10 border-green-500 text-green-600 shadow-lg z-10';
+              else if (isSelected) bgStyle = 'bg-red-500/10 border-red-500 text-red-600 shadow-lg z-10';
+              else bgStyle = 'opacity-40 grayscale';
+            } else if (isSelected) {
+              bgStyle = 'bg-gold border-gold text-midnight shadow-xl';
+            }
+
+            return (
+              <button
+                key={idx}
+                disabled={isReviewMode}
+                onClick={() => {
+                  setAnswers(prev => ({ ...prev, [currentIndex]: optionNumber }));
+                  if (currentIndex < questions.length - 1) {
+                    setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
+                  }
+                }}
+                className={`p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2 relative
+                  ${bgStyle}
+                `}
+              >
+                <span className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl
+                   ${isSelected ? 'bg-midnight/10' : 'bg-midnight/5'}
+                `}>{optionNumber}</span>
+                <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
+                {isReviewMode && isCorrectAnswer && (
+                  <div className="absolute right-8 text-green-500">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                )}
+                {isReviewMode && isSelected && !isCorrectAnswer && (
+                   <div className="absolute right-8 text-red-500">
+                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                   </div>
+                )}
+              </button>
+            );
+          })}
         </section>
 
-        <div className="flex justify-end pt-4">
+        {/* 📚 Review Mode Explanation */}
+        {isReviewMode && (
+          <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
+            <div className="flex items-center gap-4 text-gold">
+               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+               <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
+            </div>
+            
+            {!user ? (
+              <div className="space-y-4">
+                <p className="text-lg font-bold opacity-60">해설은 가입 회원에게만 제공됩니다.</p>
+                <button onClick={() => window.location.hash = '#login'} className="px-6 py-3 bg-gold text-midnight rounded-xl font-black text-sm transition-all hover:scale-105">로그인하고 해설 보기</button>
+              </div>
+            ) : (
+              <p className="text-lg md:text-xl font-bold leading-relaxed opacity-80 break-keep">
+                {currentQuestion?.explanation || "현재 이 문항에 등록된 해설이 없습니다."}
+              </p>
+            )}
+          </section>
+        )}
+
+        <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+           <button 
+             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+             disabled={currentIndex === 0}
+             className="flex items-center space-x-2 px-6 py-3 bg-slate-100 text-slate-400 rounded-xl font-bold disabled:opacity-0 transition-all"
+           >
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
+             <span>이전 문제</span>
+           </button>
+           
            <button 
              onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
              disabled={currentIndex === questions.length - 1}
-             className="group flex items-center space-x-2 md:space-x-3 px-6 md:px-8 py-3 md:py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-xl md:rounded-2xl transition-all duration-300 disabled:opacity-10"
+             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
            >
-             <span className="text-sm md:text-lg font-black uppercase tracking-widest">다음 문제로</span>
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform md:w-6 md:h-6"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+             <span className="text-lg font-black uppercase tracking-widest">다음 문제로</span>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
            </button>
         </div>
 
@@ -237,10 +399,10 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
                 </div>
                 
                 <button 
-                  onClick={() => onFinish({ questions, answers, year, subject })}
+                  onClick={() => isReviewMode ? onBack() : onFinish({ questions, answers, year, subject })}
                   className="flex-1 md:flex-none px-6 md:px-10 py-3 md:py-3.5 bg-midnight text-gold rounded-xl md:rounded-2xl font-black text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest"
                 >
-                  최종 채점
+                  {isReviewMode ? '리뷰 종료' : '최종 채점'}
                 </button>
               </div>
 
@@ -257,7 +419,7 @@ const FullExamPage = ({ year, subject, isDarkMode, onBack, onFinish, isPremium =
               <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight">시험을 종료할까요?</h3>
               <div className="grid grid-cols-2 gap-4">
                 <button onClick={() => setShowExitConfirm(false)} className="py-3 md:py-4 rounded-xl font-black opacity-40">취소</button>
-                <button onClick={onBack} className="py-3 md:py-4 bg-red-500 text-white rounded-xl font-black shadow-lg">종료</button>
+                <button onClick={() => { setShowExitConfirm(false); onBack(); }} className="py-3 md:py-4 bg-red-500 text-white rounded-xl font-black shadow-lg">종료</button>
               </div>
             </motion.div>
           </div>

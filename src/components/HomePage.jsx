@@ -11,6 +11,7 @@ const HomePage = ({
   onGoToWrongNote,
   onGoToPremium,
   onGoToTestPage,
+  onGoToQuiz,
   onLogin,
   onLogout,
   wrongCount = 0 
@@ -46,12 +47,14 @@ const HomePage = ({
             {isGuest ? (
               <button
                 onClick={onLogin}
-                className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 rounded-full font-bold hover:scale-105 active:scale-95 transition-all whitespace-nowrap border
-                  ${isDarkMode ? 'bg-[#FEE500]/10 border-[#FEE500]/20 text-[#FEE500]' : 'bg-[#FEE500] border-[#FEE500] text-[#191919]'}
+                className={`group flex items-center gap-2.5 px-6 md:px-8 py-2 md:py-2.5 rounded-full font-black text-[11px] md:text-sm tracking-tighter transition-all hover:scale-105 active:scale-95 whitespace-nowrap shadow-xl border-2
+                  ${isDarkMode 
+                    ? 'bg-gold/10 border-gold/30 text-gold hover:bg-gold/20 shadow-gold/5' 
+                    : 'bg-[#F5C518] border-[#F5C518] text-midnight shadow-[#F5C518]/20 hover:border-midnight/10'
+                  }
                 `}
-                style={{ fontSize: 'clamp(10px, 2.5vw, 12px)' }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="group-hover:scale-110 transition-transform">
                   <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
                 </svg>
                 로그인 / 회원가입
@@ -100,7 +103,7 @@ const HomePage = ({
           
           <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-8xl font-black tracking-tighter leading-[1.05] break-keep">
             {isGuest ? (
-              <>공인중개사 합격의 <br/> <span className="text-gold glow-gold">가장 과학적인 분석</span></>
+              <>공인중개사 합격을 위한 <br/> <span className="text-gold glow-gold">최신 5개년 기출 분석</span></>
             ) : (
               <>{displayName} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
             )}
@@ -108,7 +111,7 @@ const HomePage = ({
           
           {isGuest && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-lg md:text-2xl font-bold opacity-30 max-w-2xl break-keep">
-              Pass-Cast는 매일 업데이트되는 10개년 기출 데이터를 통해 사장님의 합격을 가장 정교하게 예측하고 관리해 드립니다.
+              Pass-Cast는 매년 업데이트되는 최신 5개년 기출 데이터를 통해 수험생 여러분의 합격을 도와 드립니다.
             </motion.p>
           )}
 
@@ -131,7 +134,7 @@ const HomePage = ({
             title={<span className={isDarkMode ? 'text-[#FEE500]' : 'text-blue-600'}>데일리 루틴 10</span>}
             subtitle="매일 10문제로 다지는 합격 습관"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
-            onClick={onGoToExamSelection}
+            onClick={onGoToQuiz}
             isDarkMode={isDarkMode}
             delay={0.5}
             highlight="추천"

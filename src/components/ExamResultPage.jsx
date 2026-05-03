@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
-const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, onRequireAuthForSave }) => {
+const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, onRequireAuthForSave }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const isGuest = !user;
   const showAds = !isPremium;
@@ -36,14 +37,27 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className={`min-h-screen flex flex-col noise-texture transition-all duration-500 overflow-x-hidden ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}
     >
+      {/* 🏛️ Compact Header */}
+      <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-6 md:px-8 h-16 md:h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
+          <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center shadow-lg shadow-gold/20">
+            <span className="text-midnight font-black text-sm">P</span>
+          </div>
+          <span className="font-black tracking-tighter uppercase text-sm">Pass-Cast</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="text-[10px] font-black text-gold uppercase tracking-widest">{result.year} {result.subject} 결과</span>
+        </div>
+      </header>
+
       <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 space-y-12">
         
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
             <div className="flex flex-col items-center space-y-2">
-               <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? 'Guest Analysis' : (isPremium ? 'Premium Analysis' : 'Free Analysis')}</p>
-               {isPremium && <span className="px-4 py-1 bg-gold text-midnight text-[10px] font-black rounded-full uppercase tracking-widest">Premium Member</span>}
+               <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? '게스트 분석' : (isPremium ? '프리미엄 분석' : '일반 분석')}</p>
+               {isPremium && <span className="px-4 py-1 bg-gold text-midnight text-[10px] font-black rounded-full uppercase tracking-widest">프리미엄 회원</span>}
             </div>
             <div className="flex items-baseline justify-center space-x-6">
               <span className={`text-[150px] md:text-[240px] font-black leading-none tracking-tighter ${isPass ? 'text-gold glow-gold' : 'text-slate-400'}`}>{score}</span>
@@ -108,11 +122,39 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, 
         {/* 📚 Action Buttons */}
         <div className="space-y-6">
           <button 
-            onClick={() => {
+            onClick={async () => {
               if (isGuest) {
                 onRequireAuthForSave();
+              } else if (!isPremium) {
+                alert('오답노트 자동 저장은 프리미엄 전용 기능입니다. 업그레이드 페이지로 이동합니다.');
+                window.location.hash = '#premium';
               } else {
-                alert('이미 오답노트에 안전하게 저장되어 있습니다!');
+                // 프리미엄 유저: DB 저장 로직
+                try {
+                  const wrongOnes = questions
+                    .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer);
+                  
+                  if (wrongOnes.length === 0) {
+                    alert('틀린 문제가 없어 저장할 내용이 없습니다!');
+                    return;
+                  }
+
+                  const { error } = await supabase
+                    .from('user_incorrect_questions')
+                    .upsert(
+                      wrongOnes.map(q => ({
+                        user_id: user.id,
+                        question_id: q.id
+                      })),
+                      { onConflict: 'user_id,question_id' }
+                    );
+
+                  if (error) throw error;
+                  alert('오답노트에 안전하게 저장되었습니다!');
+                } catch (err) {
+                  console.error('Save error:', err);
+                  alert('저장 중 오류가 발생했습니다.');
+                }
               }
             }}
             className="w-full p-8 rounded-[3rem] flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95 shadow-xl border-2 border-gold/30 bg-gold/5 group"
@@ -131,12 +173,15 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, 
             </div>
           </button>
 
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <button onClick={onReview} className={`p-10 rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 bg-gold text-midnight shadow-xl shadow-gold/20`}>
+              <h4 className="text-2xl font-black">시험지 리뷰</h4>
+            </button>
             <button onClick={onRetry} className={`p-10 rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 ${isDarkMode ? 'bg-white/5 text-white border border-white/5' : 'bg-white text-midnight border border-slate-100 shadow-xl shadow-slate-100'}`}>
-              <h4 className="text-2xl font-black">다시 풀어보기</h4>
+              <h4 className="text-2xl font-black">다시 풀기</h4>
             </button>
             <button onClick={onHome} className="p-10 bg-midnight text-gold rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 shadow-2xl">
-              <h4 className="text-2xl font-black">대시보드로 이동</h4>
+              <h4 className="text-2xl font-black">대시보드</h4>
             </button>
           </section>
         </div>
@@ -159,11 +204,24 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, user, 
               </div>
 
               <div className="space-y-10">
-                <h2 className="text-[28px] md:text-[36px] font-black leading-tight break-keep">{questions[reviewIndex].question_text}</h2>
+                <div className="space-y-8">
+                  <h2 className="text-[28px] md:text-[36px] font-black leading-tight break-keep">{questions[reviewIndex].title}</h2>
+                  
+                  {/* 📦 박스형 지문 (상세 보기 모달) */}
+                  {questions[reviewIndex].content_box && questions[reviewIndex].content_box.length > 0 && (
+                    <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                      <div className="space-y-3">
+                        {questions[reviewIndex].content_box.map((line, idx) => (
+                          <p key={idx} className="text-xl font-medium opacity-60 leading-relaxed">{line}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-6">
                   {questions[reviewIndex].options.map((opt, idx) => {
-                    const isCorrect = idx === questions[reviewIndex].answer;
-                    const isUserChoice = idx === answers[reviewIndex];
+                    const isCorrect = (idx + 1) === questions[reviewIndex].answer;
+                    const isUserChoice = (idx + 1) === answers[reviewIndex];
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : isUserChoice ? 'border-red-500 bg-red-500/5 text-red-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>

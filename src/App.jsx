@@ -145,22 +145,70 @@ const App = () => {
 
   // 📊 Load User Specific Data
   useEffect(() => {
-    const saved = localStorage.getItem(user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest');
-    try {
-      setWrongAnswers(saved ? JSON.parse(saved) : []);
-    } catch (e) {
-      setWrongAnswers([]);
-    }
-  }, [user]);
+    const loadWrongAnswers = async () => {
+      // 1. 게스트 또는 무료 회원은 로컬스토리지 사용
+      if (!user || !isPremium) {
+        const saved = localStorage.getItem(user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest');
+        try {
+          setWrongAnswers(saved ? JSON.parse(saved) : []);
+        } catch (e) {
+          setWrongAnswers([]);
+        }
+        return;
+      }
 
+      // 2. 프리미엄 회원은 Supabase DB에서 호출
+      try {
+        const { data, error } = await supabase
+          .from('user_incorrect_questions')
+          .select(`
+            id,
+            question:questions (
+              id,
+              number,
+              title,
+              content_box,
+              options,
+              answer,
+              explanation,
+              subject,
+              exam:exams ( year )
+            )
+          `)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        // DB 구조를 기존 앱 데이터 구조와 맞춤
+        const formatted = data.map(item => ({
+          ...item.question,
+          db_id: item.id, // DB 레코드 식별자 따로 저장
+          year: item.question.exam.year,
+          savedAt: new Date().toISOString()
+        }));
+        setWrongAnswers(formatted);
+      } catch (err) {
+        console.error('Failed to fetch DB wrong answers:', err);
+        // 폴백: 로컬스토리지
+        const saved = localStorage.getItem(`pass-cast-wrong-${user.id}`);
+        setWrongAnswers(saved ? JSON.parse(saved) : []);
+      }
+    };
+
+    loadWrongAnswers();
+  }, [user, isPremium]);
+
+  // 로컬스토리지 동기화 (프리미엄이 아닐 때만 자동 저장)
   useEffect(() => {
+    if (isPremium && user) return; 
     const key = user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest';
     localStorage.setItem(key, JSON.stringify(wrongAnswers));
-  }, [wrongAnswers, user]);
+  }, [wrongAnswers, user, isPremium]);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleStartFullExam = (year, subject) => {
+    setExamResult(null);
     navigate('full_exam', { selectedExam: { year, subject } });
   };
 
@@ -203,19 +251,11 @@ const App = () => {
               onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
               onGoToPremium={() => navigate('premium')}
               onGoToTestPage={() => navigate('test_preview')}
+              onGoToQuiz={() => navigate('quiz')}
               onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
               onLogin={() => navigate('login')}
               wrongCount={wrongAnswers.length}
             />
-            <AnimatePresence>
-              {showGatingModal && (
-                <AuthGatingModal 
-                  isDarkMode={isDarkMode} 
-                  onClose={() => setShowGatingModal(false)}
-                  onLogin={() => { setShowGatingModal(false); navigate('login'); }}
-                />
-              )}
-            </AnimatePresence>
           </>
         );
       case 'test_preview':
@@ -223,11 +263,66 @@ const App = () => {
       case 'exam_selection':
         return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onSelectExam={handleStartFullExam} />;
       case 'full_exam':
-        return <FullExamPage key="full_exam" year={selectedExam.year} subject={selectedExam.subject} isDarkMode={isDarkMode} onBack={() => navigate('exam_selection')} onFinish={handleFinishExam} />;
+        return (
+          <FullExamPage 
+            key="full_exam" 
+            year={selectedExam.year} 
+            subject={selectedExam.subject} 
+            isDarkMode={isDarkMode} 
+            isPremium={isPremium}
+            onBack={() => navigate('home')} 
+            onFinish={handleFinishExam} 
+            mode={examResult?.isReview ? 'review' : 'practice'}
+            userAnswers={examResult?.answers}
+            user={user}
+          />
+        );
       case 'exam_result':
-        return <ExamResultPage key="exam_result" result={examResult} isDarkMode={isDarkMode} isPremium={isPremium} onHome={() => navigate('home')} onRetry={() => navigate('full_exam')} user={user} onRequireAuthForSave={() => setShowGatingModal(true)} />;
+        return (
+          <ExamResultPage 
+            key="exam_result" 
+            result={examResult} 
+            isDarkMode={isDarkMode} 
+            isPremium={isPremium} 
+            onHome={() => navigate('home')} 
+            onRetry={() => {
+              setExamResult(null);
+              navigate('full_exam');
+            }} 
+            onReview={() => {
+              setExamResult(prev => ({ ...prev, isReview: true }));
+              navigate('full_exam');
+            }}
+            user={user} 
+            onRequireAuthForSave={() => setShowGatingModal(true)} 
+          />
+        );
+      case 'quiz':
+        return <QuizPage key="quiz" onBack={() => navigate('home')} isDarkMode={isDarkMode} />;
       case 'wrong_note':
-        return <WrongAnswerNotePage key="wrong_note" wrongAnswers={wrongAnswers} isDarkMode={isDarkMode} onBack={() => navigate('home')} onRemove={(id) => setWrongAnswers(prev => prev.filter(q => q.id !== id))} />;
+        return (
+          <WrongAnswerNotePage 
+            key="wrong_note" 
+            wrongAnswers={wrongAnswers} 
+            isDarkMode={isDarkMode} 
+            isPremium={isPremium}
+            onBack={() => navigate('home')} 
+            onRemove={async (id) => {
+              const target = wrongAnswers.find(q => q.id === id);
+              if (isPremium && user && target?.db_id) {
+                const { error } = await supabase
+                  .from('user_incorrect_questions')
+                  .delete()
+                  .eq('id', target.db_id);
+                if (error) {
+                  alert('DB 삭제 중 오류가 발생했습니다.');
+                  return;
+                }
+              }
+              setWrongAnswers(prev => prev.filter(q => q.id !== id));
+            }} 
+          />
+        );
       case 'premium':
         return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => navigate('home')} onUpgrade={() => { setIsPremium(true); navigate('home'); }} />;
       default:
@@ -239,6 +334,17 @@ const App = () => {
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
       <AnimatePresence mode="wait">
         {renderPage()}
+      </AnimatePresence>
+
+      {/* 🔐 Global Auth Gating Modal */}
+      <AnimatePresence>
+        {showGatingModal && (
+          <AuthGatingModal 
+            isDarkMode={isDarkMode} 
+            onClose={() => setShowGatingModal(false)}
+            onLogin={() => { setShowGatingModal(false); navigate('login'); }}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

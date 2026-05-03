@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => {
+const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, isPremium, onBack, onRemove }) => {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [filterSubject, setFilterSubject] = useState('전체');
 
@@ -25,7 +25,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
             <h1 className="text-xl md:text-2xl font-black tracking-tighter">나만의 오답노트</h1>
           </div>
           <div className="flex items-center space-x-4">
-             <span className="text-sm font-black opacity-30 uppercase tracking-widest hidden sm:block">Personal Archive</span>
+             {isPremium && <span className="px-3 py-1 bg-gold text-midnight text-[9px] font-black rounded-full uppercase tracking-widest hidden sm:block">클라우드 동기화</span>}
              <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-midnight font-black">{filteredAnswers.length}</div>
           </div>
         </div>
@@ -37,7 +37,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
               key={s}
               onClick={() => setFilterSubject(s)}
               className={`flex-shrink-0 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all border
-                ${filterSubject === s ? 'bg-midnight text-gold border-gold/50 shadow-lg shadow-gold/10' : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100'}
+                ${filterSubject === s ? 'bg-midnight text-gold border-gold/50 shadow-lg shadow-gold/10' : (isDarkMode ? 'bg-white/5 border-white/5 opacity-40 hover:opacity-100' : 'bg-white border-slate-100 opacity-60 hover:opacity-100')}
               `}
             >
               {s}
@@ -67,17 +67,25 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
               >
                 <div className="space-y-6">
                   <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">{q.year} EXAMINATION</span>
+                    <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">{q.year}년 기출 문제</span>
                     <button 
-                      onClick={(e) => { e.stopPropagation(); onRemove(q.id); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if(confirm('이 문제를 오답노트에서 삭제할까요?')) {
+                          onRemove(q.id); 
+                        }
+                      }}
                       className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-black leading-tight break-keep line-clamp-3">{q.question_text}</h3>
+                  <h3 className="text-xl md:text-2xl font-black leading-tight break-keep line-clamp-3">
+                    <span className="text-gold mr-2">{q.number}.</span>
+                    {q.title}
+                  </h3>
                 </div>
-                <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-between">
+                <div className="mt-10 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
                    <span className="text-xs font-black opacity-30">{q.subject}</span>
                    <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center text-gold">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -89,7 +97,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
         )}
       </main>
 
-      {/* 🔍 Details Modal (AI Audio Completely Removed) */}
+      {/* 🔍 Details Modal */}
       <AnimatePresence>
         {selectedQuestion && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
@@ -106,14 +114,35 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, onBack, onRemove }) => 
               </div>
 
               <div className="space-y-10">
-                <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep">{selectedQuestion.question_text}</h2>
+                <div className="space-y-8">
+                  <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep">
+                    <span className="text-gold mr-3">{selectedQuestion.number}.</span>
+                    {selectedQuestion.title}
+                  </h2>
+                  
+                  {selectedQuestion.content_box && selectedQuestion.content_box.length > 0 && (
+                    <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                      <div className="space-y-3">
+                        {selectedQuestion.content_box.map((line, idx) => (
+                          <p key={idx} className="text-lg font-medium opacity-60 leading-relaxed">{line}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-6">
                   {selectedQuestion.options.map((opt, idx) => {
-                    const isCorrect = idx === selectedQuestion.answer;
+                    const isCorrect = (idx + 1) === selectedQuestion.answer;
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
                         <span className="font-bold text-xl md:text-2xl flex-1">{opt}</span>
+                        {isCorrect && (
+                          <div className="text-green-500">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
