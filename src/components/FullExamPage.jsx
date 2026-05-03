@@ -255,21 +255,21 @@ const FullExamPage = ({
                     setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
                   }
                 }}
-                className={`p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] text-left transition-all duration-300 flex items-center space-x-4 md:space-x-6 border-2 relative
+                className={`p-6 md:p-8 rounded-2xl md:rounded-[3rem] text-left transition-all duration-500 flex items-start space-x-4 md:space-x-6 border-2 relative min-h-[80px]
                   ${bgStyle}
                 `}
               >
-                <span className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl
+                <span className={`shrink-0 w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl mt-0.5
                    ${isSelected ? 'bg-midnight/10' : 'bg-midnight/5'}
                 `}>{optionNumber}</span>
-                <span className="text-base md:text-xl font-bold break-keep">{opt}</span>
+                <span className="text-base md:text-[20px] font-bold leading-relaxed break-keep pt-1">{opt}</span>
                 {isReviewMode && isCorrectAnswer && (
-                  <div className="absolute right-8 text-green-500">
+                  <div className="absolute right-8 top-1/2 -translate-y-1/2 text-green-500">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
                 )}
                 {isReviewMode && isSelected && !isCorrectAnswer && (
-                   <div className="absolute right-8 text-red-500">
+                   <div className="absolute right-8 top-1/2 -translate-y-1/2 text-red-500">
                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                    </div>
                 )}
