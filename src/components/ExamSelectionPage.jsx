@@ -6,11 +6,11 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
   const [selectedYear, setSelectedYear] = useState(null);
 
   const years = [
+    { year: 2025, round: '제36회' },
     { year: 2024, round: '제35회' },
     { year: 2023, round: '제34회' },
     { year: 2022, round: '제33회' },
     { year: 2021, round: '제32회' },
-    { year: 2020, round: '제31회' },
   ];
 
   const subjects = {

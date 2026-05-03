@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
 const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
-  const [selectedYear, setSelectedYear] = useState(2024);
+  const [selectedYear, setSelectedYear] = useState(2025);
   const [selectedSubject, setSelectedSubject] = useState('부동산학개론');
   const [completedSets, setCompletedSets] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
-  const years = [2024, 2023, 2022, 2021, 2020];
+  const years = [2025, 2024, 2023, 2022, 2021];
   const subjects = ['부동산학개론', '민법', '중개사법', '공법', '공시세법'];
   const sets = [
     { id: 0, range: '1 - 10번', label: 'Set 01' },

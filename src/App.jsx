@@ -59,7 +59,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
-  const [selectedExam, setSelectedExam] = useState({ year: 2024, subject: '부동산학개론', isRoutine: false, setIndex: null });
+  const [selectedExam, setSelectedExam] = useState({ year: 2025, subject: '부동산학개론', isRoutine: false, setIndex: null });
   const [examResult, setExamResult] = useState(null);
   const [wrongAnswers, setWrongAnswers] = useState([]);
   const [routineTodayCount, setRoutineTodayCount] = useState(0);
