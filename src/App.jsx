@@ -55,7 +55,7 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
 };
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
