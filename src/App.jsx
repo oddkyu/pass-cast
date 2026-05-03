@@ -11,6 +11,7 @@ import WrongAnswerNotePage from './components/WrongAnswerNotePage';
 import PremiumPage from './components/PremiumPage';
 import LoginPage from './components/LoginPage';
 import TestPreviewPage from './components/TestPreviewPage';
+import RoutineSelectionPage from './components/RoutineSelectionPage';
 
 const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
   const [loading, setLoading] = useState(false);
@@ -54,13 +55,14 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
 };
 
 const App = () => {
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [user, setUser] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedExam, setSelectedExam] = useState({ year: null, subject: null });
+  const [selectedExam, setSelectedExam] = useState({ year: 2024, subject: '부동산학개론', isRoutine: false, setIndex: null });
   const [examResult, setExamResult] = useState(null);
   const [wrongAnswers, setWrongAnswers] = useState([]);
+  const [routineTodayCount, setRoutineTodayCount] = useState(0);
   const [showGatingModal, setShowGatingModal] = useState(false);
 
   // 🔀 브라우저 히스토리에 페이지를 쌓는 헬퍼 함수
@@ -196,7 +198,21 @@ const App = () => {
     };
 
     loadWrongAnswers();
-  }, [user, isPremium]);
+
+    // 오늘의 루틴 진행도 가져오기
+    const fetchTodayRoutine = async () => {
+      if (!user) return;
+      const today = new Date().toISOString().split('T')[0];
+      const { count, error } = await supabase
+        .from('user_routine_history')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('completed_at', today);
+      
+      if (!error) setRoutineTodayCount(count || 0);
+    };
+    fetchTodayRoutine();
+  }, [user, isPremium, currentPage]);
 
   // 로컬스토리지 동기화 (프리미엄이 아닐 때만 자동 저장)
   useEffect(() => {
@@ -209,11 +225,22 @@ const App = () => {
 
   const handleStartFullExam = (year, subject) => {
     setExamResult(null);
-    navigate('full_exam', { selectedExam: { year, subject } });
+    setSelectedExam({ year, subject, isRoutine: false, setIndex: null });
+    navigate('full_exam');
   };
 
-  const handleFinishExam = (results) => {
+  const handleStartRoutine = (year, subject, setIndex) => {
+    setExamResult(null);
+    setSelectedExam({ year, subject, isRoutine: true, setIndex });
+    navigate('full_exam');
+  };
+
+  const handleFinishExam = async (results) => {
     const { questions, answers, year, subject } = results;
+    const isRoutine = selectedExam?.isRoutine;
+    const setIndex = selectedExam?.setIndex;
+
+    // 1. 오답 저장 로직
     const newWrongOnes = questions
       .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
@@ -226,8 +253,26 @@ const App = () => {
       });
     }
 
-    setExamResult(results);
-    navigate('exam_result', { examResult: results });
+    // 2. 데일리 루틴 완료 기록 저장 (DB)
+    if (isRoutine && user && setIndex !== null) {
+      try {
+        const { error } = await supabase
+          .from('user_routine_history')
+          .upsert({
+            user_id: user.id,
+            year,
+            subject,
+            set_index: setIndex
+          }, { onConflict: 'user_id,year,subject,set_index' });
+        
+        if (error) throw error;
+      } catch (err) {
+        console.error('Routine save error:', err);
+      }
+    }
+
+    setExamResult({ ...results, isRoutine });
+    navigate('exam_result');
   };
 
   const requireAuth = (callback) => {
@@ -251,10 +296,11 @@ const App = () => {
               onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
               onGoToPremium={() => navigate('premium')}
               onGoToTestPage={() => navigate('test_preview')}
-              onGoToQuiz={() => navigate('quiz')}
+              onGoToQuiz={() => navigate('routine_selection')}
               onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
               onLogin={() => navigate('login')}
               wrongCount={wrongAnswers.length}
+              routineCount={routineTodayCount}
             />
           </>
         );
@@ -262,12 +308,16 @@ const App = () => {
         return <TestPreviewPage key="test_preview" isDarkMode={isDarkMode} onBack={() => navigate('home')} />;
       case 'exam_selection':
         return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onSelectExam={handleStartFullExam} />;
+      case 'routine_selection':
+        return <RoutineSelectionPage key="routine_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onStartRoutine={handleStartRoutine} user={user} />;
       case 'full_exam':
         return (
           <FullExamPage 
             key="full_exam" 
             year={selectedExam.year} 
             subject={selectedExam.subject} 
+            isRoutine={selectedExam.isRoutine}
+            setIndex={selectedExam.setIndex}
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
             onBack={() => navigate('home')} 
@@ -282,6 +332,7 @@ const App = () => {
           <ExamResultPage 
             key="exam_result" 
             result={examResult} 
+            isRoutine={examResult?.isRoutine}
             isDarkMode={isDarkMode} 
             isPremium={isPremium} 
             onHome={() => navigate('home')} 

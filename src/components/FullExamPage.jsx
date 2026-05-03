@@ -11,14 +11,16 @@ const FullExamPage = ({
   isPremium = false,
   mode = 'practice',
   userAnswers = {},
-  user = null
+  user = null,
+  isRoutine = false,
+  setIndex = null
 }) => {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState(mode === 'review' ? userAnswers : {});
   const [heldQuestions, setHeldQuestions] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(50 * 60);
+  const [timeLeft, setTimeLeft] = useState(isRoutine ? 12 * 60 : 50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const isReviewMode = mode === 'review';
   const showAds = !isPremium;
@@ -42,12 +44,20 @@ const FullExamPage = ({
       const examId = examData[0].id;
 
       // 2. Fetch questions for that exam and subject
-      const { data, error } = await supabase
+      let query = supabase
         .from('questions')
         .select('*')
         .eq('exam_id', examId)
         .eq('subject', subject)
         .order('number', { ascending: true });
+
+      if (isRoutine && setIndex !== null) {
+        const start = setIndex * 10;
+        const end = start + 9;
+        query = query.range(start, end);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       if (!data || data.length === 0) {
@@ -64,7 +74,7 @@ const FullExamPage = ({
 
   useEffect(() => {
     fetchQuestions();
-  }, [year, subject]);
+  }, [year, subject, setIndex]);
 
   useEffect(() => {
     if (isReviewMode) return;
@@ -157,6 +167,15 @@ const FullExamPage = ({
             <span className="text-[7px] font-bold text-gold uppercase tracking-widest">Premium</span>
           </div>
         </div>
+       {/* 📊 Progress Bar (Daily Routine & Full Exam) */}
+       <div className="absolute bottom-0 left-0 w-full h-1.5 bg-midnight/5 overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+            className={`h-full ${isReviewMode ? 'bg-green-500' : 'bg-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]'}`}
+          />
+       </div>
+
       </header>
 
       {/* 🏁 Wide Question Area */}

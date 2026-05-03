@@ -14,7 +14,8 @@ const HomePage = ({
   onGoToQuiz,
   onLogin,
   onLogout,
-  wrongCount = 0 
+  wrongCount = 0,
+  routineCount = 0 
 }) => {
   const isGuest = !user;
   const showAds = !isPremium;
@@ -132,13 +133,13 @@ const HomePage = ({
           />
           <ActionButton 
             title={<span className={isDarkMode ? 'text-[#FEE500]' : 'text-blue-600'}>데일리 루틴 10</span>}
-            subtitle="매일 10문제로 다지는 합격 습관"
+            subtitle={!isGuest ? (routineCount >= 4 ? "오늘의 루틴 완료! ✅" : `${routineCount}/4 세트 완료`) : "매일 10문제로 다지는 합격 습관"}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
             onClick={onGoToQuiz}
             isDarkMode={isDarkMode}
             delay={0.5}
-            highlight="추천"
-            customClass={isDarkMode ? 'border-2 border-[#FEE500]/30 hover:border-[#FEE500]/60' : 'border-2 border-blue-500/30 hover:border-blue-500/60'}
+            highlight={routineCount >= 4 ? "COMPLETE" : "추천"}
+            customClass={routineCount >= 4 ? 'border-2 border-green-500/50' : (isDarkMode ? 'border-2 border-[#FEE500]/30 hover:border-[#FEE500]/60' : 'border-2 border-blue-500/30 hover:border-blue-500/60')}
           />
           <ActionButton 
             title="스마트 오답노트"

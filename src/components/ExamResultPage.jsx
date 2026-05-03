@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
-const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, onRequireAuthForSave }) => {
+const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, onRequireAuthForSave, isRoutine = false }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
+  const [randomMessage, setRandomMessage] = useState('');
+
+  const routineMessages = [
+    "오늘의 루틴 완료! 꾸준함이 합격을 만듭니다. 내일도 함께해요!",
+    "완벽한 습관이 완벽한 결과를 만듭니다. 오늘의 10문제, 고생 많으셨어요!",
+    "성장의 비결은 매일의 루틴입니다. 내일도 이 기세를 이어가세요!",
+    "작은 차이가 합격을 결정합니다. 오늘 보여주신 꾸준함이 정답입니다."
+  ];
+
+  useEffect(() => {
+    if (isRoutine) {
+      const idx = Math.floor(Math.random() * routineMessages.length);
+      setRandomMessage(routineMessages[idx]);
+    }
+  }, [isRoutine]);
   const isGuest = !user;
   const showAds = !isPremium;
 
@@ -55,7 +70,15 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
           <div className="relative z-10 space-y-10">
-            <div className="flex flex-col items-center space-y-2">
+            <div className="flex flex-col items-center space-y-4">
+               {isRoutine && (
+                 <motion.div 
+                   initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                   className="px-6 py-2 bg-midnight text-gold rounded-full font-black text-sm md:text-base border border-gold/30 shadow-xl"
+                 >
+                   {randomMessage}
+                 </motion.div>
+               )}
                <p className="text-xl font-black opacity-40 uppercase tracking-[0.4em]">{isGuest ? '게스트 분석' : (isPremium ? '프리미엄 분석' : '일반 분석')}</p>
                {isPremium && <span className="px-4 py-1 bg-gold text-midnight text-[10px] font-black rounded-full uppercase tracking-widest">프리미엄 회원</span>}
             </div>
@@ -237,7 +260,19 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9.663 17h4.674M12 3v1m0 16v1m5.657-13.657l-.707.707m-10.606 8.485l-.707.707M3 12h1m16 0h1M5.657 5.657l.707.707m8.485 10.606l.707.707M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5z"/></svg>
                   <h4 className="text-2xl font-black">비공개 정답 해설</h4>
                 </div>
-                <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
+                {isPremium ? (
+                  <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="font-bold text-xl opacity-40 italic">해설 보기는 프리미엄 회원 전용 기능입니다.</p>
+                    <button 
+                      onClick={() => { setReviewIndex(null); window.location.hash = '#premium'; }}
+                      className="px-6 py-3 bg-midnight text-gold rounded-xl font-black text-sm"
+                    >
+                      프리미엄 업그레이드 하기
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
