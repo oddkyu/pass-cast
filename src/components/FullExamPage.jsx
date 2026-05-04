@@ -61,12 +61,15 @@ const FullExamPage = ({
 
       if (error) throw error;
       if (!data || data.length === 0) {
-        throw new Error(`${subject} 과목의 문제를 찾을 수 없습니다.`);
+        alert('준비된 시험 데이터가 없습니다. 메인으로 이동합니다.');
+        window.location.replace('/');
+        return;
       }
       setQuestions(data);
     } catch (err) {
       console.error('Error fetching exam questions:', err);
       alert(err.message || '데이터를 불러오는 중 오류가 발생했습니다.');
+      window.location.replace('/');
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +128,9 @@ const FullExamPage = ({
     );
   }
 
+  if (!questions || questions.length === 0) return null;
   const currentQuestion = questions[currentIndex];
+  if (!currentQuestion) return null;
 
   return (
     <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-28 md:pb-32 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
