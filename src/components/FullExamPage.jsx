@@ -286,10 +286,15 @@ const FullExamPage = ({
                <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
             </div>
             
-            {!user ? (
+            {!isPremium ? (
               <div className="space-y-4">
-                <p className="text-lg font-bold opacity-60">해설은 가입 회원에게만 제공됩니다.</p>
-                <button onClick={() => window.location.hash = '#login'} className="px-6 py-3 bg-gold text-midnight rounded-xl font-black text-sm transition-all hover:scale-105">로그인하고 해설 보기</button>
+                <p className="text-lg font-bold opacity-60">상세 해설은 프리미엄 회원에게만 제공됩니다.</p>
+                <button 
+                  onClick={() => alert('준비 중입니다. 곧 정식 출시될 예정입니다!')} 
+                  className="px-6 py-3 bg-gold text-midnight rounded-xl font-black text-sm transition-all hover:scale-105"
+                >
+                  프리미엄 혜택 확인하기
+                </button>
               </div>
             ) : (
               <p className="text-lg md:text-xl font-bold leading-relaxed opacity-80 break-keep">

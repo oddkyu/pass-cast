@@ -69,7 +69,7 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
             >
               {years.map((y, index) => (
                 <YearCard 
@@ -141,31 +141,31 @@ const YearCard = ({ year, round, isDarkMode, onClick, index }) => (
   <motion.button
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    whileHover={{ y: -8, scale: 1.02 }}
+    whileHover={{ y: -8, scale: 1.01 }}
     transition={{ delay: index * 0.1 }}
     onClick={onClick}
-    className={`group flex items-center p-8 md:p-10 rounded-[3rem] text-left relative overflow-hidden transition-all duration-500
+    className={`group flex items-center p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] text-left relative overflow-hidden transition-all duration-500
       ${isDarkMode ? 'bg-white/[0.03] border border-white/5 shadow-2xl' : 'bg-white shadow-2xl shadow-slate-200/50 border-white'}
     `}
   >
-    {/* Decorative Background Glow (Daily Routine Style) */}
+    {/* Decorative Background Glow */}
     <div className="absolute -top-10 -right-10 w-32 h-32 bg-gold rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-all duration-700 group-hover:scale-150" />
 
-    <div className={`w-20 h-20 md:w-24 md:h-24 rounded-[2rem] flex flex-col items-center justify-center mr-8 flex-shrink-0 transition-all duration-500
+    <div className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-[2rem] flex flex-col items-center justify-center mr-4 md:mr-8 flex-shrink-0 transition-all duration-500
       ${isDarkMode ? 'bg-gold/10 text-gold border border-gold/20' : 'bg-midnight text-gold shadow-xl'}
     `}>
-      <span className="text-[12px] font-black mb-0.5">{year}</span>
-      <span className="text-xl md:text-2xl font-black tracking-tighter">{round}</span>
+      <span className="text-[10px] md:text-[12px] font-black mb-0.5">{year}</span>
+      <span className="text-lg md:text-2xl font-black tracking-tighter">{round}</span>
     </div>
-    <div className="flex-1">
-      <h3 className={`text-xl md:text-2xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-midnight'}`}>공인중개사 기출</h3>
-      <p className={`text-sm font-bold ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>전체 과목 실전 풀기</p>
+    <div className="flex-1 min-w-0">
+      <h3 className={`text-lg md:text-2xl font-black mb-1 whitespace-nowrap ${isDarkMode ? 'text-white' : 'text-midnight'}`}>공인중개사 기출</h3>
+      <p className={`text-[12px] md:text-sm font-bold whitespace-nowrap ${isDarkMode ? 'text-white/30' : 'text-slate-400'}`}>전체 과목 실전 풀기</p>
     </div>
-    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500
+    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 flex-shrink-0
        ${isDarkMode ? 'bg-white/5 text-gold' : 'bg-slate-50 text-midnight'} 
        group-hover:bg-gold group-hover:text-midnight group-hover:translate-x-1
     `}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </div>
   </motion.button>
 );

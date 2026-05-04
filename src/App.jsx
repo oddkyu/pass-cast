@@ -66,8 +66,12 @@ const App = () => {
   const [showGatingModal, setShowGatingModal] = useState(false);
 
   // 🔀 브라우저 히스토리에 페이지를 쌓는 헬퍼 함수
-  const navigate = useCallback((page, state = {}) => {
-    window.history.pushState({ page, ...state }, '', `#${page}`);
+  const navigate = useCallback((page, state = {}, options = {}) => {
+    // ✅ 메인 화면('home')으로 나가는 모든 로직에서 히스토리를 쌓지 않도록 replace 사용
+    const isReplace = options.replace || page === 'home';
+    const method = isReplace ? 'replaceState' : 'pushState';
+
+    window.history[method]({ page, ...state }, '', `#${page}`);
     setCurrentPage(page);
     window.scrollTo(0, 0);
     // 추가 상태 동기화
