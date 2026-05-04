@@ -228,14 +228,14 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
 
               <div className="space-y-10">
                 <div className="space-y-8">
-                  <h2 className="text-[28px] md:text-[36px] font-black leading-tight break-keep">{questions[reviewIndex].title}</h2>
+                  <h2 className="text-[24px] md:text-[36px] font-black leading-tight break-all md:break-keep">{questions[reviewIndex].title}</h2>
                   
                   {/* 📦 박스형 지문 (상세 보기 모달) */}
                   {questions[reviewIndex].content_box && questions[reviewIndex].content_box.length > 0 && (
                     <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
                         {questions[reviewIndex].content_box.map((line, idx) => (
-                          <p key={idx} className="text-xl font-medium opacity-60 leading-relaxed">{line}</p>
+                          <p key={idx} className="text-lg md:text-xl font-medium opacity-60 leading-relaxed break-all md:break-normal">{line}</p>
                         ))}
                       </div>
                     </div>
@@ -248,7 +248,7 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : isUserChoice ? 'border-red-500 bg-red-500/5 text-red-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
-                        <span className="font-bold text-2xl md:text-3xl flex-1">{opt}</span>
+                        <span className="font-bold text-xl md:text-3xl flex-1 break-all md:break-keep">{opt}</span>
                       </div>
                     );
                   })}

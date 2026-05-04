@@ -211,20 +211,20 @@ const FullExamPage = ({
            </div>
            <div className="space-y-8">
              {/* 🏷️ 질문 타이틀 (굵게 처리) */}
-             <h2 className="text-[24px] md:text-[28px] font-black leading-[1.4] break-keep text-midnight tracking-tight">
+             <h2 className="text-[22px] md:text-[28px] font-black leading-[1.4] break-all md:break-keep text-midnight tracking-tight">
                <span className="text-gold mr-3">{currentQuestion?.number}.</span>
                {currentQuestion?.title}
              </h2>
 
              {/* 📦 박스형 지문 (content_box 데이터가 있는 경우에만 출력) */}
              {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
-               <div className={`mt-8 p-8 md:p-10 rounded-[2.5rem] border ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'} relative`}>
+               <div className={`mt-8 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'} relative`}>
                  <div className="absolute -top-3.5 left-10 px-4 py-1 bg-midnight text-gold text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg">보기</div>
                  <div className="space-y-4">
                    {currentQuestion.content_box.map((line, idx) => (
                      <p 
                        key={idx} 
-                       className={`text-[17px] md:text-[19px] leading-[1.7] break-keep font-medium ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                       className={`text-[16px] md:text-[19px] leading-[1.6] break-all md:break-keep font-medium ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
                      >
                        {line}
                      </p>
@@ -267,7 +267,7 @@ const FullExamPage = ({
                 <span className={`shrink-0 w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl mt-0.5
                    ${isSelected ? 'bg-midnight/10' : 'bg-midnight/5'}
                 `}>{optionNumber}</span>
-                <span className="text-base md:text-[20px] font-bold leading-relaxed break-keep pt-1">{opt}</span>
+                <span className="text-base md:text-[20px] font-bold leading-relaxed break-all md:break-keep pt-1">{opt}</span>
                 {isReviewMode && isCorrectAnswer && (
                   <div className="absolute right-8 top-1/2 -translate-y-1/2 text-green-500">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
