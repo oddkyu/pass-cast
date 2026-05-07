@@ -120,9 +120,9 @@ const FullExamPage = ({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-offwhite min-h-screen">
+      <div className={`flex-1 flex flex-col items-center justify-center min-h-screen ${isDarkMode ? 'bg-midnight text-white' : 'bg-offwhite text-midnight'}`}>
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-6"></div>
-        <p className="text-xl font-black text-midnight tracking-tight">시험지를 불러오는 중입니다...</p>
+        <p className="text-xl font-black tracking-tight">시험지를 불러오는 중입니다...</p>
       </div>
     );
   }
@@ -210,7 +210,7 @@ const FullExamPage = ({
            </div>
            <div className="space-y-8">
              {/* 🏷️ 질문 타이틀 (굵게 처리) */}
-             <h2 className="text-[22px] md:text-[28px] font-black leading-[1.4] break-all md:break-keep text-midnight tracking-tight">
+             <h2 className={`text-[22px] md:text-[28px] font-black leading-[1.4] break-all md:break-keep tracking-tight ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
                <span className="text-gold mr-3">{currentQuestion?.number}.</span>
                {currentQuestion?.title}
              </h2>
@@ -418,10 +418,10 @@ const FullExamPage = ({
               {/* 🕹️ 액션 그룹 */}
               <div className="flex items-center justify-between w-full md:w-auto gap-3 md:gap-4 border-t md:border-0 pt-3 md:pt-0">
                 <div className="flex items-center space-x-2">
-                  <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className="w-10 h-10 md:w-12 md:h-12 bg-midnight/5 rounded-xl flex items-center justify-center disabled:opacity-10 hover:bg-midnight/10 transition-all text-midnight dark:text-white">
+                  <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
                   </button>
-                  <button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentIndex === questions.length - 1} className="w-10 h-10 md:w-12 md:h-12 bg-midnight/5 rounded-xl flex items-center justify-center disabled:opacity-10 hover:bg-midnight/10 transition-all text-midnight dark:text-white">
+                  <button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentIndex === questions.length - 1} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6"/></svg>
                   </button>
                 </div>
