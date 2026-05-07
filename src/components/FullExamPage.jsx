@@ -30,24 +30,23 @@ const FullExamPage = ({
   const fetchQuestions = async () => {
     setIsLoading(true);
     try {
-      // 1. Get exam_id first to avoid complex join issues
+      // 1. Get all exam_ids for the given year to support both 1st and 2nd subjects
       const { data: examData, error: examError } = await supabase
         .from('exams')
         .select('id')
-        .eq('year', year)
-        .limit(1);
+        .eq('year', year);
       
       if (examError || !examData || examData.length === 0) {
         throw new Error(`해당 연도(${year})의 시험 정보를 찾을 수 없습니다.`);
       }
 
-      const examId = examData[0].id;
+      const examIds = examData.map(e => e.id);
 
-      // 2. Fetch questions for that exam and subject
+      // 2. Fetch questions for those exams and the specific subject
       let query = supabase
         .from('questions')
         .select('*')
-        .eq('exam_id', examId)
+        .in('exam_id', examIds)
         .eq('subject', subject)
         .order('number', { ascending: true });
 

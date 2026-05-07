@@ -276,7 +276,7 @@ const App = () => {
     }
 
     setExamResult({ ...results, isRoutine });
-    navigate('exam_result');
+    navigate('exam_result', {}, { replace: true });
   };
 
   const requireAuth = (callback) => {
@@ -342,11 +342,11 @@ const App = () => {
             onHome={() => navigate('home')} 
             onRetry={() => {
               setExamResult(null);
-              navigate('full_exam');
+              navigate('full_exam', {}, { replace: true });
             }} 
             onReview={() => {
               setExamResult(prev => ({ ...prev, isReview: true }));
-              navigate('full_exam');
+              navigate('full_exam', {}, { replace: true });
             }}
             user={user} 
             onRequireAuthForSave={() => setShowGatingModal(true)} 

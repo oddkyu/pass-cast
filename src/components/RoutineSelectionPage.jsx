@@ -9,7 +9,13 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const years = [2025, 2024, 2023, 2022, 2021];
-  const subjects = ['부동산학개론', '민법', '중개사법', '공법', '공시세법'];
+  const subjects = [
+    { id: 'intro', name: '부동산학개론', short: '학개론' },
+    { id: 'civil', name: '민법 및 민사특별법', short: '민법' },
+    { id: 'law', name: '공인중개사법', short: '중개사법' },
+    { id: 'public', name: '부동산공법', short: '공법' },
+    { id: 'tax', name: '부동산공시법 및 세법', short: '공시세법' }
+  ];
   const sets = [
     { id: 0, range: '1 - 10번', label: 'Set 01' },
     { id: 1, range: '11 - 20번', label: 'Set 02' },
@@ -83,10 +89,10 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
             <div className="flex flex-wrap gap-3">
               {subjects.map(s => (
                 <button 
-                  key={s} onClick={() => setSelectedSubject(s)}
-                  className={`px-6 py-3 rounded-2xl font-black transition-all ${selectedSubject === s ? 'bg-gold text-midnight shadow-lg shadow-gold/20' : 'bg-midnight/5 opacity-40 hover:opacity-100'}`}
+                  key={s.id} onClick={() => setSelectedSubject(s.name)}
+                  className={`px-6 py-3 rounded-2xl font-black transition-all ${selectedSubject === s.name ? 'bg-gold text-midnight shadow-lg shadow-gold/20' : 'bg-midnight/5 opacity-40 hover:opacity-100'}`}
                 >
-                  {s}
+                  {s.short}
                 </button>
               ))}
             </div>
