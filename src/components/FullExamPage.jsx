@@ -219,7 +219,7 @@ const FullExamPage = ({
             return (
               <button
                 key={idx}
-                onClick={() => !isReviewMode && handleAnswerSelect(idx + 1)}
+                onClick={() => !isReviewMode && handleSelectAnswer(idx + 1)}
                 className={`group w-full p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border-2 text-left transition-all duration-500 flex items-center space-x-4 md:space-x-8
                   ${isReviewMode 
                     ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
@@ -242,6 +242,27 @@ const FullExamPage = ({
             );
           })}
         </section>
+
+        {/* 🧭 Content Navigation Buttons (보기 하단 배치) */}
+        <div className="flex justify-between items-center pt-8 border-t border-black/5 dark:border-white/5">
+           <button 
+             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+             disabled={currentIndex === 0}
+             className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-0 ${isDarkMode ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'}`}
+           >
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
+             <span>이전 문제</span>
+           </button>
+           
+           <button 
+             onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+             disabled={currentIndex === questions.length - 1}
+             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
+           >
+             <span className="text-base md:text-lg font-black uppercase tracking-widest">다음 문제로</span>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+           </button>
+        </div>
 
         {isReviewMode && (
           <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
