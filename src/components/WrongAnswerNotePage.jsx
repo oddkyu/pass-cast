@@ -221,6 +221,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                          </div>
                       </div>
                     </motion.div>
+                  ))}
                 </div>
               )}
             </motion.div>
