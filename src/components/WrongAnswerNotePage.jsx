@@ -9,7 +9,7 @@ const formatMathText = (text) => {
   return formatted;
 };
 
-const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt }) => {
+const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory }) => {
   const [step, setStep] = useState('subject'); // 'subject' or 'details'
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -177,7 +177,21 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         </div>
 
                         {/* 🧭 Action Section */}
-                        <div className="flex flex-col justify-center shrink-0">
+                        <div className="flex flex-col md:flex-row items-center justify-center shrink-0 gap-4">
+                          <button 
+                            onClick={() => {
+                              if(confirm('이 시험 기록을 영구적으로 삭제할까요?')) {
+                                onRemoveHistory(h.id);
+                              }
+                            }}
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
+                              ${isDarkMode ? 'bg-white/5 text-white/20 hover:bg-red-500/20 hover:text-red-500' : 'bg-slate-50 text-slate-300 hover:bg-red-50 hover:text-red-500'}
+                            `}
+                            title="기록 삭제"
+                          >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                          </button>
+
                           <button 
                             onClick={() => onReviewAttempt(h)}
                             className={`px-10 py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn shadow-lg

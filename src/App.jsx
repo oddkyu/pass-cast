@@ -424,6 +424,23 @@ const App = () => {
         );
       case 'quiz':
         return <QuizPage key="quiz" onBack={() => navigate('home')} isDarkMode={isDarkMode} />;
+  const handleRemoveHistory = async (historyId) => {
+    try {
+      const { error } = await supabase
+        .from('user_exam_history')
+        .delete()
+        .eq('id', historyId);
+      
+      if (error) throw error;
+      setExamHistory(prev => prev.filter(h => h.id !== historyId));
+    } catch (err) {
+      console.error('Failed to delete exam history:', err);
+      alert('기록 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  const renderPage = () => {
+...
       case 'wrong_note':
         return (
           <WrongAnswerNotePage 
@@ -433,6 +450,10 @@ const App = () => {
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
             onBack={() => navigate('home')} 
+            onRemove={(id) => {
+               setWrongAnswers(prev => prev.filter(q => q.id !== id));
+            }}
+            onRemoveHistory={handleRemoveHistory}
             onReviewAttempt={(attempt) => {
               setExamResult({
                 answers: attempt.answers,
