@@ -68,19 +68,16 @@ const App = () => {
 
   // 🔀 브라우저 히스토리에 페이지를 쌓는 헬퍼 함수
   const navigate = useCallback((page, state = {}, options = {}) => {
-    // ✅ 메인 화면('home')으로 나가는 모든 로직에서 히스토리를 쌓지 않도록 replace 사용
     const isReplace = options.replace || page === 'home';
     const method = isReplace ? 'replaceState' : 'pushState';
 
     window.history[method]({ page, ...state }, '', `#${page}`);
     setCurrentPage(page);
     window.scrollTo(0, 0);
-    // 추가 상태 동기화
     if (state.selectedExam) setSelectedExam(state.selectedExam);
     if (state.examResult) setExamResult(state.examResult);
   }, []);
 
-  // 🔙 브라우저 뒤로 가기 버튼 감지 (popstate)
   useEffect(() => {
     const handlePopState = (e) => {
       const page = e.state?.page || 'home';
@@ -90,10 +87,8 @@ const App = () => {
     };
     window.addEventListener('popstate', handlePopState);
 
-    // ✅ 초기 로드: OAuth 콜백 해시(access_token) 감지 → home으로 정리
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
-      // Supabase가 세션을 자동 처리하므로 해시만 제거
       window.history.replaceState({ page: 'home' }, '', window.location.pathname);
       setCurrentPage('home');
     } else if (!window.history.state) {
@@ -103,7 +98,6 @@ const App = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // 🔐 Auth State Monitoring
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -116,7 +110,6 @@ const App = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchMembership(session.user.id);
-        // ✅ OAuth(카카오) 로그인 성공 시 홈으로 이동
         if (event === 'SIGNED_IN') {
           setCurrentPage('home');
           window.history.replaceState({ page: 'home' }, '', '#home');
@@ -130,7 +123,6 @@ const App = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 👑 membership_type 조회 (profiles 테이블 → 폴백: user_metadata)
   const fetchMembership = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -141,7 +133,6 @@ const App = () => {
       if (!error && data) {
         setIsPremium(data.membership_type === 'premium');
       } else {
-        // 테이블 미생성 시 user_metadata 폴백
         const { data: { user } } = await supabase.auth.getUser();
         setIsPremium(user?.user_metadata?.is_premium || false);
       }
@@ -150,10 +141,8 @@ const App = () => {
     }
   };
 
-  // 📊 Load User Specific Data
   useEffect(() => {
     const loadWrongAnswers = async () => {
-      // 1. 게스트 또는 무료 회원은 로컬스토리지 사용
       if (!user || !isPremium) {
         const saved = localStorage.getItem(user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest');
         try {
@@ -164,7 +153,6 @@ const App = () => {
         return;
       }
 
-      // 2. 프리미엄 회원은 Supabase DB에서 호출
       try {
         const { data, error } = await supabase
           .from('user_incorrect_questions')
@@ -186,17 +174,15 @@ const App = () => {
 
         if (error) throw error;
 
-        // DB 구조를 기존 앱 데이터 구조와 맞춤
         const formatted = data.map(item => ({
           ...item.question,
-          db_id: item.id, // DB 레코드 식별자 따로 저장
+          db_id: item.id,
           year: item.question.exam.year,
           savedAt: new Date().toISOString()
         }));
         setWrongAnswers(formatted);
       } catch (err) {
         console.error('Failed to fetch DB wrong answers:', err);
-        // 폴백: 로컬스토리지
         const saved = localStorage.getItem(`pass-cast-wrong-${user.id}`);
         setWrongAnswers(saved ? JSON.parse(saved) : []);
       }
@@ -204,7 +190,6 @@ const App = () => {
 
     loadWrongAnswers();
 
-    // 오늘의 루틴 진행도 가져오기
     const fetchTodayRoutine = async () => {
       if (!user) return;
       const today = new Date().toISOString().split('T')[0];
@@ -218,7 +203,6 @@ const App = () => {
     };
     fetchTodayRoutine();
 
-    // 시험 이력 가져오기
     const fetchExamHistory = async () => {
       if (!user) return;
       const { data, error } = await supabase
@@ -232,7 +216,6 @@ const App = () => {
     fetchExamHistory();
   }, [user, isPremium, currentPage]);
 
-  // 로컬스토리지 동기화 (프리미엄이 아닐 때만 자동 저장)
   useEffect(() => {
     if (isPremium && user) return; 
     const key = user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest';
@@ -258,7 +241,6 @@ const App = () => {
     const isRoutine = selectedExam?.isRoutine;
     const setIndex = selectedExam?.setIndex;
 
-    // 1. 오답 저장 및 DB 자동 수집 로직 (모든 로그인 회원)
     const newWrongOnes = questions
       .filter((q, idx) => String(answers[idx]) !== String(q.answer))
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
@@ -286,7 +268,6 @@ const App = () => {
       }
     }
 
-    // 2. 데일리 루틴 완료 기록 저장 (DB)
     if (isRoutine && user && setIndex !== null) {
       try {
         const { error } = await supabase
@@ -304,9 +285,8 @@ const App = () => {
       }
     }
 
-    // 3. 전체 시험 이력 저장 (회원 전용)
     if (user) {
-      const correctCount = questions.filter((q, idx) => answers[idx] === q.answer).length;
+      const correctCount = questions.filter((q, idx) => String(answers[idx]) === String(q.answer)).length;
       const wrongQuestionNumbers = questions
         .filter((q, idx) => String(answers[idx]) !== String(q.answer))
         .map(q => q.number);
@@ -341,6 +321,21 @@ const App = () => {
     navigate('exam_result', {}, { replace: true });
   };
 
+  const handleRemoveHistory = async (historyId) => {
+    try {
+      const { error } = await supabase
+        .from('user_exam_history')
+        .delete()
+        .eq('id', historyId);
+      
+      if (error) throw error;
+      setExamHistory(prev => prev.filter(h => h.id !== historyId));
+    } catch (err) {
+      console.error('Failed to delete exam history:', err);
+      alert('기록 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   const requireAuth = (callback) => {
     if (!user) {
       setShowGatingModal(true);
@@ -355,20 +350,18 @@ const App = () => {
         return <LoginPage isDarkMode={isDarkMode} onBack={() => navigate('home')} onLoginSuccess={(u) => { setUser(u); navigate('home'); }} />;
       case 'home':
         return (
-          <>
-            <HomePage 
-              key="home" user={user} isPremium={isPremium} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
-              onGoToExamSelection={() => navigate('exam_selection')}
-              onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
-              onGoToPremium={() => navigate('premium')}
-              onGoToTestPage={() => navigate('test_preview')}
-              onGoToQuiz={() => navigate('routine_selection')}
-              onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
-              onLogin={() => navigate('login')}
-              wrongCount={wrongAnswers.length}
-              routineCount={routineTodayCount}
-            />
-          </>
+          <HomePage 
+            key="home" user={user} isPremium={isPremium} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
+            onGoToExamSelection={() => navigate('exam_selection')}
+            onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
+            onGoToPremium={() => navigate('premium')}
+            onGoToTestPage={() => navigate('test_preview')}
+            onGoToQuiz={() => navigate('routine_selection')}
+            onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
+            onLogin={() => navigate('login')}
+            wrongCount={wrongAnswers.length}
+            routineCount={routineTodayCount}
+          />
         );
       case 'test_preview':
         return <TestPreviewPage key="test_preview" isDarkMode={isDarkMode} onBack={() => navigate('home')} />;
@@ -424,23 +417,6 @@ const App = () => {
         );
       case 'quiz':
         return <QuizPage key="quiz" onBack={() => navigate('home')} isDarkMode={isDarkMode} />;
-  const handleRemoveHistory = async (historyId) => {
-    try {
-      const { error } = await supabase
-        .from('user_exam_history')
-        .delete()
-        .eq('id', historyId);
-      
-      if (error) throw error;
-      setExamHistory(prev => prev.filter(h => h.id !== historyId));
-    } catch (err) {
-      console.error('Failed to delete exam history:', err);
-      alert('기록 삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const renderPage = () => {
-...
       case 'wrong_note':
         return (
           <WrongAnswerNotePage 
@@ -450,8 +426,19 @@ const App = () => {
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
             onBack={() => navigate('home')} 
-            onRemove={(id) => {
-               setWrongAnswers(prev => prev.filter(q => q.id !== id));
+            onRemove={async (id) => {
+              const target = wrongAnswers.find(q => q.id === id);
+              if (isPremium && user && target?.db_id) {
+                const { error } = await supabase
+                  .from('user_incorrect_questions')
+                  .delete()
+                  .eq('id', target.db_id);
+                if (error) {
+                  alert('DB 삭제 중 오류가 발생했습니다.');
+                  return;
+                }
+              }
+              setWrongAnswers(prev => prev.filter(q => q.id !== id));
             }}
             onRemoveHistory={handleRemoveHistory}
             onReviewAttempt={(attempt) => {
@@ -470,20 +457,6 @@ const App = () => {
               });
               navigate('full_exam');
             }}
-            onRemove={async (id) => {
-              const target = wrongAnswers.find(q => q.id === id);
-              if (isPremium && user && target?.db_id) {
-                const { error } = await supabase
-                  .from('user_incorrect_questions')
-                  .delete()
-                  .eq('id', target.db_id);
-                if (error) {
-                  alert('DB 삭제 중 오류가 발생했습니다.');
-                  return;
-                }
-              }
-              setWrongAnswers(prev => prev.filter(q => q.id !== id));
-            }} 
           />
         );
       case 'premium':
@@ -499,7 +472,6 @@ const App = () => {
         {renderPage()}
       </AnimatePresence>
 
-      {/* 🔐 Global Auth Gating Modal */}
       <AnimatePresence>
         {showGatingModal && (
           <AuthGatingModal 
