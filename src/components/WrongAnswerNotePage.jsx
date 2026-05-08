@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, isPremium, onBack, onRemove }) => {
+const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt }) => {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [filterSubject, setFilterSubject] = useState('전체');
+  const [activeTab, setActiveTab] = useState('wrong'); // 'wrong' or 'history'
 
   const subjects = ['전체', ...new Set((Array.isArray(wrongAnswers) ? wrongAnswers : []).map(q => q.subject))];
   
   const filteredAnswers = (Array.isArray(wrongAnswers) ? wrongAnswers : [])
     .filter(q => filterSubject === '전체' || q.subject === filterSubject)
     .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+  const filteredHistory = (Array.isArray(examHistory) ? examHistory : [])
+    .filter(h => filterSubject === '전체' || h.subject === filterSubject);
+
+  const formatDate = (dateString) => {
+    const d = new Date(dateString);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
 
   return (
     <motion.div 
@@ -22,11 +31,24 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, isPremium, onBack, onRe
             <button onClick={onBack} className="w-10 h-10 glass-button rounded-xl flex items-center justify-center">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <h1 className="text-xl md:text-2xl font-black tracking-tighter">나만의 오답노트</h1>
+            <h1 className="text-xl md:text-2xl font-black tracking-tighter">스마트 오답노트</h1>
           </div>
           <div className="flex items-center space-x-4">
              {isPremium && <span className="px-3 py-1 bg-gold text-midnight text-[9px] font-black rounded-full uppercase tracking-widest hidden sm:block">클라우드 동기화</span>}
-             <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-midnight font-black">{filteredAnswers.length}</div>
+             <div className="flex items-center bg-midnight/5 rounded-xl p-1">
+                <button 
+                  onClick={() => setActiveTab('wrong')}
+                  className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'wrong' ? 'bg-gold text-midnight shadow-md' : 'opacity-40'}`}
+                >
+                  오답 문항
+                </button>
+                <button 
+                  onClick={() => setActiveTab('history')}
+                  className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${activeTab === 'history' ? 'bg-gold text-midnight shadow-md' : 'opacity-40'}`}
+                >
+                  시험 기록
+                </button>
+             </div>
           </div>
         </div>
 
@@ -47,57 +69,127 @@ const WrongAnswerNotePage = ({ wrongAnswers, isDarkMode, isPremium, onBack, onRe
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-8 md:px-12 py-12 md:py-20">
-        {filteredAnswers.length === 0 ? (
-          <div className="h-96 flex flex-col items-center justify-center space-y-6 opacity-20">
-             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-             <p className="text-xl font-black">아직 저장된 오답이 없습니다.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAnswers.map((q, idx) => (
-              <motion.div
-                key={q.id || idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className={`group p-10 rounded-[3rem] border transition-all duration-500 hover:scale-[1.02] cursor-pointer flex flex-col justify-between
-                  ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white border-white shadow-xl shadow-slate-100 hover:shadow-2xl'}
-                `}
-                onClick={() => setSelectedQuestion(q)}
-              >
-                <div className="space-y-6">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">{q.year}년 기출 문제</span>
-                    <button 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        if(confirm('이 문제를 오답노트에서 삭제할까요?')) {
-                          onRemove(q.id); 
-                        }
-                      }}
-                      className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+        <AnimatePresence mode="wait">
+          {activeTab === 'wrong' ? (
+            <motion.div 
+              key="wrong-tab"
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+              className="space-y-8"
+            >
+              {filteredAnswers.length === 0 ? (
+                <div className="h-96 flex flex-col items-center justify-center space-y-6 opacity-20">
+                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                   <p className="text-xl font-black">아직 저장된 오답이 없습니다.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredAnswers.map((q, idx) => (
+                    <motion.div
+                      key={q.id || idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`group p-10 rounded-[3rem] border transition-all duration-500 hover:scale-[1.02] cursor-pointer flex flex-col justify-between
+                        ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white border-white shadow-xl shadow-slate-100 hover:shadow-2xl'}
+                      `}
+                      onClick={() => setSelectedQuestion(q)}
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-black leading-tight break-keep line-clamp-3">
-                    <span className="text-gold mr-2">{q.number}.</span>
-                    {q.title}
-                  </h3>
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-black text-gold uppercase tracking-[0.3em]">{q.year}년 기출 문제</span>
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              if(confirm('이 문제를 오답노트에서 삭제할까요?')) {
+                                onRemove(q.id); 
+                              }
+                            }}
+                            className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                          </button>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-black leading-tight break-keep line-clamp-3">
+                          <span className="text-gold mr-2">{q.number}.</span>
+                          {q.title}
+                        </h3>
+                      </div>
+                      <div className="mt-10 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+                         <span className="text-xs font-black opacity-30">{q.subject}</span>
+                         <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center text-gold">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                         </div>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-                <div className="mt-10 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
-                   <span className="text-xs font-black opacity-30">{q.subject}</span>
-                   <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center text-gold">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                   </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="history-tab"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              {filteredHistory.length === 0 ? (
+                <div className="h-96 flex flex-col items-center justify-center space-y-6 opacity-20">
+                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                   <p className="text-xl font-black">아직 시험 기록이 없습니다.</p>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+              ) : (
+                <div className="space-y-4">
+                  {filteredHistory.map((h, idx) => (
+                    <motion.div
+                      key={h.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`flex flex-col md:flex-row items-center justify-between p-6 md:p-8 rounded-[2.5rem] border transition-all hover:scale-[1.01] gap-6
+                        ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-100 shadow-sm'}
+                      `}
+                    >
+                      <div className="flex items-center gap-6 w-full md:w-auto">
+                        <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center shadow-lg ${h.score >= 60 ? 'bg-green-500 text-white' : 'bg-red-500/10 text-red-500'}`}>
+                          <span className="text-[10px] font-black uppercase opacity-60 leading-none mb-1">Score</span>
+                          <span className="text-xl font-black leading-none">{h.score}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                             <span className="text-[10px] font-black text-gold uppercase tracking-widest">{h.year}년 {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '기출 정기 시험'}</span>
+                             {h.memo && (
+                               <div className="flex items-center gap-1 px-2 py-0.5 bg-gold/20 rounded text-[9px] font-black text-gold uppercase">
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                  Memo
+                               </div>
+                             )}
+                          </div>
+                          <h4 className="text-lg font-black">{h.subject}</h4>
+                          <p className="text-xs font-bold opacity-30 mt-1">{formatDate(h.created_at)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 w-full md:w-auto">
+                         <div className="flex flex-col items-end hidden md:flex">
+                            <span className="text-[10px] font-black opacity-30 uppercase tracking-tighter">Accuracy</span>
+                            <span className="text-sm font-black">{Math.round((h.score / 100) * h.total_questions)} / {h.total_questions}</span>
+                         </div>
+                         <button 
+                           onClick={() => onReviewAttempt(h)}
+                           className="flex-1 md:flex-none px-8 py-3.5 bg-midnight text-gold rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-lg"
+                         >
+                           리뷰하기
+                         </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* 🔍 Details Modal */}
+      {/* 🔍 Details Modal (Same as before) */}
       <AnimatePresence>
         {selectedQuestion && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">

@@ -1,24 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MemoSheet = ({ isDarkMode }) => {
+const MemoSheet = ({ isDarkMode, memo, onMemoChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [memo, setMemo] = useState('');
-
-  // Load memo from localStorage on mount
-  useEffect(() => {
-    const savedMemo = localStorage.getItem('pass-cast-memo');
-    if (savedMemo) setMemo(savedMemo);
-  }, []);
-
-  // Save memo to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('pass-cast-memo', memo);
-  }, [memo]);
 
   return (
     <>
-      {/* 🔘 Floating Action Button (FAB) - PC에서 열려있을 때는 숨김 */}
+      {/* 🔘 Floating Action Button (FAB) */}
       <button
         onClick={() => setIsOpen(true)}
         className={`fixed bottom-28 right-6 md:bottom-32 md:right-10 w-14 h-14 md:w-16 md:h-16 bg-gold rounded-full flex items-center justify-center shadow-2xl z-[60] active:scale-90 hover:scale-105 transition-all duration-300 group ${isOpen ? 'lg:hidden' : ''}`}
@@ -45,7 +33,7 @@ const MemoSheet = ({ isDarkMode }) => {
               className={`lg:hidden fixed inset-0 ${isDarkMode ? 'bg-black/60' : 'bg-midnight/40'} backdrop-blur-sm z-[150]`}
             />
             
-            {/* 📝 PC Sidebar Layout (lg 이상: 우측 빈 공간 활용) */}
+            {/* 📝 PC Sidebar Layout (lg 이상) */}
             <motion.div
               initial={{ x: 400, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -55,7 +43,6 @@ const MemoSheet = ({ isDarkMode }) => {
                 ${isDarkMode ? 'border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' : 'border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]'}
               `}
             >
-              {/* Header */}
               <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center">
@@ -72,11 +59,10 @@ const MemoSheet = ({ isDarkMode }) => {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
-              {/* Textarea */}
               <div className="flex-1 px-8 pb-8">
                 <textarea
                   value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
+                  onChange={(e) => onMemoChange(e.target.value)}
                   placeholder="자유롭게 메모를 남기세요..."
                   className="w-full h-full bg-transparent text-midnight text-[17px] font-medium resize-none outline-none placeholder:text-slate-300 leading-relaxed scrollbar-hide"
                   autoFocus
@@ -84,7 +70,7 @@ const MemoSheet = ({ isDarkMode }) => {
               </div>
             </motion.div>
 
-            {/* 📝 Mobile Bottom Sheet Layout (lg 미만: 50% 높이) */}
+            {/* 📝 Mobile Bottom Sheet Layout (lg 미만) */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -102,7 +88,6 @@ const MemoSheet = ({ isDarkMode }) => {
                 ${isDarkMode ? 'shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5' : 'shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'}
               `}
             >
-              {/* Fixed Header with Close Button (상시 노출) */}
               <div className="flex items-center justify-between px-8 py-5 shrink-0 border-b border-slate-100 bg-white sticky top-0 z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center">
@@ -120,11 +105,10 @@ const MemoSheet = ({ isDarkMode }) => {
                 </button>
               </div>
 
-              {/* Textarea Area */}
               <div className="flex-1 px-8 py-6">
                 <textarea
                   value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
+                  onChange={(e) => onMemoChange(e.target.value)}
                   placeholder="메모를 입력하세요..."
                   className="w-full h-full bg-transparent text-midnight text-[17px] font-medium resize-none outline-none placeholder:text-slate-300 leading-relaxed scrollbar-hide"
                   autoFocus

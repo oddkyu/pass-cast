@@ -62,6 +62,7 @@ const App = () => {
   const [selectedExam, setSelectedExam] = useState({ year: 2025, subject: '부동산학개론', isRoutine: false, setIndex: null });
   const [examResult, setExamResult] = useState(null);
   const [wrongAnswers, setWrongAnswers] = useState([]);
+  const [examHistory, setExamHistory] = useState([]);
   const [routineTodayCount, setRoutineTodayCount] = useState(0);
   const [showGatingModal, setShowGatingModal] = useState(false);
 
@@ -216,6 +217,19 @@ const App = () => {
       if (!error) setRoutineTodayCount(count || 0);
     };
     fetchTodayRoutine();
+
+    // 시험 이력 가져오기
+    const fetchExamHistory = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('user_exam_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) setExamHistory(data);
+    };
+    fetchExamHistory();
   }, [user, isPremium, currentPage]);
 
   // 로컬스토리지 동기화 (프리미엄이 아닐 때만 자동 저장)
@@ -275,6 +289,34 @@ const App = () => {
       }
     }
 
+    // 3. 전체 시험 이력 저장 (회원 전용)
+    if (user) {
+      const correctCount = questions.filter((q, idx) => answers[idx] === q.answer).length;
+      try {
+        const { data, error } = await supabase
+          .from('user_exam_history')
+          .insert({
+            user_id: user.id,
+            year,
+            subject,
+            is_routine: !!isRoutine,
+            set_index: setIndex,
+            answers,
+            memo: results.memo || '',
+            score: Math.round((correctCount / questions.length) * 100),
+            total_questions: questions.length
+          })
+          .select()
+          .single();
+        
+        if (!error && data) {
+          setExamHistory(prev => [data, ...prev]);
+        }
+      } catch (err) {
+        console.error('Exam history save error:', err);
+      }
+    }
+
     setExamResult({ ...results, isRoutine });
     navigate('exam_result', {}, { replace: true });
   };
@@ -328,6 +370,7 @@ const App = () => {
             onFinish={handleFinishExam} 
             mode={examResult?.isReview ? 'review' : 'practice'}
             userAnswers={examResult?.answers}
+            savedMemo={examResult?.memo}
             user={user}
           />
         );
@@ -359,9 +402,26 @@ const App = () => {
           <WrongAnswerNotePage 
             key="wrong_note" 
             wrongAnswers={wrongAnswers} 
+            examHistory={examHistory}
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
             onBack={() => navigate('home')} 
+            onReviewAttempt={(attempt) => {
+              setExamResult({
+                answers: attempt.answers,
+                memo: attempt.memo,
+                year: attempt.year,
+                subject: attempt.subject,
+                isReview: true
+              });
+              setSelectedExam({
+                year: attempt.year,
+                subject: attempt.subject,
+                isRoutine: attempt.is_routine,
+                setIndex: attempt.set_index
+              });
+              navigate('full_exam');
+            }}
             onRemove={async (id) => {
               const target = wrongAnswers.find(q => q.id === id);
               if (isPremium && user && target?.db_id) {

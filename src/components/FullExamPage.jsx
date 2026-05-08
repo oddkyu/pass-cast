@@ -14,12 +14,14 @@ const FullExamPage = ({
   userAnswers = {},
   user = null,
   isRoutine = false,
-  setIndex = null
+  setIndex = null,
+  savedMemo = ''
 }) => {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState(mode === 'review' ? userAnswers : {});
+  const [memo, setMemo] = useState(mode === 'review' ? savedMemo : '');
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(isRoutine ? 12 * 60 : 50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -428,7 +430,7 @@ const FullExamPage = ({
                 </div>
                 
                 <button 
-                  onClick={() => isReviewMode ? onBack() : onFinish({ questions, answers, year, subject })}
+                  onClick={() => isReviewMode ? onBack() : onFinish({ questions, answers, year, subject, memo })}
                   className="flex-1 md:flex-none px-6 md:px-10 py-3 md:py-3.5 bg-midnight text-gold rounded-xl md:rounded-2xl font-black text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest"
                 >
                   {isReviewMode ? '리뷰 종료' : '최종 채점'}
@@ -460,7 +462,7 @@ const FullExamPage = ({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
-      <MemoSheet isDarkMode={isDarkMode} />
+      <MemoSheet isDarkMode={isDarkMode} memo={memo} onMemoChange={setMemo} />
     </div>
   );
 };
