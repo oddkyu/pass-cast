@@ -268,14 +268,14 @@ const FullExamPage = ({
         </section>
 
         {/* 🧭 Content Navigation Buttons (보기 하단 배치) */}
-        <div className="flex justify-between items-center pt-8 border-t border-black/5 dark:border-white/5">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-black/5 dark:border-white/5">
            <button 
              onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
              disabled={currentIndex === 0}
-             className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-0 ${isDarkMode ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'}`}
+             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-0"
            >
-             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
-             <span>이전 문제</span>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+             <span className="text-base md:text-lg font-black uppercase tracking-widest">이전 문제로</span>
            </button>
            
            <button 

@@ -323,31 +323,8 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                 <p className="font-bold text-xl md:text-2xl leading-relaxed opacity-80 break-keep">{currentQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
               </div>
 
-              {/* 🧭 Navigation Buttons inside Modal */}
+              {/* 🧭 Navigation Buttons inside Modal (Redesigned to match FullExamPage) */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-10 border-t border-black/5 dark:border-white/5">
-                 <div className="flex items-center gap-4 w-full md:w-auto">
-                    <button 
-                      onClick={handlePrevMistake}
-                      disabled={modalData.currentIndex === 0}
-                      className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-20
-                        ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-midnight'}
-                      `}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
-                      <span>이전 오답</span>
-                    </button>
-                    <button 
-                      onClick={handleNextMistake}
-                      disabled={modalData.currentIndex === modalData.numbers.length - 1}
-                      className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-20
-                        ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-midnight'}
-                      `}
-                    >
-                      <span>다음 오답</span>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6"/></svg>
-                    </button>
-                 </div>
-
                  <button 
                    onClick={() => {
                      if(confirm('이 문제를 오답노트에서 삭제할까요?')) {
@@ -360,10 +337,29 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         }
                      }
                    }}
-                   className="w-full md:w-auto px-10 py-4 bg-red-500/10 text-red-500 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest"
+                   className="w-full md:w-auto px-6 py-3 bg-red-500/5 text-red-500/40 hover:text-red-500 rounded-xl font-bold text-xs transition-all uppercase tracking-widest border border-transparent hover:border-red-500/20"
                  >
                    오답 삭제
                  </button>
+
+                 <div className="flex items-center gap-4 w-full md:w-auto">
+                    <button 
+                      onClick={handlePrevMistake}
+                      disabled={modalData.currentIndex === 0}
+                      className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-0"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                      <span className="text-base md:text-lg font-black uppercase tracking-widest">이전 오답</span>
+                    </button>
+                    <button 
+                      onClick={handleNextMistake}
+                      disabled={modalData.currentIndex === modalData.numbers.length - 1}
+                      className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
+                    >
+                      <span className="text-base md:text-lg font-black uppercase tracking-widest">다음 오답</span>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                 </div>
               </div>
             </motion.div>
           </div>
