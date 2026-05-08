@@ -3,6 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import MemoSheet from './MemoSheet';
 
+// DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
+const formatMathText = (text) => {
+  if (typeof text !== 'string') return text;
+  return text.replace(/\$([^\$]+)\$/g, '$1');
+};
+
 const FullExamPage = ({ 
   year, 
   subject, 
@@ -201,7 +207,7 @@ const FullExamPage = ({
                     <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
                     <h2 className="text-[19px] md:text-[28px] font-black tracking-tight leading-[1.4] break-keep">
                       <span className="text-gold mr-2">{currentQuestion?.number}.</span>
-                      {currentQuestion?.title}
+                      {formatMathText(currentQuestion?.title)}
                     </h2>
                   </div>
                   {mode === 'review' && (
@@ -220,7 +226,7 @@ const FullExamPage = ({
                        key={idx} 
                        className={`text-[17px] md:text-[20px] leading-relaxed break-keep font-bold ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
                      >
-                       {line}
+                       {formatMathText(line)}
                      </p>
                    ))}
                  </div>
@@ -250,7 +256,7 @@ const FullExamPage = ({
                       {idx + 1}
                     </div>
                     <span className={`text-[17px] md:text-[21px] font-bold leading-relaxed break-keep pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
-                      {opt}
+                      {formatMathText(opt)}
                     </span>
                   </button>
             );

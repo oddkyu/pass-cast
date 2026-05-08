@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
+// DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
+const formatMathText = (text) => {
+  if (typeof text !== 'string') return text;
+  return text.replace(/\$([^\$]+)\$/g, '$1');
+};
+
 const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, onRequireAuthForSave, isRoutine = false }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const [randomMessage, setRandomMessage] = useState('');
@@ -176,14 +182,14 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
 
               <div className="space-y-10">
                 <div className="space-y-8">
-                  <h2 className="text-[24px] md:text-[36px] font-black leading-tight break-all md:break-keep">{questions[reviewIndex].title}</h2>
+                  <h2 className="text-[24px] md:text-[36px] font-black leading-tight break-all md:break-keep">{formatMathText(questions[reviewIndex].title)}</h2>
                   
                   {/* 📦 박스형 지문 (상세 보기 모달) */}
                   {questions[reviewIndex].content_box && questions[reviewIndex].content_box.length > 0 && (
                     <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
                         {questions[reviewIndex].content_box.map((line, idx) => (
-                          <p key={idx} className="text-lg md:text-xl font-medium opacity-60 leading-relaxed break-all md:break-normal">{line}</p>
+                          <p key={idx} className="text-lg md:text-xl font-medium opacity-60 leading-relaxed break-all md:break-normal">{formatMathText(line)}</p>
                         ))}
                       </div>
                     </div>
@@ -196,7 +202,7 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : isUserChoice ? 'border-red-500 bg-red-500/5 text-red-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
-                        <span className="font-bold text-xl md:text-3xl flex-1 break-all md:break-keep">{opt}</span>
+                        <span className="font-bold text-xl md:text-3xl flex-1 break-all md:break-keep">{formatMathText(opt)}</span>
                       </div>
                     );
                   })}
