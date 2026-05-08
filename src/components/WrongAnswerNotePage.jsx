@@ -193,7 +193,9 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                            <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm font-bold opacity-50">
                               <span>{h.total_questions}문제 중 {Math.round((h.score / 100) * h.total_questions)}개 정답</span>
                               {(() => {
-                                 const unanswered = h.answers ? (Object.values(h.answers).filter(v => v === null || v === undefined || v === '').length) : 0;
+                                 // answers 객체에 포함되지 않은 인덱스는 미응시로 판단
+                                 const answeredCount = Object.keys(h.answers || {}).length;
+                                 const unanswered = h.total_questions - answeredCount;
                                  return unanswered > 0 ? <span className="text-red-500">{unanswered}개 미응시</span> : <span>모든 문항 응시</span>;
                               })()}
                            </div>
