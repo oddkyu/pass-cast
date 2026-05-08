@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import MemoSheet from './MemoSheet';
 
 const FullExamPage = ({ 
   year, 
@@ -459,6 +460,7 @@ const FullExamPage = ({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
+      <MemoSheet />
     </div>
   );
 };
