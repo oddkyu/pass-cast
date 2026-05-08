@@ -123,7 +123,7 @@ const HomePage = ({
         {/* 🛠️ Strategic Gating Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
           <ActionButton 
-            title={isGuest ? "무료 기출문제 체험" : "회차별 기출 풀기"}
+            title={isGuest ? "무료 기출문제 풀기" : "회차별 기출 풀기"}
             subtitle="연도별/과목별 실전 데이터"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
             onClick={onGoToExamSelection}
@@ -153,7 +153,7 @@ const HomePage = ({
           />
           <ActionButton 
             title="프리미엄 결제"
-            subtitle="광고 제거 및 해설지 증정"
+            subtitle="광고제거로 쾌적한 문제풀기"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
             onClick={onGoToPremium}
             isDarkMode={isDarkMode}
