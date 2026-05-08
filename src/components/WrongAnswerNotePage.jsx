@@ -12,7 +12,7 @@ const formatMathText = (text) => {
 const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory }) => {
   const [step, setStep] = useState('subject'); // 'subject' or 'details'
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [modalData, setModalData] = useState(null); // { numbers: [], currentIndex: 0, year, subject }
 
   const subjectList = [
     { name: '부동산학개론', info: '1차 1교시' },
@@ -46,11 +46,23 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
     else onBack();
   };
 
-  // 특정 번호의 문제를 wrongAnswers에서 찾아 모달 오픈
-  const openQuestionModal = (number, year, subject) => {
-    const found = wrongAnswers.find(q => q.number === number && q.year === year && q.subject === subject);
-    if (found) setSelectedQuestion(found);
-    else alert('이 문제는 오답노트에 저장되어 있지 않아 상세 내용을 볼 수 없습니다.');
+  // 특정 번호의 문제를 wrongAnswers에서 찾아 반환
+  const getQuestion = (number, year, subject) => {
+    return (wrongAnswers || []).find(q => q.number === number && q.year === year && q.subject === subject);
+  };
+
+  const currentQuestion = modalData ? getQuestion(modalData.numbers[modalData.currentIndex], modalData.year, modalData.subject) : null;
+
+  const handleNextMistake = () => {
+    if (modalData && modalData.currentIndex < modalData.numbers.length - 1) {
+      setModalData(prev => ({ ...prev, currentIndex: prev.currentIndex + 1 }));
+    }
+  };
+
+  const handlePrevMistake = () => {
+    if (modalData && modalData.currentIndex > 0) {
+      setModalData(prev => ({ ...prev, currentIndex: prev.currentIndex - 1 }));
+    }
   };
 
   return (
@@ -214,10 +226,10 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                             
                             <div className="flex flex-wrap gap-2 md:gap-4">
                               {h.wrong_question_numbers?.length > 0 ? (
-                                h.wrong_question_numbers.map(num => (
+                                h.wrong_question_numbers.map((num, mIdx) => (
                                   <button
                                     key={num}
-                                    onClick={() => openQuestionModal(num, h.year, h.subject)}
+                                    onClick={() => setModalData({ numbers: h.wrong_question_numbers, currentIndex: mIdx, year: h.year, subject: h.subject })}
                                     className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 border-2
                                       ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-red-500 hover:text-white hover:border-red-500' : 'bg-white border-slate-200 text-slate-400 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm'}
                                     `}
@@ -247,16 +259,22 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
 
       {/* 🔍 Question Details Modal */}
       <AnimatePresence>
-        {selectedQuestion && (
+        {modalData && currentQuestion && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedQuestion(null)} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalData(null)} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
             <motion.div 
               initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }}
               className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[4rem] shadow-2xl p-12 md:p-20 space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-gold tracking-widest uppercase">{selectedQuestion.year}년 {selectedQuestion.subject} 문항 복습</span>
-                <button onClick={() => setSelectedQuestion(null)} className="w-12 h-12 rounded-full hover:bg-white/5 flex items-center justify-center text-gold">
+                <div className="flex flex-col">
+                   <span className="text-xs font-black text-gold tracking-widest uppercase mb-1">{currentQuestion.year}년 {currentQuestion.subject}</span>
+                   <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-red-500 text-white text-[10px] font-black rounded-lg uppercase">오답 분석</span>
+                      <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Mistake {modalData.currentIndex + 1} of {modalData.numbers.length}</span>
+                   </div>
+                </div>
+                <button onClick={() => setModalData(null)} className="w-12 h-12 rounded-full hover:bg-white/5 flex items-center justify-center text-gold transition-colors">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -264,14 +282,14 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
               <div className="space-y-10">
                 <div className="space-y-8">
                   <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep whitespace-pre-line">
-                    <span className="text-gold mr-3">{selectedQuestion.number}.</span>
-                    {formatMathText(selectedQuestion.title)}
+                    <span className="text-gold mr-3">{currentQuestion.number}.</span>
+                    {formatMathText(currentQuestion.title)}
                   </h2>
                   
-                  {selectedQuestion.content_box && selectedQuestion.content_box.length > 0 && (
+                  {currentQuestion.content_box && currentQuestion.content_box.length > 0 && (
                     <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
-                        {selectedQuestion.content_box.map((line, idx) => (
+                        {currentQuestion.content_box.map((line, idx) => (
                           <p key={idx} className="text-lg font-medium opacity-60 leading-relaxed whitespace-pre-line">{formatMathText(line)}</p>
                         ))}
                       </div>
@@ -280,8 +298,8 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                 </div>
 
                 <div className="space-y-6">
-                  {selectedQuestion.options.map((opt, idx) => {
-                    const isCorrect = (idx + 1) === selectedQuestion.answer;
+                  {currentQuestion.options.map((opt, idx) => {
+                    const isCorrect = (idx + 1) === currentQuestion.answer;
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
@@ -302,21 +320,49 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                   <h4 className="text-2xl font-black">심층 정답 해설</h4>
                 </div>
-                <p className="font-bold text-xl md:text-2xl leading-relaxed opacity-80 break-keep">{selectedQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
+                <p className="font-bold text-xl md:text-2xl leading-relaxed opacity-80 break-keep">{currentQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
               </div>
 
-              {/* Action Buttons in Modal */}
-              <div className="flex justify-center pt-8">
+              {/* 🧭 Navigation Buttons inside Modal */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-10 border-t border-black/5 dark:border-white/5">
+                 <div className="flex items-center gap-4 w-full md:w-auto">
+                    <button 
+                      onClick={handlePrevMistake}
+                      disabled={modalData.currentIndex === 0}
+                      className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-20
+                        ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-midnight'}
+                      `}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
+                      <span>이전 오답</span>
+                    </button>
+                    <button 
+                      onClick={handleNextMistake}
+                      disabled={modalData.currentIndex === modalData.numbers.length - 1}
+                      className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-20
+                        ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-slate-100 hover:bg-slate-200 text-midnight'}
+                      `}
+                    >
+                      <span>다음 오답</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                 </div>
+
                  <button 
                    onClick={() => {
                      if(confirm('이 문제를 오답노트에서 삭제할까요?')) {
-                        onRemove(selectedQuestion.id);
-                        setSelectedQuestion(null);
+                        onRemove(currentQuestion.id);
+                        if (modalData.numbers.length === 1) setModalData(null);
+                        else {
+                           const nextNumbers = modalData.numbers.filter((_, i) => i !== modalData.currentIndex);
+                           const nextIndex = Math.min(modalData.currentIndex, nextNumbers.length - 1);
+                           setModalData(prev => ({ ...prev, numbers: nextNumbers, currentIndex: nextIndex }));
+                        }
                      }
                    }}
-                   className="px-10 py-4 bg-red-500/10 text-red-500 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-all"
+                   className="w-full md:w-auto px-10 py-4 bg-red-500/10 text-red-500 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest"
                  >
-                   오답노트에서 삭제
+                   오답 삭제
                  </button>
               </div>
             </motion.div>
