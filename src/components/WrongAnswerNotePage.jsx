@@ -196,40 +196,40 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                            </div>
                         </div>
 
-                        {/* 🧭 Action Section (Dual Review Modes) */}
-                        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center shrink-0 gap-3 md:gap-4">
+                        {/* 🧭 Action Section (Redesigned) */}
+                        <div className="flex flex-col md:flex-row items-center justify-center shrink-0 gap-4">
                           <button 
                             onClick={() => {
                               if(confirm('이 시험 기록을 영구적으로 삭제할까요?')) {
                                 onRemoveHistory(h.id);
                               }
                             }}
-                            className={`w-full md:w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
+                            className={`w-full md:w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300
                               ${isDarkMode ? 'bg-white/5 text-white/20 hover:bg-red-500/20 hover:text-red-500' : 'bg-slate-50 text-slate-300 hover:bg-red-50 hover:text-red-500'}
                             `}
                             title="기록 삭제"
                           >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-                            <span className="md:hidden ml-2 font-bold text-sm">기록 삭제</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                           </button>
 
-                          <div className="flex flex-1 md:flex-none gap-2 md:gap-3">
+                          <div className="flex items-center bg-black/5 dark:bg-white/5 p-1.5 rounded-[1.5rem] w-full md:w-auto">
                             <button 
                               onClick={() => onReviewAttempt(h, true)}
-                              className={`flex-1 px-6 md:px-8 py-4 rounded-2xl font-black text-[13px] md:text-sm transition-all duration-300 border-2
-                                ${isDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white/70' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-600'}
+                              className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs transition-all duration-300
+                                ${isDarkMode ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-white/60 text-slate-400 hover:text-midnight'}
                               `}
                             >
                               오답만 리뷰
                             </button>
+                            <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10 mx-1" />
                             <button 
                               onClick={() => onReviewAttempt(h, false)}
-                              className={`flex-1 px-8 md:px-10 py-4 rounded-2xl font-black text-[13px] md:text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn shadow-lg
-                                ${isDarkMode ? 'bg-white text-midnight hover:bg-gold shadow-white/5' : 'bg-midnight text-white hover:bg-gold hover:text-midnight shadow-midnight/10'}
+                              className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-black text-xs transition-all duration-300 flex items-center justify-center gap-2 group/btn
+                                ${isDarkMode ? 'bg-gold text-midnight shadow-lg shadow-gold/10' : 'bg-midnight text-white hover:bg-gold hover:text-midnight shadow-xl shadow-midnight/10'}
                               `}
                             >
-                              <span className="uppercase tracking-[0.1em] md:tracking-[0.2em]">전체 리뷰</span>
-                              <svg className="transform group-hover/btn:translate-x-1 transition-transform hidden sm:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                              <span>시험지 리뷰</span>
+                              <svg className="transform group-hover/btn:translate-x-1 transition-transform" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                             </button>
                           </div>
                         </div>
