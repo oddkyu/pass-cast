@@ -217,28 +217,28 @@ const FullExamPage = ({
         <section className="grid grid-cols-1 gap-4 md:gap-5">
           {currentQuestion.options.map((opt, idx) => {
             return (
-              <button
-                key={idx}
-                onClick={() => !isReviewMode && handleSelectAnswer(idx + 1)}
-                className={`group w-full p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border-2 text-left transition-all duration-500 flex items-center space-x-4 md:space-x-8
-                  ${isReviewMode 
-                    ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
-                    : (answers[currentIndex] === idx + 1 ? 'border-gold bg-gold/5 shadow-2xl shadow-gold/10' : 'border-transparent hover:border-gold/30')
-                  }
-                  ${isDarkMode ? 'bg-white/5' : 'bg-white'}
-                `}
-              >
-                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-lg md:text-2xl shrink-0 transition-all duration-500
-                  ${answers[currentIndex] === idx + 1 ? 'bg-gold text-midnight' : (isDarkMode ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300')}
-                  ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'bg-green-500 text-white' : ''}
-                  ${isReviewMode && answers[currentIndex] === idx + 1 && idx + 1 !== currentQuestion?.answer ? 'bg-red-500 text-white' : ''}
-                `}>
-                  {idx + 1}
-                </div>
-                <span className={`text-base md:text-2xl font-bold leading-snug break-keep ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
-                  {opt}
-                </span>
-              </button>
+                  <button
+                    key={idx}
+                    onClick={() => !isReviewMode && handleSelectAnswer(idx + 1)}
+                    className={`group w-full p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border-2 text-left transition-all duration-500 flex items-start space-x-4 md:space-x-6 min-h-[80px]
+                      ${isReviewMode 
+                        ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
+                        : (answers[currentIndex] === idx + 1 ? 'border-gold bg-gold/5 shadow-2xl shadow-gold/10' : 'border-transparent hover:border-gold/30')
+                      }
+                      ${isDarkMode ? 'bg-white/5' : 'bg-white shadow-sm'}
+                    `}
+                  >
+                    <div className={`w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center font-black text-base md:text-xl shrink-0 transition-all duration-500 mt-1
+                      ${answers[currentIndex] === idx + 1 ? 'bg-gold text-midnight' : (isDarkMode ? 'bg-white/10 text-white/40' : 'bg-slate-100 text-slate-400')}
+                      ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'bg-green-500 text-white' : ''}
+                      ${isReviewMode && answers[currentIndex] === idx + 1 && idx + 1 !== currentQuestion?.answer ? 'bg-red-500 text-white' : ''}
+                    `}>
+                      {idx + 1}
+                    </div>
+                    <span className={`text-[17px] md:text-[21px] font-bold leading-relaxed break-keep pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
+                      {opt}
+                    </span>
+                  </button>
             );
           })}
         </section>
