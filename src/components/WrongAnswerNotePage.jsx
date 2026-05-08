@@ -233,26 +233,37 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                             </div>
                             
                             <div className="flex flex-wrap gap-2 md:gap-4">
-                              {h.wrong_question_numbers?.length > 0 ? (
-                                h.wrong_question_numbers.map((num, mIdx) => (
-                                  <button
-                                    key={num}
-                                    onClick={() => setModalData({ numbers: h.wrong_question_numbers, currentIndex: mIdx, year: h.year, subject: h.subject })}
-                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 border-2
-                                      ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-red-500 hover:text-white hover:border-red-500' : 'bg-white border-slate-200 text-slate-400 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm'}
-                                    `}
-                                  >
-                                    {num}
-                                  </button>
-                                ))
-                              ) : (
-                                <div className="flex items-center gap-3 px-6 py-4 bg-slate-500/5 rounded-2xl border border-slate-500/10">
-                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="opacity-40"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                   <span className="text-xs md:text-sm font-bold opacity-50">
-                                      {h.score < 100 ? '오답 상세 목록이 없습니다. 회차 리뷰에서 확인해 주세요.' : '만점입니다! 완벽한 학습 결과입니다.'}
-                                   </span>
-                                </div>
-                              )}
+                              {(() => {
+                                 const filteredWrongOnes = (h.wrong_question_numbers || []).filter(num => {
+                                    const startIndex = h.is_routine ? (h.set_index * 10) : 0;
+                                    const idx = h.is_routine ? (num - (startIndex + 1)) : (num - 1);
+                                    const ans = h.answers ? h.answers[idx] : null;
+                                    return ans !== null && ans !== undefined && ans !== '';
+                                 });
+
+                                 if (filteredWrongOnes.length > 0) {
+                                    return filteredWrongOnes.map((num, mIdx) => (
+                                       <button
+                                          key={num}
+                                          onClick={() => setModalData({ numbers: filteredWrongOnes, currentIndex: mIdx, year: h.year, subject: h.subject })}
+                                          className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 border-2
+                                          ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-red-500 hover:text-white hover:border-red-500' : 'bg-white border-slate-200 text-slate-400 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm'}
+                                          `}
+                                       >
+                                          {num}
+                                       </button>
+                                    ));
+                                 } else {
+                                    return (
+                                       <div className="flex items-center gap-3 px-6 py-4 bg-slate-500/5 rounded-2xl border border-slate-500/10">
+                                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="opacity-40"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                          <span className="text-xs md:text-sm font-bold opacity-50">
+                                             {h.score < 100 ? '미응시를 제외한 오답 문항이 없습니다.' : '만점입니다! 완벽한 학습 결과입니다.'}
+                                          </span>
+                                       </div>
+                                    );
+                                 }
+                              })()}
                             </div>
                          </div>
                       </div>
