@@ -260,7 +260,7 @@ const App = () => {
 
     // 1. 오답 저장 및 DB 자동 수집 로직 (모든 로그인 회원)
     const newWrongOnes = questions
-      .filter((q, idx) => answers[idx] !== q.answer)
+      .filter((q, idx) => String(answers[idx]) !== String(q.answer))
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
 
     if (newWrongOnes.length > 0) {
@@ -308,7 +308,7 @@ const App = () => {
     if (user) {
       const correctCount = questions.filter((q, idx) => answers[idx] === q.answer).length;
       const wrongQuestionNumbers = questions
-        .filter((q, idx) => answers[idx] !== q.answer)
+        .filter((q, idx) => String(answers[idx]) !== String(q.answer))
         .map(q => q.number);
 
       try {

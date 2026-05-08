@@ -153,31 +153,31 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                       `}
                     >
                       <div className="flex flex-col md:flex-row justify-between gap-10 md:gap-16">
-                        {/* 📊 Info Section (Vertical Stack) */}
+                        {/* 📊 Info Section (Requested Hierarchy) */}
                         <div className="flex items-start gap-10 md:gap-14">
                            {/* 1 & 2: Score & Status */}
-                           <div className="flex flex-col items-center shrink-0 space-y-1">
-                              <span className={`text-4xl md:text-5xl font-black leading-none ${h.score >= 60 ? 'text-blue-500' : 'text-slate-400'}`}>
+                           <div className="flex flex-col items-center shrink-0 space-y-2">
+                              <span className={`text-5xl md:text-6xl font-black leading-none ${h.score >= 60 ? 'text-blue-500' : 'text-slate-400'}`}>
                                 {h.score}
                               </span>
-                              <span className="text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.2em]">기록됨</span>
+                              <span className="text-[10px] md:text-[11px] font-black opacity-40 uppercase tracking-[0.3em]">기록됨</span>
                            </div>
 
-                           {/* 3, 4, 5: Year, Date, Title */}
-                           <div className="space-y-3 md:space-y-4">
-                              <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm font-bold">
-                                 <span className="text-gold uppercase tracking-wider">{h.year}년 기출</span>
-                                 <span className="opacity-20">•</span>
-                                 <span className="opacity-40">{formatDate(h.created_at)}</span>
+                           {/* 3, 4, 5: Metadata Stack */}
+                           <div className="flex flex-col space-y-1.5 md:space-y-2">
+                              <div className="flex flex-col space-y-1">
+                                 <span className="text-gold font-black text-xs md:text-sm uppercase tracking-widest">{h.year}년 기출</span>
+                                 <span className="opacity-20 text-[10px]">•</span>
+                                 <span className="opacity-40 font-bold text-[11px] md:text-xs">{formatDate(h.created_at)}</span>
                               </div>
-                              <h4 className="text-xl md:text-2xl font-black tracking-tight leading-tight">
+                              <h4 className="text-xl md:text-2xl font-black tracking-tighter leading-tight mt-2">
                                  {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험 결과'}
                               </h4>
                            </div>
                         </div>
 
                         {/* 🧭 Action Section */}
-                        <div className="flex flex-col justify-center">
+                        <div className="flex flex-col justify-center shrink-0">
                           <button 
                             onClick={() => onReviewAttempt(h)}
                             className={`px-10 py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn shadow-lg
@@ -190,11 +190,11 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         </div>
                       </div>
 
-                      {/* 🎯 Mistakes Row (Clean Integrated Style) */}
+                      {/* 🎯 Mistakes Navigation */}
                       <div className="mt-10 pt-10 border-t border-black/5 dark:border-white/5">
                          <div className="flex flex-col space-y-6">
                             <div className="flex items-center gap-3 text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.3em]">
-                               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
+                               <div className={`w-1.5 h-1.5 rounded-full ${h.wrong_question_numbers?.length > 0 ? 'bg-red-500' : 'bg-blue-500'} shadow-lg`} />
                                <span>틀린 문항 ({h.wrong_question_numbers?.length || 0})</span>
                             </div>
                             
@@ -205,16 +205,18 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                                     key={num}
                                     onClick={() => openQuestionModal(num, h.year, h.subject)}
                                     className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 border-2
-                                      ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-gold hover:text-midnight hover:border-gold' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-gold hover:text-midnight hover:border-gold'}
+                                      ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-red-500 hover:text-white hover:border-red-500' : 'bg-white border-slate-200 text-slate-400 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm'}
                                     `}
                                   >
                                     {num}
                                   </button>
                                 ))
                               ) : (
-                                <div className="flex items-center gap-3 px-6 py-3 bg-blue-500/5 rounded-2xl border border-blue-500/10">
-                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                                   <span className="text-xs md:text-sm font-black text-blue-500/60 uppercase tracking-widest">Perfect Score - No Mistakes</span>
+                                <div className="flex items-center gap-3 px-6 py-4 bg-slate-500/5 rounded-2xl border border-slate-500/10">
+                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="opacity-40"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                   <span className="text-xs md:text-sm font-bold opacity-50">
+                                      {h.score < 100 ? '오답 상세 목록이 없습니다. 회차 리뷰에서 확인해 주세요.' : '만점입니다! 완벽한 학습 결과입니다.'}
+                                   </span>
                                 </div>
                               )}
                             </div>
