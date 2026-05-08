@@ -197,9 +197,9 @@ const FullExamPage = ({
 
         <section className="space-y-6 md:space-y-8">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
-                    <h2 className="text-xl md:text-3xl font-black tracking-tight leading-tight">
+                  <div className="flex items-start space-x-3 md:space-x-4">
+                    <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
+                    <h2 className="text-[19px] md:text-[28px] font-black tracking-tight leading-[1.4] break-keep">
                       <span className="text-gold mr-2">{currentQuestion?.number}.</span>
                       {currentQuestion?.title}
                     </h2>
