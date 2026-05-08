@@ -140,6 +140,8 @@ const FullExamPage = ({
   const currentQuestion = questions[currentIndex];
   if (!currentQuestion) return null;
 
+  const isCorrect = answers[currentIndex] === currentQuestion.answer;
+
   return (
     <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-28 md:pb-32 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
