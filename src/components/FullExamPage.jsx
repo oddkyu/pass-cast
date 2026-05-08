@@ -34,6 +34,7 @@ const FullExamPage = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState(mode === 'review' ? userAnswers : {});
   const [memo, setMemo] = useState(mode === 'review' ? savedMemo : '');
+  const [submitting, setSubmitting] = useState(false);
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(isRoutine ? 12 * 60 : 50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -420,10 +421,18 @@ const FullExamPage = ({
                 </div>
                 
                 <button 
-                  onClick={() => isReviewMode ? onBack() : onFinish({ questions, answers, year, subject, memo })}
-                  className="flex-1 md:flex-none px-6 md:px-10 py-3 md:py-3.5 bg-midnight text-gold rounded-xl md:rounded-2xl font-black text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest"
+                  onClick={() => {
+                    if (isReviewMode) {
+                      onBack();
+                    } else if (!submitting) {
+                      setSubmitting(true);
+                      onFinish({ questions, answers, year, subject, memo });
+                    }
+                  }}
+                  disabled={!isReviewMode && submitting}
+                  className={`flex-1 md:flex-none px-6 md:px-10 py-3 md:py-3.5 bg-midnight text-gold rounded-xl md:rounded-2xl font-black text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest ${(!isReviewMode && submitting) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isReviewMode ? '리뷰 종료' : '최종 채점'}
+                  {isReviewMode ? '리뷰 종료' : (submitting ? '채점 중...' : '최종 채점')}
                 </button>
               </div>
 
