@@ -392,6 +392,7 @@ const App = () => {
             savedMemo={examResult?.memo}
             initialQuestions={examResult?.questions}
             user={user}
+            onlyMistakes={examResult?.onlyMistakes}
           />
         );
       case 'exam_result':
@@ -441,13 +442,14 @@ const App = () => {
               setWrongAnswers(prev => prev.filter(q => q.id !== id));
             }}
             onRemoveHistory={handleRemoveHistory}
-            onReviewAttempt={(attempt) => {
+            onReviewAttempt={(attempt, onlyMistakes = false) => {
               setExamResult({
                 answers: attempt.answers,
                 memo: attempt.memo,
                 year: attempt.year,
                 subject: attempt.subject,
-                isReview: true
+                isReview: true,
+                onlyMistakes: onlyMistakes
               });
               setSelectedExam({
                 year: attempt.year,

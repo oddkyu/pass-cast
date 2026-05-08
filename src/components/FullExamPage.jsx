@@ -26,7 +26,8 @@ const FullExamPage = ({
   isRoutine = false,
   setIndex = null,
   savedMemo = '',
-  initialQuestions = null
+  initialQuestions = null,
+  onlyMistakes = false
 }) => {
   const [questions, setQuestions] = useState(initialQuestions || []);
   const [isLoading, setIsLoading] = useState(!initialQuestions || initialQuestions.length === 0);
@@ -78,7 +79,15 @@ const FullExamPage = ({
         window.location.replace('/');
         return;
       }
-      setQuestions(data);
+
+      if (isReviewMode && onlyMistakes) {
+        // userAnswers가 fetch 시점의 answers state에 아직 반영되지 않았을 수 있으므로 직접 사용
+        const targetAnswers = userAnswers || {};
+        const filtered = data.filter((q, idx) => String(targetAnswers[idx]) !== String(q.answer));
+        setQuestions(filtered);
+      } else {
+        setQuestions(data);
+      }
     } catch (err) {
       console.error('Error fetching exam questions:', err);
       alert(err.message || '데이터를 불러오는 중 오류가 발생했습니다.');
