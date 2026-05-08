@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
 const formatMathText = (text) => {
   if (typeof text !== 'string') return text;
-  return text.replace(/\$([^\$]+)\$/g, '$1');
+  let formatted = text.replace(/\$([^\$]+)\$/g, '$1');
+  formatted = formatted.replace(/\\n/g, '\n');
+  return formatted;
 };
 
 const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt }) => {
@@ -238,7 +240,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
 
               <div className="space-y-10">
                 <div className="space-y-8">
-                  <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep">
+                  <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep whitespace-pre-line">
                     <span className="text-gold mr-3">{selectedQuestion.number}.</span>
                     {formatMathText(selectedQuestion.title)}
                   </h2>
@@ -247,7 +249,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                     <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
                         {selectedQuestion.content_box.map((line, idx) => (
-                          <p key={idx} className="text-lg font-medium opacity-60 leading-relaxed">{formatMathText(line)}</p>
+                          <p key={idx} className="text-lg font-medium opacity-60 leading-relaxed whitespace-pre-line">{formatMathText(line)}</p>
                         ))}
                       </div>
                     </div>
@@ -260,7 +262,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                     return (
                       <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
                         <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
-                        <span className="font-bold text-xl md:text-2xl flex-1 break-keep">{formatMathText(opt)}</span>
+                        <span className="font-bold text-xl md:text-2xl flex-1 break-keep whitespace-pre-line">{formatMathText(opt)}</span>
                         {isCorrect && (
                           <div className="text-green-500">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>

@@ -6,7 +6,11 @@ import MemoSheet from './MemoSheet';
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
 const formatMathText = (text) => {
   if (typeof text !== 'string') return text;
-  return text.replace(/\$([^\$]+)\$/g, '$1');
+  // 1. DB의 수식 마커($) 제거
+  let formatted = text.replace(/\$([^\$]+)\$/g, '$1');
+  // 2. 이스케이프된 문자열 '\n'을 실제 줄바꿈 문자로 변환
+  formatted = formatted.replace(/\\n/g, '\n');
+  return formatted;
 };
 
 const FullExamPage = ({ 
@@ -205,7 +209,7 @@ const FullExamPage = ({
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3 md:space-x-4">
                     <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
-                    <h2 className="text-[19px] md:text-[28px] font-black tracking-tight leading-[1.4] break-keep">
+                    <h2 className="text-[19px] md:text-[28px] font-black tracking-tight leading-[1.4] break-keep whitespace-pre-line">
                       <span className="text-gold mr-2">{currentQuestion?.number}.</span>
                       {formatMathText(currentQuestion?.title)}
                     </h2>
@@ -224,7 +228,7 @@ const FullExamPage = ({
                    {currentQuestion.content_box.map((line, idx) => (
                      <p 
                        key={idx} 
-                       className={`text-[17px] md:text-[20px] leading-relaxed break-keep font-bold ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                       className={`text-[17px] md:text-[20px] leading-relaxed break-keep font-bold whitespace-pre-line ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
                      >
                        {formatMathText(line)}
                      </p>
@@ -255,7 +259,7 @@ const FullExamPage = ({
                     `}>
                       {idx + 1}
                     </div>
-                    <span className={`text-[17px] md:text-[21px] font-bold leading-relaxed break-keep pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
+                    <span className={`text-[17px] md:text-[21px] font-bold leading-relaxed break-keep whitespace-pre-line pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
                       {formatMathText(opt)}
                     </span>
                   </button>
