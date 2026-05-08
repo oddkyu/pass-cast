@@ -324,18 +324,41 @@ const App = () => {
   };
 
   const handleRemoveHistory = async (historyId) => {
+    if (!user) return;
     try {
+      // RLS 정책을 명확히 만족시키기 위해 user_id를 함께 필터링
       const { error } = await supabase
         .from('user_exam_history')
         .delete()
-        .eq('id', historyId);
+        .match({ id: historyId, user_id: user.id });
       
       if (error) throw error;
+
+      // 로컬 상태 즉시 반영
       setExamHistory(prev => prev.filter(h => h.id !== historyId));
     } catch (err) {
       console.error('Failed to delete exam history:', err);
-      alert('기록 삭제 중 오류가 발생했습니다.');
+      alert('기록 삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
+  };
+
+  const handleRemoveWrongQuestion = async (id) => {
+    const target = wrongAnswers.find(q => q.id === id);
+    if (isPremium && user && target?.db_id) {
+      try {
+        const { error } = await supabase
+          .from('user_incorrect_questions')
+          .delete()
+          .match({ id: target.db_id, user_id: user.id });
+        
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to delete incorrect question:', err);
+        alert('오답 삭제 중 오류가 발생했습니다.');
+        return;
+      }
+    }
+    setWrongAnswers(prev => prev.filter(q => q.id !== id));
   };
 
   const requireAuth = (callback) => {
@@ -429,20 +452,7 @@ const App = () => {
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
             onBack={() => navigate('home')} 
-            onRemove={async (id) => {
-              const target = wrongAnswers.find(q => q.id === id);
-              if (isPremium && user && target?.db_id) {
-                const { error } = await supabase
-                  .from('user_incorrect_questions')
-                  .delete()
-                  .eq('id', target.db_id);
-                if (error) {
-                  alert('DB 삭제 중 오류가 발생했습니다.');
-                  return;
-                }
-              }
-              setWrongAnswers(prev => prev.filter(q => q.id !== id));
-            }}
+            onRemove={handleRemoveWrongQuestion}
             onRemoveHistory={handleRemoveHistory}
             onReviewAttempt={(attempt, onlyMistakes = false) => {
               setExamResult({
