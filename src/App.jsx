@@ -326,19 +326,38 @@ const App = () => {
   const handleRemoveHistory = async (historyId) => {
     if (!user) return;
     try {
-      // RLS 정책을 명확히 만족시키기 위해 user_id를 함께 필터링
-      const { error } = await supabase
+      // 1. DB에서 삭제 시도 및 삭제된 데이터 확인을 위해 .select() 사용
+      const { data, error } = await supabase
         .from('user_exam_history')
         .delete()
-        .match({ id: historyId, user_id: user.id });
+        .match({ id: historyId, user_id: user.id })
+        .select();
       
       if (error) throw error;
 
-      // 로컬 상태 즉시 반영
-      setExamHistory(prev => prev.filter(h => h.id !== historyId));
+      // 2. 삭제된 데이터가 있는 경우에만 상태 갱신 (없다면 RLS나 ID 문제)
+      if (data && data.length > 0) {
+        // 더 확실한 동기화를 위해 DB에서 이력을 다시 불러옵니다.
+        const { data: refreshedData, error: fetchError } = await supabase
+          .from('user_exam_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (!fetchError && refreshedData) {
+          setExamHistory(refreshedData);
+        } else {
+          // 페칭 실패 시 로컬 필터링으로 대체
+          setExamHistory(prev => prev.filter(h => h.id !== historyId));
+        }
+      } else {
+        alert('삭제할 기록을 찾을 수 없거나 이미 삭제되었습니다.');
+        // 상태 불일치 방지를 위해 강제 새로고침 시도
+        window.location.reload();
+      }
     } catch (err) {
       console.error('Failed to delete exam history:', err);
-      alert('기록 삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      alert('기록 삭제 중 오류가 발생했습니다. 네트워크 상태를 확인해 주세요.');
     }
   };
 
