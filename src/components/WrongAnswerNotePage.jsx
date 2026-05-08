@@ -53,13 +53,13 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
       {/* 🏛️ Header */}
       <header className={`sticky top-0 z-50 border-b transition-all duration-500 ${isDarkMode ? 'bg-midnight/60 border-white/5 backdrop-blur-2xl' : 'bg-white/90 border-slate-100 backdrop-blur-md'}`}>
         <div className="max-w-7xl mx-auto px-8 md:px-12 h-20 md:h-24 flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <button onClick={handleBack} className="w-10 h-10 glass-button rounded-xl flex items-center justify-center">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
+          <div className="flex items-center space-x-3 md:space-x-6">
+            <button onClick={handleBack} className="w-9 h-9 md:w-10 md:h-10 glass-button rounded-xl flex items-center justify-center">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div className="flex flex-col">
-               <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em] mb-0.5">Smart Note</span>
-               <h1 className="text-xl md:text-2xl font-black tracking-tighter">
+               <span className="text-[8px] md:text-[10px] font-black text-gold uppercase tracking-[0.2em] mb-0.5">Smart Note</span>
+               <h1 className="text-lg md:text-2xl font-black tracking-tighter leading-none">
                  {step === 'subject' ? '스마트 오답노트' : selectedSubject}
                </h1>
             </div>
@@ -90,29 +90,29 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
                     onClick={() => handleSubjectClick(sub.name)}
-                    className={`group p-10 rounded-[3.5rem] border text-left transition-all duration-500 hover:scale-[1.03] active:scale-95
+                    className={`group p-6 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border text-left transition-all duration-500 hover:scale-[1.03] active:scale-95
                       ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white border-white shadow-xl shadow-slate-100 hover:shadow-2xl'}
                     `}
                   >
-                    <div className="flex flex-col h-full justify-between space-y-8">
-                       <div className="space-y-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isDarkMode ? 'bg-white/5 text-gold' : 'bg-midnight text-gold'} group-hover:bg-gold group-hover:text-midnight`}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <div className="flex flex-col h-full justify-between space-y-6 md:space-y-8">
+                       <div className="space-y-3 md:space-y-4">
+                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-colors ${isDarkMode ? 'bg-white/5 text-gold' : 'bg-midnight text-gold'} group-hover:bg-gold group-hover:text-midnight`}>
+                            <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                           </div>
                           <div>
-                            <h3 className="text-2xl font-black leading-tight break-keep">{sub.name}</h3>
-                            <p className="text-xs font-bold opacity-30 mt-1 uppercase tracking-widest">{sub.info}</p>
+                            <h3 className="text-xl md:text-2xl font-black leading-tight break-keep">{sub.name}</h3>
+                            <p className="text-[10px] md:text-xs font-bold opacity-30 mt-1 uppercase tracking-widest">{sub.info}</p>
                           </div>
                        </div>
                        
-                       <div className="flex items-end justify-between border-t border-black/5 dark:border-white/5 pt-6">
+                       <div className="flex items-end justify-between border-t border-black/5 dark:border-white/5 pt-5 md:pt-6">
                           <div className="flex flex-col">
-                             <span className="text-[10px] font-black opacity-20 uppercase tracking-tighter">Mistakes</span>
-                             <span className="text-2xl font-black text-gold">{stats.mistakes}</span>
+                             <span className="text-[9px] md:text-[10px] font-black opacity-20 uppercase tracking-tighter">Mistakes</span>
+                             <span className="text-xl md:text-2xl font-black text-gold">{stats.mistakes}</span>
                           </div>
                           <div className="text-right">
-                             <span className="text-[10px] font-black opacity-20 uppercase tracking-tighter">Last Attempt</span>
-                             <p className="text-xs font-bold opacity-40">{stats.lastDate ? formatDate(stats.lastDate) : '기록 없음'}</p>
+                             <span className="text-[9px] md:text-[10px] font-black opacity-20 uppercase tracking-tighter">Last Attempt</span>
+                             <p className="text-[10px] md:text-xs font-bold opacity-40">{stats.lastDate ? formatDate(stats.lastDate) : '기록 없음'}</p>
                           </div>
                        </div>
                     </div>
@@ -143,34 +143,46 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className={`flex flex-col lg:flex-row items-center p-8 md:p-10 rounded-[3rem] border gap-8 md:gap-12
+                      className={`flex flex-col p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border gap-6 md:gap-10
                         ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-100 shadow-sm'}
                       `}
                     >
-                      {/* Left: Score & Date */}
-                      <div className="flex items-center gap-6 shrink-0 w-full lg:w-auto">
-                        <div className={`w-20 h-20 rounded-[2rem] flex flex-col items-center justify-center shadow-2xl ${h.score >= 60 ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-red-500 text-white shadow-red-500/20'}`}>
-                          <span className="text-[10px] font-black uppercase opacity-60 leading-none mb-1">Score</span>
-                          <span className="text-2xl font-black leading-none">{h.score}</span>
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        {/* Left: Score & Date */}
+                        <div className="flex items-center gap-5 md:gap-6 shrink-0 w-full md:w-auto">
+                          <div className={`w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-[2rem] flex flex-col items-center justify-center shadow-xl ${h.score >= 60 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            <span className="text-[8px] md:text-[10px] font-black uppercase opacity-60 leading-none mb-1">Score</span>
+                            <span className="text-xl md:text-2xl font-black leading-none">{h.score}</span>
+                          </div>
+                          <div>
+                            <p className="text-[9px] md:text-[10px] font-black text-gold uppercase tracking-[0.2em] mb-1">{h.year}년 기출</p>
+                            <h4 className="text-base md:text-lg font-black leading-tight">{h.is_routine ? `루틴 SET ${h.set_index + 1}` : '정기 시험'}</h4>
+                            <p className="text-[10px] md:text-xs font-bold opacity-30 mt-1">{formatDate(h.created_at)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-black text-gold uppercase tracking-[0.2em] mb-1">{h.year}년 기출</p>
-                          <h4 className="text-lg font-black leading-tight">{h.is_routine ? `루틴 SET ${h.set_index + 1}` : '정기 시험'}</h4>
-                          <p className="text-xs font-bold opacity-30 mt-1">{formatDate(h.created_at)}</p>
+
+                        {/* Right: Review Button (Desktop) */}
+                        <div className="hidden md:block">
+                          <button 
+                            onClick={() => onReviewAttempt(h)}
+                            className="px-8 py-3.5 bg-midnight text-gold rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gold/10 uppercase tracking-widest"
+                          >
+                            회차 리뷰
+                          </button>
                         </div>
                       </div>
 
                       {/* Middle: Mistake Icons */}
-                      <div className="flex-1 w-full overflow-hidden">
+                      <div className="w-full">
                         <div className="flex flex-col space-y-3">
-                           <span className="text-[10px] font-black opacity-30 uppercase tracking-widest">Mistakes ({h.wrong_question_numbers?.length || 0})</span>
+                           <span className="text-[9px] md:text-[10px] font-black opacity-30 uppercase tracking-widest">Mistakes ({h.wrong_question_numbers?.length || 0})</span>
                            <div className="flex flex-wrap gap-2">
                              {h.wrong_question_numbers && h.wrong_question_numbers.length > 0 ? (
                                h.wrong_question_numbers.map(num => (
                                  <button
                                    key={num}
                                    onClick={() => openQuestionModal(num, h.year, h.subject)}
-                                   className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all hover:scale-110 active:scale-90 shadow-sm
+                                   className={`w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center font-black text-[11px] md:text-xs transition-all hover:scale-110 active:scale-90 shadow-sm
                                      ${isDarkMode ? 'bg-white/10 text-white hover:bg-gold hover:text-midnight' : 'bg-slate-100 text-midnight hover:bg-gold hover:text-midnight'}
                                    `}
                                  >
@@ -178,19 +190,19 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                                  </button>
                                ))
                              ) : (
-                               <span className="text-sm font-bold text-green-500/60 italic">No mistakes! Perfect.</span>
+                               <span className="text-xs md:text-sm font-bold text-green-500/60 italic">No mistakes! Perfect.</span>
                              )}
                            </div>
                         </div>
                       </div>
 
-                      {/* Right: Review Button */}
-                      <div className="shrink-0 w-full lg:w-auto">
+                      {/* Bottom: Review Button (Mobile) */}
+                      <div className="md:hidden w-full">
                         <button 
                           onClick={() => onReviewAttempt(h)}
-                          className="w-full lg:w-auto px-10 py-4 bg-midnight text-gold rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gold/10 uppercase tracking-widest"
+                          className="w-full py-4 bg-midnight text-gold rounded-2xl font-black text-sm active:scale-95 transition-all shadow-xl shadow-gold/10 uppercase tracking-widest"
                         >
-                          회차 리뷰
+                          회차 리뷰하기
                         </button>
                       </div>
                     </motion.div>

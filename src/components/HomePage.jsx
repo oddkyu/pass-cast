@@ -93,7 +93,7 @@ const HomePage = ({
         </div>
       </nav>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-8 md:px-12 py-12 md:py-24 space-y-20">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 md:px-12 py-10 md:py-24 space-y-16 md:space-y-20">
         
         {/* 🚀 Conditional Hero: Guest Intro vs User Stats */}
         <header className="space-y-8 text-center md:text-left">
@@ -102,11 +102,11 @@ const HomePage = ({
             <span className="text-[12px] font-black text-gold uppercase tracking-[0.5em]">{isGuest ? 'Platform Introduction' : 'Personal Performance'}</span>
           </motion.div>
           
-          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-4xl md:text-8xl font-black tracking-tighter leading-[1.05] break-keep">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-3xl md:text-8xl font-black tracking-tighter leading-[1.1] break-keep">
             {isGuest ? (
-              <>공인중개사 합격을 위한 <br/> <span className="text-gold glow-gold">최신 5개년 기출 분석</span></>
+              <>공인중개사 합격을 위한 <br className="hidden md:block" /> <span className="text-gold glow-gold">최신 5개년 기출 분석</span></>
             ) : (
-              <>{displayName} 사장님, <br/> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
+              <>{displayName} 사장님, <br className="hidden md:block" /> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
             )}
           </motion.h2>
           
@@ -197,7 +197,7 @@ const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge
   <motion.button
     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
     onClick={onClick}
-    className={`group p-10 md:p-12 rounded-[3.5rem] md:rounded-[4rem] lift-hover text-left relative overflow-hidden transition-all duration-500
+    className={`group p-8 md:p-12 rounded-[2.5rem] md:rounded-[4rem] lift-hover text-left relative overflow-hidden transition-all duration-500
       ${isDarkMode ? 'glass-card border-white/10 hover:bg-white/5' : 'bg-white shadow-xl shadow-slate-100 border-white hover:shadow-2xl'}
       ${customClass || ''}
     `}
@@ -211,9 +211,9 @@ const ActionButton = ({ title, subtitle, icon, onClick, isDarkMode, delay, badge
       {icon}
       {badge && <span className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-lg">{badge}</span>}
     </div>
-    <div className="space-y-4">
-      <h4 className="text-2xl md:text-3xl font-black tracking-tight">{title}</h4>
-      <p className="text-base md:text-lg font-bold opacity-30 break-keep">{subtitle}</p>
+    <div className="space-y-3 md:space-y-4">
+      <h4 className="text-xl md:text-3xl font-black tracking-tight leading-tight">{title}</h4>
+      <p className="text-sm md:text-lg font-bold opacity-30 break-keep leading-relaxed">{subtitle}</p>
     </div>
   </motion.button>
 );

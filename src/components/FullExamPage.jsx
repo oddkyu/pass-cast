@@ -182,110 +182,67 @@ const FullExamPage = ({
             className={`h-full ${isReviewMode ? 'bg-green-500' : 'bg-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]'}`}
           />
        </div>
-
       </header>
 
-      {/* 🏁 Wide Question Area */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
-        {/* 🔝 질문지 상단 스크롤 기준점 */}
         <div ref={questionTopRef} className="scroll-mt-36" />
 
         <section className="space-y-6 md:space-y-8">
-           <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-2xl md:text-3xl font-black text-gold tracking-tighter uppercase italic">Question {currentIndex + 1}</span>
-                {isReviewMode && (
-                  <span className={`px-4 py-1 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg ${answers[currentIndex] === currentQuestion?.answer ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                    {answers[currentIndex] === currentQuestion?.answer ? '정답 O' : '오답 X'}
-                  </span>
-                )}
-              </div>
-              {!isReviewMode && (
-                <button 
-                  onClick={() => toggleHold(currentIndex)}
-                  className={`px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                    ${heldQuestions.has(currentIndex) ? 'bg-gold text-midnight shadow-lg' : 'bg-midnight/5 text-gold border border-gold/20 hover:bg-gold/10'}
-                  `}
-                >
-                  {heldQuestions.has(currentIndex) ? '보류 중' : '보류 표시'}
-                </button>
-              )}
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
+                    <h2 className="text-xl md:text-3xl font-black tracking-tight leading-tight">
+                      <span className="text-gold mr-2">{currentQuestion?.number}.</span>
+                      {currentQuestion?.title}
+                    </h2>
+                  </div>
+                  {mode === 'review' && (
+                    <div className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest self-start md:self-auto ${isCorrect ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                      {isCorrect ? '정답' : '오답'}
+                    </div>
+                  )}
            </div>
-           <div className="space-y-8">
-             {/* 🏷️ 질문 타이틀 (굵게 처리) */}
-             <h2 className={`text-[22px] md:text-[28px] font-black leading-[1.4] break-all md:break-keep tracking-tight ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
-               <span className="text-gold mr-3">{currentQuestion?.number}.</span>
-               {currentQuestion?.title}
-             </h2>
-
-             {/* 📦 박스형 지문 (content_box 데이터가 있는 경우에만 출력) */}
-             {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
-               <div className={`mt-8 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'} relative`}>
-                 <div className="absolute -top-3.5 left-10 px-4 py-1 bg-midnight text-gold text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg">보기</div>
-                 <div className="space-y-4">
-                   {currentQuestion.content_box.map((line, idx) => (
-                     <p 
-                       key={idx} 
-                       className={`text-[16px] md:text-[19px] leading-[1.6] break-all md:break-keep font-medium ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
-                     >
-                       {line}
-                     </p>
-                   ))}
-                 </div>
-               </div>
-             )}
-           </div>
+           
+           {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+             <div className={`p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border transition-all duration-500 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50/50 border-slate-100'}`}>
+                <div className="space-y-3 md:space-y-4">
+                  {currentQuestion.content_box.map((line, idx) => (
+                    <p key={idx} className="text-base md:text-xl font-bold opacity-70 leading-relaxed break-keep">{line}</p>
+                  ))}
+                </div>
+             </div>
+           )}
         </section>
 
         <section className="grid grid-cols-1 gap-4 md:gap-5">
           {currentQuestion.options.map((opt, idx) => {
-            const optionNumber = idx + 1;
-            const isSelected = answers[currentIndex] === optionNumber;
-            const isCorrectAnswer = currentQuestion.answer === optionNumber;
-            
-            let bgStyle = isDarkMode ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm';
-            if (isReviewMode) {
-              if (isCorrectAnswer) bgStyle = 'bg-green-500/10 border-green-500 text-green-600 shadow-lg z-10';
-              else if (isSelected) bgStyle = 'bg-red-500/10 border-red-500 text-red-600 shadow-lg z-10';
-              else bgStyle = 'opacity-40 grayscale';
-            } else if (isSelected) {
-              bgStyle = 'bg-gold border-gold text-midnight shadow-xl';
-            }
-
             return (
               <button
                 key={idx}
-                disabled={isReviewMode}
-                onClick={() => {
-                  setAnswers(prev => ({ ...prev, [currentIndex]: optionNumber }));
-                  if (currentIndex < questions.length - 1) {
-                    setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
+                onClick={() => !isReviewMode && handleAnswerSelect(idx + 1)}
+                className={`group w-full p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border-2 text-left transition-all duration-500 flex items-center space-x-4 md:space-x-8
+                  ${isReviewMode 
+                    ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
+                    : (answers[currentIndex] === idx + 1 ? 'border-gold bg-gold/5 shadow-2xl shadow-gold/10' : 'border-transparent hover:border-gold/30')
                   }
-                }}
-                className={`p-6 md:p-8 rounded-2xl md:rounded-[3rem] text-left transition-all duration-500 flex items-start space-x-4 md:space-x-6 border-2 relative min-h-[80px]
-                  ${bgStyle}
+                  ${isDarkMode ? 'bg-white/5' : 'bg-white'}
                 `}
               >
-                <span className={`shrink-0 w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center font-black text-base md:text-xl mt-0.5
-                   ${isSelected ? 'bg-midnight/10' : 'bg-midnight/5'}
-                `}>{optionNumber}</span>
-                <span className="text-base md:text-[20px] font-bold leading-relaxed break-all md:break-keep pt-1">{opt}</span>
-                {isReviewMode && isCorrectAnswer && (
-                  <div className="absolute right-8 top-1/2 -translate-y-1/2 text-green-500">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                  </div>
-                )}
-                {isReviewMode && isSelected && !isCorrectAnswer && (
-                   <div className="absolute right-8 top-1/2 -translate-y-1/2 text-red-500">
-                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                   </div>
-                )}
+                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-lg md:text-2xl shrink-0 transition-all duration-500
+                  ${answers[currentIndex] === idx + 1 ? 'bg-gold text-midnight' : (isDarkMode ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300')}
+                  ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'bg-green-500 text-white' : ''}
+                  ${isReviewMode && answers[currentIndex] === idx + 1 && idx + 1 !== currentQuestion?.answer ? 'bg-red-500 text-white' : ''}
+                `}>
+                  {idx + 1}
+                </div>
+                <span className={`text-base md:text-2xl font-bold leading-snug break-keep ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
+                  {opt}
+                </span>
               </button>
             );
           })}
         </section>
 
-        {/* 📚 Review Mode Explanation */}
         {isReviewMode && (
           <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
             <div className="flex items-center gap-4 text-gold">
@@ -311,27 +268,6 @@ const FullExamPage = ({
           </section>
         )}
 
-        <div className="flex justify-between items-center pt-8 border-t border-slate-100">
-           <button 
-             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-             disabled={currentIndex === 0}
-             className="flex items-center space-x-2 px-6 py-3 bg-slate-100 text-slate-400 rounded-xl font-bold disabled:opacity-0 transition-all"
-           >
-             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
-             <span>이전 문제</span>
-           </button>
-           
-           <button 
-             onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-             disabled={currentIndex === questions.length - 1}
-             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
-           >
-             <span className="text-lg font-black uppercase tracking-widest">다음 문제로</span>
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-           </button>
-        </div>
-
-        {/* 👑 AI 핵심 키워드 가이드 (Premium 전용) */}
         {isPremium ? (
           <section className={`rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 space-y-4 ${isDarkMode ? 'bg-gold/5 border-gold/20' : 'bg-amber-50 border-amber-200'}`}>
             <div className="flex items-center gap-3">
