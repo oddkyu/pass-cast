@@ -203,15 +203,21 @@ const FullExamPage = ({
                   )}
            </div>
            
-           {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
-             <div className={`p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border transition-all duration-500 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50/50 border-slate-100'}`}>
-                <div className="space-y-3 md:space-y-4">
-                  {currentQuestion.content_box.map((line, idx) => (
-                    <p key={idx} className="text-base md:text-xl font-bold opacity-70 leading-relaxed break-keep">{line}</p>
-                  ))}
-                </div>
-             </div>
-           )}
+             {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+               <div className={`mt-8 p-8 md:p-10 rounded-2xl md:rounded-3xl border-2 relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                 <div className="absolute -top-3.5 left-10 px-4 py-1 bg-midnight text-gold text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg">보기</div>
+                 <div className="space-y-4">
+                   {currentQuestion.content_box.map((line, idx) => (
+                     <p 
+                       key={idx} 
+                       className={`text-[17px] md:text-[20px] leading-relaxed break-keep font-bold ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                     >
+                       {line}
+                     </p>
+                   ))}
+                 </div>
+               </div>
+             )}
         </section>
 
         <section className="grid grid-cols-1 gap-4 md:gap-5">
