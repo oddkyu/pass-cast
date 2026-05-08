@@ -156,9 +156,16 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         {/* 📊 Left: Score & Info */}
                         <div className="flex items-center gap-8 md:gap-10">
                            {/* Score Badge */}
-                           <div className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] flex flex-col items-center justify-center shadow-2xl transition-transform group-hover:scale-105 duration-500 ${h.score >= 60 ? 'bg-green-500 shadow-green-500/20' : 'bg-red-500 shadow-red-500/20'}`}>
-                              <span className="text-white text-2xl md:text-3xl font-black leading-none">{h.score}</span>
-                              <span className="text-white/50 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1">{h.score >= 60 ? 'Pass' : 'Fail'}</span>
+                           <div className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2.2rem] flex flex-col items-center justify-center border-2 transition-all duration-500 group-hover:scale-105
+                              ${h.score >= 60 
+                                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 shadow-xl shadow-emerald-500/5' 
+                                : 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 shadow-xl shadow-rose-500/5'
+                              }
+                           `}>
+                              <span className="text-3xl md:text-4xl font-black leading-none">{h.score}</span>
+                              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1 opacity-60">
+                                 {h.score >= 60 ? '합격' : '불합격'}
+                              </span>
                            </div>
 
                            {/* Metadata */}
