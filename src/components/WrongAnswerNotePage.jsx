@@ -148,99 +148,68 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className={`flex flex-col p-8 md:p-12 rounded-[3rem] md:rounded-[4rem] border relative overflow-hidden transition-all duration-500
-                        ${isDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-100 shadow-2xl shadow-slate-100/50 hover:shadow-gold/5'}
+                      className={`group p-8 md:p-10 rounded-[2.5rem] border transition-all duration-500
+                        ${isDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60'}
                       `}
                     >
-                      {/* 🏛️ Subtle Background Accent */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
-
-                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 md:gap-12 relative z-10">
-                        {/* 📊 Score Section */}
-                        <div className="flex items-center gap-6 md:gap-8 shrink-0">
-                           <div className="relative">
-                              <svg className="w-20 h-20 md:w-24 md:h-24 transform -rotate-90">
-                                <circle cx="50%" cy="50%" r="45%" stroke={isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
-                                <circle 
-                                  cx="50%" cy="50%" r="45%" 
-                                  stroke={h.score >= 60 ? "#22c55e" : "#ef4444"} 
-                                  strokeWidth="8" 
-                                  fill="transparent" 
-                                  strokeDasharray="283" 
-                                  strokeDashoffset={283 - (283 * h.score) / 100}
-                                  strokeLinecap="round"
-                                  className="transition-all duration-1000"
-                                />
-                              </svg>
-                              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-[8px] md:text-[9px] font-black uppercase opacity-40 tracking-widest leading-none mb-1">점수</span>
-                                <span className="text-2xl md:text-3xl font-black">{h.score}</span>
-                              </div>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        {/* 📊 Left: Score & Info */}
+                        <div className="flex items-center gap-8 md:gap-10">
+                           {/* Score Badge */}
+                           <div className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] flex flex-col items-center justify-center shadow-2xl transition-transform group-hover:scale-105 duration-500 ${h.score >= 60 ? 'bg-green-500 shadow-green-500/20' : 'bg-red-500 shadow-red-500/20'}`}>
+                              <span className="text-white text-2xl md:text-3xl font-black leading-none">{h.score}</span>
+                              <span className="text-white/50 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1">{h.score >= 60 ? 'Pass' : 'Fail'}</span>
                            </div>
 
-                             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
-                               {/* Year Badge & Title Group */}
-                               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                                 <span className="px-3 py-1 bg-gold text-midnight text-sm md:text-base font-black rounded-lg uppercase tracking-wider w-fit shadow-lg shadow-gold/10">
-                                   {h.year}년 기출
-                                 </span>
-                                 <h4 className="text-sm md:text-base font-black tracking-tight leading-tight">
-                                   {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험'}
-                                 </h4>
-                               </div>
-
-                               {/* Vertical Divider (Desktop Only) */}
-                               <div className="hidden md:block w-px h-4 bg-slate-200 dark:bg-white/10" />
-                               
-                               {/* Date Group */}
-                               <div className="flex items-center gap-2 text-sm md:text-base font-bold opacity-60">
-                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                 <span>{formatDate(h.created_at)}</span>
-                               </div>
-                             </div>
+                           {/* Metadata */}
+                           <div className="space-y-2 md:space-y-3">
+                              <div className="flex items-center gap-3">
+                                 <span className="text-gold font-black text-xs md:text-sm uppercase tracking-wider">{h.year}년 기출</span>
+                                 <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20" />
+                                 <span className="opacity-40 font-bold text-xs md:text-sm">{formatDate(h.created_at)}</span>
+                              </div>
+                              <h4 className="text-xl md:text-2xl font-black tracking-tighter leading-tight">
+                                 {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험 결과'}
+                              </h4>
+                           </div>
                         </div>
 
-                        {/* 🧭 Review Button */}
-                        <div className="w-full md:w-auto">
+                        {/* 🧭 Right: Review Action */}
+                        <div className="shrink-0">
                           <button 
                             onClick={() => onReviewAttempt(h)}
-                            className="w-full md:w-auto px-10 py-4 bg-midnight text-gold border border-gold/20 rounded-2xl font-black text-sm hover:bg-gold hover:text-midnight transition-all duration-300 shadow-xl shadow-gold/5 flex items-center justify-center space-x-3 group"
+                            className={`px-8 md:px-10 py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn
+                              ${isDarkMode ? 'bg-white text-midnight hover:bg-gold' : 'bg-midnight text-white hover:bg-gold hover:text-midnight'}
+                            `}
                           >
-                            <span className="uppercase tracking-[0.2em]">회차 리뷰하기</span>
-                            <svg className="transform group-hover:translate-x-1 transition-transform" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            <span className="uppercase tracking-[0.2em]">회차 리뷰</span>
+                            <svg className="transform group-hover/btn:translate-x-1 transition-transform" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                           </button>
                         </div>
                       </div>
 
-                      {/* 🎯 Mistakes Row */}
-                      <div className={`mt-10 p-6 md:p-8 rounded-3xl relative overflow-hidden ${isDarkMode ? 'bg-white/[0.02]' : 'bg-slate-50/50'}`}>
-                         <div className="flex flex-col space-y-4 relative z-10">
-                            <div className="flex items-center justify-between">
-                               <div className="flex items-center gap-2.5">
-                                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                 <span className="text-[10px] md:text-[11px] font-black text-red-500 uppercase tracking-[0.1em]">틀린 문항 다시보기</span>
-                               </div>
-                               <span className="text-[10px] md:text-[11px] font-black opacity-30">{h.wrong_question_numbers?.length || 0} Questions</span>
+                      {/* 🎯 Bottom: Mistakes Navigation */}
+                      <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/5">
+                         <div className="flex flex-col space-y-5">
+                            <div className="flex items-center gap-3">
+                               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                               <span className="text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.2em]">틀린 문항 ({h.wrong_question_numbers?.length || 0})</span>
                             </div>
                             
                             <div className="flex flex-wrap gap-2 md:gap-3">
-                              {h.wrong_question_numbers && h.wrong_question_numbers.length > 0 ? (
-                                h.wrong_question_numbers.map(num => (
-                                  <button
-                                    key={num}
-                                    onClick={() => openQuestionModal(num, h.year, h.subject)}
-                                    className={`w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg
-                                      ${isDarkMode ? 'bg-white/5 text-white/40 hover:bg-red-500 hover:text-white' : 'bg-white text-slate-400 hover:bg-red-500 hover:text-white border border-slate-100'}
-                                    `}
-                                  >
-                                    {num}
-                                  </button>
-                                ))
-                              ) : (
-                                <div className="flex items-center gap-2 py-2 px-4 bg-green-500/10 rounded-xl">
-                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                                   <span className="text-xs md:text-sm font-black text-green-500">완벽합니다! 틀린 문제가 없습니다.</span>
-                                </div>
+                              {h.wrong_question_numbers?.map(num => (
+                                <button
+                                  key={num}
+                                  onClick={() => openQuestionModal(num, h.year, h.subject)}
+                                  className={`w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95
+                                    ${isDarkMode ? 'bg-white/5 text-white/40 hover:bg-gold hover:text-midnight' : 'bg-slate-50 text-slate-400 hover:bg-gold hover:text-midnight'}
+                                  `}
+                                >
+                                  {num}
+                                </button>
+                              ))}
+                              {(!h.wrong_question_numbers || h.wrong_question_numbers.length === 0) && (
+                                <span className="text-xs md:text-sm font-bold text-green-500/60 italic">틀린 문제가 없습니다! 완벽한 결과입니다.</span>
                               )}
                             </div>
                          </div>
