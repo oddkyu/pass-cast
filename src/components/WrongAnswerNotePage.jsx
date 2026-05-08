@@ -172,68 +172,53 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         ${isDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60'}
                       `}
                     >
-                      <div className="flex flex-col space-y-8">
-                        {/* 📊 Top Section: Score & Identity */}
-                        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
-                           <div className="flex items-center gap-8">
-                              {/* 🎯 Premium Score Gauge */}
-                              <div className="relative shrink-0">
-                                 <svg width="100" height="100" viewBox="0 0 100 100" className="transform -rotate-90">
-                                    <circle cx="50" cy="50" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className={`${isDarkMode ? 'text-white/5' : 'text-slate-100'}`} />
-                                    <circle cx="50" cy="50" r="44" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="276" strokeDashoffset={276 - (276 * h.score) / 100} strokeLinecap="round" className={`${h.score >= 60 ? 'text-blue-500' : 'text-red-500/50'} drop-shadow-2xl`} />
-                                 </svg>
-                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-3xl font-black tracking-tighter">{h.score}</span>
-                                    <span className="text-[8px] font-black opacity-30 uppercase tracking-widest -mt-1">Points</span>
-                                 </div>
+                      <div className="flex flex-col space-y-10">
+                        {/* 🏷️ Card Header: Status & Score */}
+                        <div className="flex items-center justify-between">
+                           <div className="flex flex-col space-y-1">
+                              <div className="flex items-center gap-2">
+                                 <span className="px-3 py-1 bg-gold text-midnight text-[9px] font-black rounded-lg uppercase tracking-[0.2em]">기록됨</span>
+                                 <span className="text-[10px] font-bold opacity-30 tracking-widest">{formatDate(h.created_at)}</span>
                               </div>
-
-                              {/* 📝 Metadata */}
-                              <div className="space-y-3">
-                                 <div className="flex items-center gap-2">
-                                    <span className="px-3 py-1 bg-gold/10 text-gold text-[10px] font-black rounded-lg uppercase tracking-widest">{h.year}년 기출</span>
-                                    <span className={`px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-widest ${isDarkMode ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-500'}`}>{formatDate(h.created_at)}</span>
-                                 </div>
-                                 <h4 className="text-2xl md:text-3xl font-black tracking-tighter leading-tight break-keep">
-                                    {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험 시뮬레이션'}
-                                 </h4>
-                                 <div className="flex items-center gap-4 text-[11px] font-bold opacity-30">
-                                    <span className="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> {h.is_routine ? '12분 제한' : '50분 제한'}</span>
-                                    <span className="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> 완료됨</span>
-                                 </div>
-                              </div>
+                              <h4 className="text-2xl md:text-3xl font-black tracking-tighter leading-tight mt-2 break-keep">
+                                 {h.year}년 {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험 결과'}
+                              </h4>
                            </div>
-
-                           {/* 🗑️ Quick Delete (Subtle) */}
-                           <button 
-                             onClick={() => confirm('이 시험 기록을 영구적으로 삭제할까요?') && onRemoveHistory(h.id)}
-                             className={`p-4 rounded-2xl transition-all duration-300 hover:scale-110
-                               ${isDarkMode ? 'bg-white/5 text-white/20 hover:text-red-500' : 'bg-slate-50 text-slate-300 hover:text-red-500'}
-                             `}
-                           >
-                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-                           </button>
+                           <div className="flex flex-col items-end">
+                              <span className={`text-4xl md:text-5xl font-black tracking-tighter ${h.score >= 60 ? 'text-blue-500' : 'text-slate-400'}`}>
+                                 {h.score}<span className="text-sm md:text-base ml-1 opacity-40">점</span>
+                              </span>
+                           </div>
                         </div>
 
-                        {/* 🧭 Integrated Action Bar */}
-                        <div className={`p-2 rounded-3xl flex flex-col sm:flex-row items-center gap-2 ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
+                        {/* 🧭 Action Row: Unified with Site Design */}
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-black/5 dark:border-white/5">
+                           <div className="flex items-center gap-3 w-full md:w-auto">
+                              <button 
+                                onClick={() => onReviewAttempt(h, true)}
+                                className={`flex-1 md:flex-none px-6 py-4 rounded-2xl font-black text-xs transition-all duration-300 border
+                                  ${isDarkMode ? 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10' : 'bg-slate-50 border-slate-100 text-slate-400 hover:text-midnight hover:bg-slate-100'}
+                                `}
+                              >
+                                오답만 리뷰
+                              </button>
+                              <button 
+                                onClick={() => onReviewAttempt(h, false)}
+                                className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black text-xs transition-all duration-300 flex items-center justify-center gap-2 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight
+                                `}
+                              >
+                                <span>시험지 리뷰</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                              </button>
+                           </div>
+
                            <button 
-                             onClick={() => onReviewAttempt(h, true)}
-                             className={`flex-1 w-full py-4 rounded-2xl font-black text-xs transition-all duration-300 flex items-center justify-center gap-2
-                               ${isDarkMode ? 'hover:bg-white/5 text-white/40 hover:text-white' : 'hover:bg-white text-slate-400 hover:text-midnight'}
+                             onClick={() => confirm('이 시험 기록을 영구적으로 삭제할까요?') && onRemoveHistory(h.id)}
+                             className={`w-full md:w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300
+                               ${isDarkMode ? 'bg-white/5 text-white/10 hover:text-red-500 hover:bg-red-500/10' : 'bg-slate-50 text-slate-200 hover:text-red-500 hover:bg-red-50'}
                              `}
                            >
-                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
-                             오답만 리뷰하기
-                           </button>
-                           <button 
-                             onClick={() => onReviewAttempt(h, false)}
-                             className={`flex-2 w-full py-4 px-12 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 shadow-xl
-                               ${isDarkMode ? 'bg-gold text-midnight shadow-gold/20' : 'bg-midnight text-white hover:bg-gold hover:text-midnight shadow-midnight/20'}
-                             `}
-                           >
-                             <span className="uppercase tracking-[0.2em]">전체 시험지 리뷰</span>
-                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                            </button>
                         </div>
                       </div>
