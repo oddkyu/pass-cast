@@ -15,10 +15,11 @@ const FullExamPage = ({
   user = null,
   isRoutine = false,
   setIndex = null,
-  savedMemo = ''
+  savedMemo = '',
+  initialQuestions = []
 }) => {
-  const [questions, setQuestions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [questions, setQuestions] = useState(initialQuestions || []);
+  const [isLoading, setIsLoading] = useState(!initialQuestions || initialQuestions.length === 0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState(mode === 'review' ? userAnswers : {});
   const [memo, setMemo] = useState(mode === 'review' ? savedMemo : '');
@@ -78,8 +79,13 @@ const FullExamPage = ({
   };
 
   useEffect(() => {
-    fetchQuestions();
-  }, [year, subject, setIndex]);
+    if (initialQuestions && initialQuestions.length > 0) {
+      setQuestions(initialQuestions);
+      setIsLoading(false);
+    } else {
+      fetchQuestions();
+    }
+  }, [year, subject, setIndex, initialQuestions]);
 
   useEffect(() => {
     if (isReviewMode) return;

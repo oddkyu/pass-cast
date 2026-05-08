@@ -365,17 +365,24 @@ const App = () => {
         return (
           <FullExamPage 
             key="full_exam" 
-            year={selectedExam.year} 
-            subject={selectedExam.subject} 
-            isRoutine={selectedExam.isRoutine}
-            setIndex={selectedExam.setIndex}
+            year={selectedExam?.year || examResult?.year} 
+            subject={selectedExam?.subject || examResult?.subject} 
+            isRoutine={selectedExam?.isRoutine || examResult?.isRoutine}
+            setIndex={selectedExam?.setIndex || examResult?.setIndex}
             isDarkMode={isDarkMode} 
             isPremium={isPremium}
-            onBack={() => navigate('home')} 
+            onBack={() => {
+              if (examResult?.isReview) {
+                navigate(examResult?.questions?.length > 0 ? 'exam_result' : 'wrong_note');
+              } else {
+                navigate('home');
+              }
+            }} 
             onFinish={handleFinishExam} 
             mode={examResult?.isReview ? 'review' : 'practice'}
             userAnswers={examResult?.answers}
             savedMemo={examResult?.memo}
+            initialQuestions={examResult?.questions}
             user={user}
           />
         );
