@@ -460,7 +460,7 @@ const FullExamPage = ({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
-      <MemoSheet />
+      <MemoSheet isDarkMode={isDarkMode} />
     </div>
   );
 };

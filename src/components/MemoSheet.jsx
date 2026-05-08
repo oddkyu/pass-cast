@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MemoSheet = () => {
+const MemoSheet = ({ isDarkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [memo, setMemo] = useState('');
 
@@ -42,7 +42,7 @@ const MemoSheet = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="lg:hidden fixed inset-0 bg-midnight/40 backdrop-blur-sm z-[150]"
+              className={`lg:hidden fixed inset-0 ${isDarkMode ? 'bg-black/60' : 'bg-midnight/40'} backdrop-blur-sm z-[150]`}
             />
             
             {/* 📝 PC Sidebar Layout (lg 이상: 우측 빈 공간 활용) */}
@@ -51,7 +51,9 @@ const MemoSheet = () => {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 400, opacity: 0 }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 w-80 h-[70vh] bg-white border border-slate-200 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-[160] flex-col overflow-hidden"
+              className={`hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 w-80 h-[70vh] bg-white border rounded-[2.5rem] z-[160] flex-col overflow-hidden
+                ${isDarkMode ? 'border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' : 'border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]'}
+              `}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-8 pt-8 pb-4 shrink-0">
@@ -96,7 +98,9 @@ const MemoSheet = () => {
                   setIsOpen(false);
                 }
               }}
-              className="lg:hidden fixed bottom-0 left-0 right-0 h-[50vh] bg-white rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-[200] flex flex-col overflow-hidden"
+              className={`lg:hidden fixed bottom-0 left-0 right-0 h-[50vh] bg-white rounded-t-[2.5rem] z-[200] flex flex-col overflow-hidden
+                ${isDarkMode ? 'shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5' : 'shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'}
+              `}
             >
               {/* Fixed Header with Close Button (상시 노출) */}
               <div className="flex items-center justify-between px-8 py-5 shrink-0 border-b border-slate-100 bg-white sticky top-0 z-10">
