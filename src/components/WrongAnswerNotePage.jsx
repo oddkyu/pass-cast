@@ -148,45 +148,40 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className={`group p-8 md:p-10 rounded-[2.5rem] border transition-all duration-500
+                      className={`group p-8 md:p-12 rounded-[2.5rem] border transition-all duration-500
                         ${isDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/60'}
                       `}
                     >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                        {/* 📊 Left: Score & Info */}
-                        <div className="flex items-center gap-8 md:gap-10">
-                           {/* Score Badge */}
-                           <div className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2.2rem] flex flex-col items-center justify-center border-2 transition-all duration-500 group-hover:scale-105
-                              ${h.score >= 60 
-                                ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400 shadow-xl shadow-blue-500/5' 
-                                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 shadow-xl shadow-slate-900/5'
-                              }
-                           `}>
-                              <span className="text-3xl md:text-4xl font-black leading-none">{h.score}</span>
-                              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1 opacity-60">
-                                 {h.score >= 60 ? '합격' : '기록됨'}
+                      <div className="flex flex-col md:flex-row justify-between gap-10 md:gap-16">
+                        {/* 📊 Info Section (Vertical Stack) */}
+                        <div className="flex items-start gap-10 md:gap-14">
+                           {/* 1 & 2: Score & Status */}
+                           <div className="flex flex-col items-center shrink-0 space-y-1">
+                              <span className={`text-4xl md:text-5xl font-black leading-none ${h.score >= 60 ? 'text-blue-500' : 'text-slate-400'}`}>
+                                {h.score}
                               </span>
+                              <span className="text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.2em]">기록됨</span>
                            </div>
 
-                           {/* Metadata */}
-                           <div className="space-y-2 md:space-y-3">
-                              <div className="flex items-center gap-3">
-                                 <span className="text-gold font-black text-xs md:text-sm uppercase tracking-wider">{h.year}년 기출</span>
-                                 <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20" />
-                                 <span className="opacity-40 font-bold text-xs md:text-sm">{formatDate(h.created_at)}</span>
+                           {/* 3, 4, 5: Year, Date, Title */}
+                           <div className="space-y-3 md:space-y-4">
+                              <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm font-bold">
+                                 <span className="text-gold uppercase tracking-wider">{h.year}년 기출</span>
+                                 <span className="opacity-20">•</span>
+                                 <span className="opacity-40">{formatDate(h.created_at)}</span>
                               </div>
-                              <h4 className="text-xl md:text-2xl font-black tracking-tighter leading-tight">
+                              <h4 className="text-xl md:text-2xl font-black tracking-tight leading-tight">
                                  {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험 결과'}
                               </h4>
                            </div>
                         </div>
 
-                        {/* 🧭 Right: Review Action */}
-                        <div className="shrink-0">
+                        {/* 🧭 Action Section */}
+                        <div className="flex flex-col justify-center">
                           <button 
                             onClick={() => onReviewAttempt(h)}
-                            className={`px-8 md:px-10 py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn
-                              ${isDarkMode ? 'bg-white text-midnight hover:bg-gold' : 'bg-midnight text-white hover:bg-gold hover:text-midnight'}
+                            className={`px-10 py-4 rounded-2xl font-black text-sm transition-all duration-300 flex items-center justify-center gap-3 group/btn shadow-lg
+                              ${isDarkMode ? 'bg-white text-midnight hover:bg-gold shadow-white/5' : 'bg-midnight text-white hover:bg-gold hover:text-midnight shadow-midnight/10'}
                             `}
                           >
                             <span className="uppercase tracking-[0.2em]">회차 리뷰</span>
@@ -195,34 +190,37 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         </div>
                       </div>
 
-                      {/* 🎯 Bottom: Mistakes Navigation */}
-                      <div className="mt-10 pt-8 border-t border-black/5 dark:border-white/5">
-                         <div className="flex flex-col space-y-5">
-                            <div className="flex items-center gap-3">
-                               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                               <span className="text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.2em]">틀린 문항 ({h.wrong_question_numbers?.length || 0})</span>
+                      {/* 🎯 Mistakes Row (Clean Integrated Style) */}
+                      <div className="mt-10 pt-10 border-t border-black/5 dark:border-white/5">
+                         <div className="flex flex-col space-y-6">
+                            <div className="flex items-center gap-3 text-[10px] md:text-[11px] font-black opacity-30 uppercase tracking-[0.3em]">
+                               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
+                               <span>틀린 문항 ({h.wrong_question_numbers?.length || 0})</span>
                             </div>
                             
-                            <div className="flex flex-wrap gap-2 md:gap-3">
-                              {h.wrong_question_numbers?.map(num => (
-                                <button
-                                  key={num}
-                                  onClick={() => openQuestionModal(num, h.year, h.subject)}
-                                  className={`w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95
-                                    ${isDarkMode ? 'bg-white/5 text-white/40 hover:bg-gold hover:text-midnight' : 'bg-slate-50 text-slate-400 hover:bg-gold hover:text-midnight'}
-                                  `}
-                                >
-                                  {num}
-                                </button>
-                              ))}
-                              {(!h.wrong_question_numbers || h.wrong_question_numbers.length === 0) && (
-                                <span className="text-xs md:text-sm font-bold text-green-500/60 italic">틀린 문제가 없습니다! 완벽한 결과입니다.</span>
+                            <div className="flex flex-wrap gap-2 md:gap-4">
+                              {h.wrong_question_numbers?.length > 0 ? (
+                                h.wrong_question_numbers.map(num => (
+                                  <button
+                                    key={num}
+                                    onClick={() => openQuestionModal(num, h.year, h.subject)}
+                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm transition-all duration-300 hover:scale-110 active:scale-95 border-2
+                                      ${isDarkMode ? 'bg-white/5 border-white/5 text-white/40 hover:bg-gold hover:text-midnight hover:border-gold' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-gold hover:text-midnight hover:border-gold'}
+                                    `}
+                                  >
+                                    {num}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="flex items-center gap-3 px-6 py-3 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                                   <span className="text-xs md:text-sm font-black text-blue-500/60 uppercase tracking-widest">Perfect Score - No Mistakes</span>
+                                </div>
                               )}
                             </div>
                          </div>
                       </div>
                     </motion.div>
-                  ))}
                 </div>
               )}
             </motion.div>
