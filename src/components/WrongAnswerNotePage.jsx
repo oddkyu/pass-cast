@@ -158,13 +158,13 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                            {/* Score Badge */}
                            <div className={`shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[2.2rem] flex flex-col items-center justify-center border-2 transition-all duration-500 group-hover:scale-105
                               ${h.score >= 60 
-                                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 shadow-xl shadow-emerald-500/5' 
-                                : 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-400 shadow-xl shadow-rose-500/5'
+                                ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400 shadow-xl shadow-blue-500/5' 
+                                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 shadow-xl shadow-slate-900/5'
                               }
                            `}>
                               <span className="text-3xl md:text-4xl font-black leading-none">{h.score}</span>
                               <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1 opacity-60">
-                                 {h.score >= 60 ? '합격' : '불합격'}
+                                 {h.score >= 60 ? '합격' : '기록됨'}
                               </span>
                            </div>
 
