@@ -178,14 +178,21 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                               </div>
                            </div>
 
-                           <div className="space-y-1.5 md:space-y-2">
-                             <div className="flex items-center gap-2">
-                               <span className="px-2.5 py-0.5 bg-gold/10 text-gold text-[9px] md:text-[10px] font-black rounded-md uppercase tracking-wider">{h.year}년 기출</span>
-                               {h.is_routine && <span className="px-2.5 py-0.5 bg-midnight text-gold text-[9px] md:text-[10px] font-black rounded-md uppercase tracking-wider">Routine</span>}
+                           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+                             {/* Year Badge & Title Group */}
+                             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                               <span className="px-3 py-1 bg-gold/10 text-gold text-[11px] md:text-xs font-black rounded-lg uppercase tracking-wider w-fit">
+                                 {h.year}년 기출
+                               </span>
+                               <h4 className="text-xl md:text-2xl font-black tracking-tight leading-tight">
+                                 {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험'}
+                               </h4>
                              </div>
-                             <h4 className="text-xl md:text-2xl font-black tracking-tight leading-tight">
-                               {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '정기 시험'}
-                             </h4>
+
+                             {/* Vertical Divider (Desktop Only) */}
+                             <div className="hidden md:block w-px h-4 bg-slate-200 dark:bg-white/10" />
+                             
+                             {/* Date Group */}
                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold opacity-30">
                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                <span>{formatDate(h.created_at)}</span>
