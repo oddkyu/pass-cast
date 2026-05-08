@@ -258,7 +258,7 @@ const App = () => {
     const isRoutine = selectedExam?.isRoutine;
     const setIndex = selectedExam?.setIndex;
 
-    // 1. 오답 저장 로직
+    // 1. 오답 저장 및 DB 자동 수집 로직 (모든 로그인 회원)
     const newWrongOnes = questions
       .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
       .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
@@ -269,6 +269,21 @@ const App = () => {
         const uniqueNewOnes = newWrongOnes.filter(item => !existingIds.has(item.id));
         return [...prev, ...uniqueNewOnes];
       });
+
+      if (user) {
+        try {
+          const wrongDbPayload = newWrongOnes.map(q => ({
+            user_id: user.id,
+            question_id: q.id
+          }));
+          const { error } = await supabase
+            .from('user_incorrect_questions')
+            .upsert(wrongDbPayload, { onConflict: 'user_id,question_id' });
+          if (error) console.error('Auto save incorrect answers error:', error);
+        } catch (err) {
+          console.error('Auto save incorrect answers error:', err);
+        }
+      }
     }
 
     // 2. 데일리 루틴 완료 기록 저장 (DB)

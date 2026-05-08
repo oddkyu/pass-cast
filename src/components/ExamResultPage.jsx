@@ -144,58 +144,6 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
 
         {/* 📚 Action Buttons */}
         <div className="space-y-6">
-          <button 
-            onClick={async () => {
-              if (isGuest) {
-                onRequireAuthForSave();
-              } else if (!isPremium) {
-                alert('오답노트 자동 저장은 프리미엄 전용 기능입니다. 업그레이드 페이지로 이동합니다.');
-                window.location.hash = '#premium';
-              } else {
-                // 프리미엄 유저: DB 저장 로직
-                try {
-                  const wrongOnes = questions
-                    .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer);
-                  
-                  if (wrongOnes.length === 0) {
-                    alert('틀린 문제가 없어 저장할 내용이 없습니다!');
-                    return;
-                  }
-
-                  const { error } = await supabase
-                    .from('user_incorrect_questions')
-                    .upsert(
-                      wrongOnes.map(q => ({
-                        user_id: user.id,
-                        question_id: q.id
-                      })),
-                      { onConflict: 'user_id,question_id' }
-                    );
-
-                  if (error) throw error;
-                  alert('오답노트에 안전하게 저장되었습니다!');
-                } catch (err) {
-                  console.error('Save error:', err);
-                  alert('저장 중 오류가 발생했습니다.');
-                }
-              }
-            }}
-            className="w-full p-8 rounded-[3rem] flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95 shadow-xl border-2 border-gold/30 bg-gold/5 group"
-          >
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gold flex items-center justify-center shadow-lg shadow-gold/20 text-midnight group-hover:scale-110 transition-transform">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              </div>
-              <div className="text-left space-y-1">
-                <h4 className="text-2xl font-black text-gold">오답노트 저장하기</h4>
-                <p className={`text-sm font-bold ${isDarkMode ? 'text-white/50' : 'text-midnight/50'}`}>틀린 문제만 모아서 합격 효율을 3배 높이세요</p>
-              </div>
-            </div>
-            <div className="hidden md:flex text-gold">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-          </button>
-
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <button onClick={onReview} className={`p-10 rounded-[3rem] flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02] active:scale-95 bg-gold text-midnight shadow-xl shadow-gold/20`}>
               <h4 className="text-2xl font-black">시험지 리뷰</h4>
