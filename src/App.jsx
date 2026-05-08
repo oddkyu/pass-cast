@@ -292,6 +292,10 @@ const App = () => {
     // 3. 전체 시험 이력 저장 (회원 전용)
     if (user) {
       const correctCount = questions.filter((q, idx) => answers[idx] === q.answer).length;
+      const wrongQuestionNumbers = questions
+        .filter((q, idx) => answers[idx] !== undefined && answers[idx] !== q.answer)
+        .map(q => q.number);
+
       try {
         const { data, error } = await supabase
           .from('user_exam_history')
@@ -304,7 +308,8 @@ const App = () => {
             answers,
             memo: results.memo || '',
             score: Math.round((correctCount / questions.length) * 100),
-            total_questions: questions.length
+            total_questions: questions.length,
+            wrong_question_numbers: wrongQuestionNumbers
           })
           .select()
           .single();
