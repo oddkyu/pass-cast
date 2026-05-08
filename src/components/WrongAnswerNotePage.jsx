@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
@@ -13,6 +13,14 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
   const [step, setStep] = useState('subject'); // 'subject' or 'details'
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [modalData, setModalData] = useState(null); // { numbers: [], currentIndex: 0, year, subject }
+  const modalScrollRef = useRef(null);
+
+  // 문항 변경 시 모달 상단으로 자동 스크롤
+  useEffect(() => {
+    if (modalData && modalScrollRef.current) {
+      modalScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [modalData?.currentIndex]);
 
   const subjectList = [
     { name: '부동산학개론', info: '1차 1교시' },
@@ -263,6 +271,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalData(null)} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
             <motion.div 
+              ref={modalScrollRef}
               initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }}
               className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[4rem] shadow-2xl p-12 md:p-20 space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
             >
