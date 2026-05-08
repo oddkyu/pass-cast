@@ -182,45 +182,44 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         </div>
 
                         {/* 📝 Metadata Section */}
-                        <div className="flex-1 space-y-4">
-                           <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex-1 space-y-3">
+                           <div className="flex items-center gap-2">
                               <span className="px-3 py-1 bg-gold text-midnight text-[9px] font-black rounded-lg uppercase tracking-widest">기록됨</span>
-                              <span className="text-gold font-black text-[11px] md:text-xs uppercase tracking-widest">{h.year}년 기출</span>
-                              <span className="opacity-10 text-xs">•</span>
                               <span className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{formatDate(h.created_at)}</span>
                            </div>
-                           <h4 className="text-2xl md:text-3xl font-black tracking-tighter leading-tight break-keep">
-                              {h.is_routine ? `데일리 루틴 SET ${h.set_index + 1}` : '공인중개사 정기 시험 결과'}
+                           <h4 className="text-xl md:text-2xl font-black tracking-tighter leading-tight break-keep">
+                              {h.year}년 기출문제 {h.is_routine ? `${h.set_index * 10 + 1}-${h.set_index * 10 + 10}` : '전체'} 풀기
                            </h4>
+                           <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm font-bold opacity-50">
+                              <span>{h.total_questions}문제 중 {Math.round((h.score / 100) * h.total_questions)}개 정답</span>
+                              {(() => {
+                                 const unanswered = h.answers ? (Object.values(h.answers).filter(v => v === null || v === undefined || v === '').length) : 0;
+                                 return unanswered > 0 ? <span className="text-red-500">{unanswered}개 미응시</span> : <span>모든 문항 응시</span>;
+                              })()}
+                           </div>
                         </div>
 
-                        {/* 🧭 Action Section */}
-                        <div className="flex flex-row md:flex-col items-center justify-center gap-3 shrink-0">
-                           <div className="flex gap-2 w-full">
-                              <button 
-                                onClick={() => confirm('이 기록을 삭제할까요?') && onRemoveHistory(h.id)}
-                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300
-                                  ${isDarkMode ? 'bg-white/5 text-white/20 hover:text-red-500 hover:bg-red-500/10' : 'bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50'}
-                                `}
-                              >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-                              </button>
-                              <button 
-                                onClick={() => onReviewAttempt(h, true)}
-                                className={`flex-1 px-6 py-4 rounded-2xl font-black text-[11px] transition-all duration-300 border uppercase tracking-widest
-                                  ${isDarkMode ? 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10' : 'bg-slate-50 border-slate-100 text-slate-400 hover:text-midnight hover:bg-slate-100'}
-                                `}
-                              >
-                                오답 리뷰
-                              </button>
-                           </div>
+                        {/* 🧭 Action Section (Horizontal Row) */}
+                        <div className="flex flex-wrap items-center gap-3 shrink-0">
+                           <button 
+                             onClick={() => onReviewAttempt(h, true)}
+                             className="px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter"
+                           >
+                             오답 리뷰
+                           </button>
                            <button 
                              onClick={() => onReviewAttempt(h, false)}
-                             className={`w-full px-10 py-4 rounded-2xl font-black text-xs transition-all duration-300 flex items-center justify-center gap-3 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5
+                             className="px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter"
+                           >
+                             시험지 전체 리뷰
+                           </button>
+                           <button 
+                             onClick={() => confirm('이 기록을 삭제할까요?') && onRemoveHistory(h.id)}
+                             className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center transition-all duration-300
+                               ${isDarkMode ? 'bg-white/5 text-white/20 hover:text-red-500 hover:bg-red-500/10' : 'bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50'}
                              `}
                            >
-                             <span className="uppercase tracking-[0.2em]">시험지 전체 리뷰</span>
-                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                            </button>
                         </div>
                       </div>
