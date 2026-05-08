@@ -16,7 +16,7 @@ const FullExamPage = ({
   isRoutine = false,
   setIndex = null,
   savedMemo = '',
-  initialQuestions = []
+  initialQuestions = null
 }) => {
   const [questions, setQuestions] = useState(initialQuestions || []);
   const [isLoading, setIsLoading] = useState(!initialQuestions || initialQuestions.length === 0);
