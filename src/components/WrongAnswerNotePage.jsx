@@ -286,7 +286,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
             <motion.div 
               ref={modalScrollRef}
               initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[4rem] shadow-2xl p-12 md:p-20 space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
+              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] md:rounded-[4rem] shadow-2xl p-8 md:p-20 space-y-10 md:space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
@@ -303,32 +303,32 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
 
               <div className="space-y-10">
                 <div className="space-y-8">
-                  <h2 className="text-2xl md:text-3xl font-black leading-tight break-keep whitespace-pre-line">
+                  <h2 className="text-[18px] md:text-[25px] font-black leading-tight break-keep whitespace-pre-line">
                     <span className="text-gold mr-3">{currentQuestion.number}.</span>
                     {formatMathText(currentQuestion.title)}
                   </h2>
                   
                   {currentQuestion.content_box && currentQuestion.content_box.length > 0 && (
-                    <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-6 md:p-8 rounded-2xl md:rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
                         {currentQuestion.content_box.map((line, idx) => (
-                          <p key={idx} className="text-lg font-medium opacity-60 leading-relaxed whitespace-pre-line">{formatMathText(line)}</p>
+                          <p key={idx} className="text-[15px] md:text-[18px] font-medium opacity-60 leading-relaxed whitespace-pre-line">{formatMathText(line)}</p>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {currentQuestion.options.map((opt, idx) => {
                     const isCorrect = (idx + 1) === currentQuestion.answer;
                     return (
-                      <div key={idx} className={`p-8 rounded-[2rem] border-2 flex items-center space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : 'border-slate-50 opacity-30'}`}>
-                        <span className="font-black text-2xl w-8 text-center">{idx + 1}</span>
-                        <span className="font-bold text-xl md:text-2xl flex-1 break-keep whitespace-pre-line">{formatMathText(opt)}</span>
+                      <div key={idx} className={`p-5 md:p-8 rounded-[1.8rem] md:rounded-[2rem] border-2 flex items-center space-x-4 md:space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : (isDarkMode ? 'border-white/5 opacity-40' : 'border-slate-50 opacity-30')}`}>
+                        <span className="font-black text-xl md:text-2xl w-6 md:w-8 text-center">{idx + 1}</span>
+                        <span className="font-bold text-[16px] md:text-[20px] flex-1 break-keep whitespace-pre-line">{formatMathText(opt)}</span>
                         {isCorrect && (
-                          <div className="text-green-500">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
+                          <div className="text-green-500 shrink-0">
+                            <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
                           </div>
                         )}
                       </div>

@@ -38,6 +38,7 @@ const FullExamPage = ({
   const [heldQuestions, setHeldQuestions] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(isRoutine ? 12 * 60 : 50 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isMemoOpen, setIsMemoOpen] = useState(false);
   const isReviewMode = mode === 'review';
   const showAds = !isPremium;
   const questionTopRef = useRef(null);
@@ -212,14 +213,16 @@ const FullExamPage = ({
        </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 md:py-12 space-y-8 md:space-y-12">
+      <main className={`flex-1 w-full px-5 py-6 md:py-12 space-y-6 md:space-y-12 transition-all duration-500
+        ${isMemoOpen ? 'lg:max-w-3xl lg:ml-12 lg:mr-auto' : 'max-w-4xl mx-auto'}
+      `}>
         <div ref={questionTopRef} className="scroll-mt-36" />
 
         <section className="space-y-6 md:space-y-8">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3 md:space-x-4">
-                    <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg">Q</span>
-                    <h2 className="text-[19px] md:text-[28px] font-black tracking-tight leading-[1.4] break-keep whitespace-pre-line">
+                    <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg shadow-lg shadow-gold/20">Q</span>
+                    <h2 className={`text-[18px] md:text-[25px] font-black tracking-tight leading-[1.4] break-keep whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
                       <span className="text-gold mr-2">{currentQuestion?.number}.</span>
                       {formatMathText(currentQuestion?.title)}
                     </h2>
@@ -232,13 +235,13 @@ const FullExamPage = ({
            </div>
            
              {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
-               <div className={`mt-8 p-8 md:p-10 rounded-2xl md:rounded-3xl border-2 relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'}`}>
-                 <div className="absolute -top-3.5 left-10 px-4 py-1 bg-midnight text-gold text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg">보기</div>
-                 <div className="space-y-4">
+               <div className={`mt-6 md:mt-8 p-6 md:p-10 rounded-2xl md:rounded-3xl border relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50/50 border-slate-200'}`}>
+                 <div className="absolute -top-3 left-6 md:left-10 px-3 md:px-4 py-0.5 md:py-1 bg-midnight text-gold text-[10px] md:text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg border border-gold/20">보기</div>
+                 <div className="space-y-3 md:space-y-4">
                    {currentQuestion.content_box.map((line, idx) => (
                      <p 
                        key={idx} 
-                       className={`text-[17px] md:text-[20px] leading-relaxed break-keep font-bold whitespace-pre-line ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                       className={`text-[15px] md:text-[19px] leading-relaxed break-keep font-bold whitespace-pre-line ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
                      >
                        {formatMathText(line)}
                      </p>
@@ -248,13 +251,13 @@ const FullExamPage = ({
              )}
         </section>
 
-        <section className="grid grid-cols-1 gap-4 md:gap-5">
+        <section className="grid grid-cols-1 gap-3 md:gap-5">
           {currentQuestion.options.map((opt, idx) => {
             return (
                   <button
                     key={idx}
                     onClick={() => !isReviewMode && handleSelectAnswer(idx + 1)}
-                    className={`group w-full p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border-2 text-left transition-all duration-500 flex items-start space-x-4 md:space-x-6 min-h-[80px]
+                    className={`group w-full p-5 md:p-8 rounded-[1.8rem] md:rounded-[3rem] border-2 text-left transition-all duration-500 flex items-start space-x-3 md:space-x-6 min-h-[70px] md:min-h-[80px]
                       ${isReviewMode 
                         ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
                         : (answers[currentIndex] === idx + 1 ? 'border-gold bg-gold/5 shadow-2xl shadow-gold/10' : 'border-transparent hover:border-gold/30')
@@ -262,14 +265,14 @@ const FullExamPage = ({
                       ${isDarkMode ? 'bg-white/5' : 'bg-white shadow-sm'}
                     `}
                   >
-                    <div className={`w-9 h-9 md:w-12 md:h-12 rounded-full flex items-center justify-center font-black text-base md:text-xl shrink-0 transition-all duration-500 mt-1
+                    <div className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center font-black text-sm md:text-xl shrink-0 transition-all duration-500 mt-0.5 md:mt-1
                       ${answers[currentIndex] === idx + 1 ? 'bg-gold text-midnight' : (isDarkMode ? 'bg-white/10 text-white/40' : 'bg-slate-100 text-slate-400')}
                       ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'bg-green-500 text-white' : ''}
                       ${isReviewMode && answers[currentIndex] === idx + 1 && idx + 1 !== currentQuestion?.answer ? 'bg-red-500 text-white' : ''}
                     `}>
                       {idx + 1}
                     </div>
-                    <span className={`text-[17px] md:text-[21px] font-bold leading-relaxed break-keep whitespace-pre-line pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
+                    <span className={`text-[16px] md:text-[20px] font-bold leading-relaxed break-keep whitespace-pre-line pt-1 md:pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
                       {formatMathText(opt)}
                     </span>
                   </button>
@@ -461,7 +464,13 @@ const FullExamPage = ({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
-      <MemoSheet isDarkMode={isDarkMode} memo={memo} onMemoChange={setMemo} />
+      <MemoSheet 
+        isDarkMode={isDarkMode} 
+        memo={memo} 
+        onMemoChange={setMemo} 
+        isOpen={isMemoOpen}
+        setIsOpen={setIsMemoOpen}
+      />
     </div>
   );
 };
