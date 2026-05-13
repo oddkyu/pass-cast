@@ -185,7 +185,7 @@ const QuizPage = ({ onBack, isDarkMode }) => {
               </h2>
 
               {/* 📦 박스형 지문 (content_box 데이터가 있는 경우) */}
-              {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+              {currentQuestion?.content_box?.length > 0 && (
                 <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                   <div className="space-y-2">
                     {currentQuestion.content_box.map((line, idx) => (

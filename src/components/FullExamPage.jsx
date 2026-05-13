@@ -60,11 +60,20 @@ const FullExamPage = ({
       const examIds = examData.map(e => e.id);
 
       // 2. Fetch questions for those exams and the specific subject
+      // 과목명에 공백 유무 및 별칭 차이를 해결하기 위해 배열로 검색
+      const subjectVariants = [subject, subject.replace(/\s/g, '')];
+      if (subject === '부동산공시법 및 세법') {
+        subjectVariants.push('공인중개사');
+      }
+      if (subject === '민법 및 민사특별법') {
+        subjectVariants.push('민법및민사특별법');
+      }
+      
       let query = supabase
         .from('questions')
         .select('*')
         .in('exam_id', examIds)
-        .eq('subject', subject)
+        .in('subject', subjectVariants)
         .order('number', { ascending: true });
 
       if (isRoutine && setIndex !== null) {
@@ -234,7 +243,7 @@ const FullExamPage = ({
                   )}
            </div>
            
-             {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
+             {currentQuestion?.content_box?.length > 0 && (
                <div className={`mt-6 md:mt-8 p-4 md:p-10 rounded-2xl md:rounded-3xl border relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50/50 border-slate-200'}`}>
                  <div className="absolute -top-3 left-6 md:left-10 px-3 md:px-4 py-0.5 md:py-1 bg-midnight text-gold text-[10px] md:text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg border border-gold/20">보기</div>
                  <div className="space-y-3 md:space-y-4">
