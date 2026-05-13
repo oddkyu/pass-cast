@@ -429,7 +429,16 @@ const App = () => {
             onGoToQuiz={() => navigate('routine_selection')}
             onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
             onLogin={() => navigate('login')}
-            wrongCount={wrongAnswers.length}
+            wrongCount={(() => {
+              // 히스토리가 없는 오답(고아 데이터)은 카운트에서 제외
+              return wrongAnswers.filter(q => 
+                examHistory.some(h => 
+                  h.subject === q.subject && 
+                  h.year === q.year && 
+                  h.wrong_question_numbers?.includes(q.number)
+                )
+              ).length;
+            })()}
             routineCount={routineTodayCount}
           />
         );

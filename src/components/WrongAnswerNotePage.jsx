@@ -31,10 +31,15 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
   ];
 
   const getSubjectStats = (subjectName) => {
-    const mistakes = (wrongAnswers || []).filter(q => q.subject === subjectName).length;
-    const history = (examHistory || []).filter(h => h.subject === subjectName);
-    const lastDate = history.length > 0 ? new Date(history[0].created_at) : null;
-    return { mistakes, lastDate, attemptCount: history.length };
+    const subjectHistory = (examHistory || []).filter(h => h.subject === subjectName);
+    // 현재 존재하는 시험 기록(History)에 포함된 문항들만 '누적 오답'으로 인정
+    const validMistakes = (wrongAnswers || []).filter(q => 
+      q.subject === subjectName && 
+      subjectHistory.some(h => h.year === q.year && h.wrong_question_numbers?.includes(q.number))
+    );
+    
+    const lastDate = subjectHistory.length > 0 ? new Date(subjectHistory[0].created_at) : null;
+    return { mistakes: validMistakes.length, lastDate, attemptCount: subjectHistory.length };
   };
 
   const filteredHistory = (examHistory || []).filter(h => h.subject === selectedSubject);
