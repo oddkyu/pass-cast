@@ -46,29 +46,35 @@ const FullExamPage = ({
   // Fetch Questions from Supabase
   const fetchQuestions = async () => {
     setIsLoading(true);
+    console.log(`Fetching questions for: Year=${year}, Subject=${subject}, Routine=${isRoutine}, Set=${setIndex}`);
+    
     try {
-      // 1. Get all exam_ids for the given year to support both 1st and 2nd subjects
+      // 1. 해당 연도의 시험 ID(exam_id) 가져오기
       const { data: examData, error: examError } = await supabase
         .from('exams')
         .select('id')
         .eq('year', year);
       
       if (examError || !examData || examData.length === 0) {
+        console.error('Exam ID fetch error:', examError, examData);
         throw new Error(`해당 연도(${year})의 시험 정보를 찾을 수 없습니다.`);
       }
 
       const examIds = examData.map(e => e.id);
 
-      // 2. Fetch questions for those exams and the specific subject
-      // 과목명에 공백 유무 및 별칭 차이를 해결하기 위해 배열로 검색
-      const subjectVariants = [subject, subject.replace(/\s/g, '')];
-      if (subject === '부동산공시법 및 세법') {
-        subjectVariants.push('공인중개사');
-      }
-      if (subject === '민법 및 민사특별법') {
-        subjectVariants.push('민법및민사특별법');
-      }
+      // 2. 과목명 별칭 대응 (공백 제거, 특수 명칭 등)
+      const pureSubject = subject.replace(/\s/g, '');
+      const subjectVariants = [subject, pureSubject];
       
+      // 구체적인 과목명 변형 추가
+      if (pureSubject.includes('부동산학개론')) subjectVariants.push('학개론');
+      if (pureSubject.includes('민법')) subjectVariants.push('민법및민사특별법', '민법 및 민사특별법');
+      if (pureSubject.includes('공인중개사법')) subjectVariants.push('공인중개사법 및 중개실무', '중개사법');
+      if (pureSubject.includes('부동산공법')) subjectVariants.push('공법');
+      if (pureSubject.includes('공시법')) subjectVariants.push('부동산공시법', '부동산공시법및세법', '공인중개사');
+
+      console.log('Querying with subject variants:', subjectVariants);
+
       let query = supabase
         .from('questions')
         .select('*')
@@ -178,12 +184,15 @@ const FullExamPage = ({
       {/* 🏛️ Compact Header */}
       <header className={`sticky top-0 z-50 border-b flex items-center justify-between px-6 md:px-8 h-16 md:h-20 transition-all ${isDarkMode ? 'bg-midnight/95 border-white/5 backdrop-blur-3xl' : 'bg-white border-slate-200 shadow-sm'}`}>
         <div className="flex items-center space-x-4 md:space-x-6">
-          <button onClick={() => isReviewMode ? onBack() : setShowExitConfirm(true)} className="w-8 h-8 md:w-10 md:h-10 border border-gold/30 rounded-xl flex items-center justify-center text-gold">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <button onClick={() => isReviewMode ? onBack() : setShowExitConfirm(true)} className="w-9 h-9 md:w-11 md:h-11 border border-gold/30 rounded-xl flex items-center justify-center text-gold hover:bg-gold/10 transition-all">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex flex-col">
-             <span className="text-[9px] md:text-[10px] font-black text-gold uppercase tracking-widest">{year} {subject}</span>
-             <h1 className="text-sm md:text-lg font-black tracking-tight">{isReviewMode ? '오답 분석 리뷰' : '기출 실전 시험'}</h1>
+             <div className="flex items-center space-x-2">
+               <span className="px-2 py-0.5 bg-gold/10 text-gold text-[9px] font-black rounded-md border border-gold/20 uppercase tracking-widest">{year}년</span>
+               <span className="text-[10px] md:text-[11px] font-black text-gold/60 uppercase tracking-[0.2em]">{subject}</span>
+             </div>
+             <h1 className="text-sm md:text-xl font-black tracking-tighter mt-0.5">{isReviewMode ? '오답 분석 리뷰' : '기출 실전 시험'}</h1>
           </div>
         </div>
 
@@ -438,7 +447,29 @@ const FullExamPage = ({
                       onBack();
                     } else if (!submitting) {
                       setSubmitting(true);
-                      onFinish({ questions, answers, year, subject, memo });
+                      
+                      // 점수 계산
+                      let correctCount = 0;
+                      questions.forEach((q, idx) => {
+                        if (String(answers[idx]) === String(q.answer)) correctCount++;
+                      });
+                      const calculatedScore = Math.round(correctCount * (100 / questions.length));
+                      
+                      // 소요 시간 계산
+                      const totalTime = isRoutine ? 12 * 60 : 50 * 60;
+                      const spent = totalTime - timeLeft;
+
+                      onFinish({ 
+                        questions, 
+                        answers, 
+                        year, 
+                        subject, 
+                        memo,
+                        score: calculatedScore,
+                        isRoutine,
+                        setIndex,
+                        timeSpent: spent
+                      });
                     }
                   }}
                   disabled={!isReviewMode && submitting}

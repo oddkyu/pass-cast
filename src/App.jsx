@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
+import { useExamData } from './hooks/useExamData';
+import settings from './configs/settings.json';
+
+// Components
 import HomePage from './components/HomePage';
 import QuizPage from './components/QuizPage';
 import LandingPage from './components/LandingPage';
@@ -13,14 +17,7 @@ import LoginPage from './components/LoginPage';
 import TestPreviewPage from './components/TestPreviewPage';
 import RoutineSelectionPage from './components/RoutineSelectionPage';
 
-const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleKakao = async () => {
-    alert('준비 중입니다');
-  };
-
-  return (
+const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 md:p-12">
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-midnight/90 backdrop-blur-2xl" />
     <motion.div 
@@ -38,517 +35,187 @@ const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => {
       </div>
       <div className="space-y-4">
         <button
-          onClick={handleKakao}
+          onClick={() => alert('준비 중입니다')}
           className="w-full py-5 rounded-2xl font-black text-[17px] flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 shadow-lg"
           style={{ backgroundColor: '#FEE500', color: '#191919' }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
-            <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.72 5.3 4.33 6.82l-.9 3.35 3.87-2.55C10.04 18.87 11 19 12 19c5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
-          </svg>
           카카오로 시작하기
         </button>
         <button onClick={onClose} className="text-sm font-black opacity-30 hover:opacity-100 transition-opacity uppercase tracking-widest">나중에 하기</button>
       </div>
     </motion.div>
   </div>
-  );
-};
+);
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isPremium, setIsPremium] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home');
-  const [selectedExam, setSelectedExam] = useState({ year: 2025, subject: '부동산학개론', isRoutine: false, setIndex: null });
-  const [examResult, setExamResult] = useState(null);
-  const [wrongAnswers, setWrongAnswers] = useState([]);
-  const [examHistory, setExamHistory] = useState([]);
-  const [routineTodayCount, setRoutineTodayCount] = useState(0);
-  const [showGatingModal, setShowGatingModal] = useState(false);
+  const {
+    isDarkMode, setIsDarkMode,
+    user, setUser,
+    isPremium,
+    currentPage,
+    selectedExam,
+    examResult,
+    wrongAnswers,
+    examHistory,
+    routineTodayCount,
+    showGatingModal, setShowGatingModal,
+    navigate,
+    handleFinishExam,
+    handleRemoveHistory,
+    handleRemoveWrongQuestion,
+    handleReviewAttempt
+  } = useExamData();
 
-  // 🔀 브라우저 히스토리에 페이지를 쌓는 헬퍼 함수
-  const navigate = useCallback((page, state = {}, options = {}) => {
-    const isReplace = options.replace || page === 'home';
-    const method = isReplace ? 'replaceState' : 'pushState';
+  const renderContent = () => {
+    const commonProps = { isDarkMode, user, navigate };
 
-    window.history[method]({ page, ...state }, '', `#${page}`);
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-    if (state.selectedExam) setSelectedExam(state.selectedExam);
-    if (state.examResult) setExamResult(state.examResult);
-  }, []);
-
-  useEffect(() => {
-    const handlePopState = (e) => {
-      const page = e.state?.page || 'home';
-      setCurrentPage(page);
-      if (e.state?.selectedExam) setSelectedExam(e.state.selectedExam);
-      if (e.state?.examResult) setExamResult(e.state.examResult);
-    };
-    window.addEventListener('popstate', handlePopState);
-
-    const hash = window.location.hash;
-    if (hash.includes('access_token')) {
-      window.history.replaceState({ page: 'home' }, '', window.location.pathname);
-      setCurrentPage('home');
-    } else if (!window.history.state) {
-      window.history.replaceState({ page: 'home' }, '', '#home');
-    }
-
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchMembership(session.user.id);
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchMembership(session.user.id);
-        if (event === 'SIGNED_IN') {
-          setCurrentPage('home');
-          window.history.replaceState({ page: 'home' }, '', '#home');
-          window.scrollTo(0, 0);
-        }
-      } else {
-        setIsPremium(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchMembership = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('membership_type')
-        .eq('id', userId)
-        .single();
-      if (!error && data) {
-        setIsPremium(data.membership_type === 'premium');
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        setIsPremium(user?.user_metadata?.is_premium || false);
-      }
-    } catch {
-      setIsPremium(false);
-    }
-  };
-
-  useEffect(() => {
-    const loadWrongAnswers = async () => {
-      if (!user || !isPremium) {
-        const saved = localStorage.getItem(user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest');
-        try {
-          setWrongAnswers(saved ? JSON.parse(saved) : []);
-        } catch (e) {
-          setWrongAnswers([]);
-        }
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('user_incorrect_questions')
-          .select(`
-            id,
-            question:questions (
-              id,
-              number,
-              title,
-              content_box,
-              options,
-              answer,
-              explanation,
-              subject,
-              exam:exams ( year )
-            )
-          `)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        const formatted = data.map(item => ({
-          ...item.question,
-          db_id: item.id,
-          year: item.question.exam.year,
-          savedAt: new Date().toISOString()
-        }));
-        setWrongAnswers(formatted);
-      } catch (err) {
-        console.error('Failed to fetch DB wrong answers:', err);
-        const saved = localStorage.getItem(`pass-cast-wrong-${user.id}`);
-        setWrongAnswers(saved ? JSON.parse(saved) : []);
-      }
-    };
-
-    loadWrongAnswers();
-
-    const fetchTodayRoutine = async () => {
-      if (!user) return;
-      const today = new Date().toISOString().split('T')[0];
-      const { count, error } = await supabase
-        .from('user_routine_history')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('completed_at', today);
-      
-      if (!error) setRoutineTodayCount(count || 0);
-    };
-    fetchTodayRoutine();
-
-    const fetchExamHistory = async () => {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('user_exam_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) setExamHistory(data);
-    };
-    fetchExamHistory();
-  }, [user, isPremium, currentPage]);
-
-  useEffect(() => {
-    if (isPremium && user) return; 
-    const key = user ? `pass-cast-wrong-${user.id}` : 'pass-cast-wrong-guest';
-    localStorage.setItem(key, JSON.stringify(wrongAnswers));
-  }, [wrongAnswers, user, isPremium]);
-
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-
-  const handleStartFullExam = (year, subject) => {
-    setExamResult(null);
-    setSelectedExam({ year, subject, isRoutine: false, setIndex: null });
-    navigate('full_exam');
-  };
-
-  const handleStartRoutine = (year, subject, setIndex) => {
-    setExamResult(null);
-    setSelectedExam({ year, subject, isRoutine: true, setIndex });
-    navigate('full_exam');
-  };
-
-  const handleFinishExam = async (results) => {
-    const { questions, answers, year, subject } = results;
-    const isRoutine = selectedExam?.isRoutine;
-    const setIndex = selectedExam?.setIndex;
-
-    const isAnswered = (val) => val !== null && val !== undefined && val !== '';
-
-    const newWrongOnes = questions
-      .filter((q, idx) => isAnswered(answers[idx]) && String(answers[idx]) !== String(q.answer))
-      .map(q => ({ ...q, year, subject, savedAt: new Date().toISOString() }));
-
-    if (newWrongOnes.length > 0) {
-      setWrongAnswers(prev => {
-        const existingIds = new Set(prev.map(item => item.id));
-        const uniqueNewOnes = newWrongOnes.filter(item => !existingIds.has(item.id));
-        return [...prev, ...uniqueNewOnes];
-      });
-
-      if (user) {
-        try {
-          const wrongDbPayload = newWrongOnes.map(q => ({
-            user_id: user.id,
-            question_id: q.id
-          }));
-          const { error } = await supabase
-            .from('user_incorrect_questions')
-            .upsert(wrongDbPayload, { onConflict: 'user_id,question_id' });
-          if (error) console.error('Auto save incorrect answers error:', error);
-        } catch (err) {
-          console.error('Auto save incorrect answers error:', err);
-        }
-      }
-    }
-
-    if (isRoutine && user && setIndex !== null) {
-      try {
-        const { error } = await supabase
-          .from('user_routine_history')
-          .upsert({
-            user_id: user.id,
-            year,
-            subject,
-            set_index: setIndex
-          }, { onConflict: 'user_id,year,subject,set_index' });
-        
-        if (error) throw error;
-      } catch (err) {
-        console.error('Routine save error:', err);
-      }
-    }
-
-    if (user) {
-      const correctCount = questions.filter((q, idx) => String(answers[idx]) === String(q.answer)).length;
-      const wrongQuestionNumbers = questions
-        .filter((q, idx) => isAnswered(answers[idx]) && String(answers[idx]) !== String(q.answer))
-        .map(q => q.number);
-
-      try {
-        const { data, error } = await supabase
-          .from('user_exam_history')
-          .insert({
-            user_id: user.id,
-            year,
-            subject,
-            is_routine: !!isRoutine,
-            set_index: setIndex,
-            answers,
-            memo: results.memo || '',
-            score: Math.round((correctCount / questions.length) * 100),
-            total_questions: questions.length,
-            wrong_question_numbers: wrongQuestionNumbers
-          })
-          .select()
-          .single();
-        
-        if (!error && data) {
-          setExamHistory(prev => [data, ...prev]);
-        }
-      } catch (err) {
-        console.error('Exam history save error:', err);
-      }
-    }
-
-    setExamResult({ ...results, isRoutine });
-    navigate('exam_result', {}, { replace: true });
-  };
-
-  const handleRemoveHistory = async (historyId) => {
-    if (!user) return;
-    const target = examHistory.find(h => String(h.id) === String(historyId));
-    if (!target) return;
-
-    try {
-      // 1. DB에서 시험 기록 삭제
-      const { data, error } = await supabase
-        .from('user_exam_history')
-        .delete()
-        .eq('id', historyId)
-        .eq('user_id', user.id)
-        .select();
-      
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        // 2. 해당 기록에 포함된 오답 문항들도 함께 정리 (카운트 동기화)
-        const { year, subject, wrong_question_numbers } = target;
-        if (wrong_question_numbers && wrong_question_numbers.length > 0) {
-          // 현재 오답 목록(wrongAnswers)에서 해당 시험의 문항들을 찾음
-          const itemsToRemove = wrongAnswers.filter(q => 
-            q.year === year && 
-            q.subject === subject && 
-            wrong_question_numbers.includes(q.number)
-          );
-
-          if (itemsToRemove.length > 0) {
-            const dbIdsToRemove = itemsToRemove.map(item => item.db_id).filter(Boolean);
-            if (dbIdsToRemove.length > 0) {
-              await supabase
-                .from('user_incorrect_questions')
-                .delete()
-                .in('id', dbIdsToRemove)
-                .eq('user_id', user.id);
-            }
-            // 로컬 오답 상태 업데이트
-            setWrongAnswers(prev => prev.filter(q => !itemsToRemove.some(rem => rem.id === q.id)));
-          }
-        }
-
-        // 3. UI에서 시험 기록 제거
-        setExamHistory(prev => prev.filter(h => String(h.id) !== String(historyId)));
-      } else {
-        alert('삭제할 기록을 찾지 못했거나 권한이 없습니다.');
-      }
-    } catch (err) {
-      console.error('Failed to delete exam history:', err);
-      alert('기록 삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleRemoveWrongQuestion = async (id) => {
-    const target = wrongAnswers.find(q => q.id === id);
-    if (isPremium && user && target?.db_id) {
-      try {
-        const { data, error } = await supabase
-          .from('user_incorrect_questions')
-          .delete()
-          .eq('id', target.db_id)
-          .eq('user_id', user.id)
-          .select();
-        
-        if (error) throw error;
-
-        // 실제 삭제 성공 시에만 UI 업데이트
-        if (data && data.length > 0) {
-          setWrongAnswers(prev => prev.filter(q => q.id !== id));
-        } else {
-          alert('오답 데이터를 삭제하지 못했습니다. 권한을 확인해주세요.');
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to delete incorrect question:', err);
-        alert('오답 삭제 중 오류가 발생했습니다.');
-        return;
-      }
-    } else {
-      // 로컬/비회원 모드일 경우 기존 방식 유지
-      setWrongAnswers(prev => prev.filter(q => q.id !== id));
-    }
-  };
-
-  const requireAuth = (callback) => {
-    if (!user) {
-      setShowGatingModal(true);
-    } else {
-      callback();
-    }
-  };
-
-  const renderPage = () => {
     switch (currentPage) {
-      case 'login':
-        return <LoginPage isDarkMode={isDarkMode} onBack={() => navigate('home')} onLoginSuccess={(u) => { setUser(u); navigate('home'); }} />;
       case 'home':
         return (
-          <HomePage 
-            key="home" user={user} isPremium={isPremium} isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode}
+          <HomePage
+            {...commonProps}
+            isPremium={isPremium}
+            onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+            onGoToLanding={() => navigate('home')}
             onGoToExamSelection={() => navigate('exam_selection')}
-            onGoToWrongNote={() => requireAuth(() => navigate('wrong_note'))}
+            onGoToWrongNote={() => navigate('wrong_note')}
             onGoToPremium={() => navigate('premium')}
-            onGoToTestPage={() => navigate('test_preview')}
             onGoToQuiz={() => navigate('routine_selection')}
             onLogout={async () => { await supabase.auth.signOut(); setUser(null); }}
             onLogin={() => navigate('login')}
             wrongCount={(() => {
-              // 히스토리가 없는 오답(고아 데이터)은 카운트에서 제외
               return wrongAnswers.filter(q => 
                 examHistory.some(h => 
-                  h.subject === q.subject && 
-                  h.year === q.year && 
-                  h.wrong_question_numbers?.includes(q.number)
+                  h.subject === q.subject && h.year === q.year && h.wrong_question_numbers?.includes(q.number)
                 )
               ).length;
             })()}
             routineCount={routineTodayCount}
           />
         );
-      case 'test_preview':
-        return <TestPreviewPage key="test_preview" isDarkMode={isDarkMode} onBack={() => navigate('home')} />;
-      case 'exam_selection':
-        return <ExamSelectionPage key="exam_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onSelectExam={handleStartFullExam} />;
       case 'routine_selection':
-        return <RoutineSelectionPage key="routine_selection" isDarkMode={isDarkMode} onBack={() => navigate('home')} onStartRoutine={handleStartRoutine} user={user} />;
+        return (
+          <RoutineSelectionPage 
+            {...commonProps} 
+            onBack={() => navigate('home')} 
+            onStartRoutine={(year, subject, setIndex) => 
+              navigate('full_exam', { 
+                selectedExam: { year, subject, isRoutine: true, setIndex } 
+              })
+            } 
+          />
+        );
+      case 'quiz':
+        return <QuizPage {...commonProps} onBack={() => navigate('home')} />;
+      case 'exam_selection':
+        return (
+          <ExamSelectionPage 
+            {...commonProps} 
+            onBack={() => navigate('home')} 
+            onSelectExam={(year, subject) => 
+              navigate('test_preview', { 
+                selectedExam: { year, subject, isRoutine: false, setIndex: null } 
+              })
+            } 
+          />
+        );
+      case 'test_preview':
+        return (
+          <TestPreviewPage 
+            {...commonProps} 
+            selectedExam={selectedExam} 
+            onBack={() => navigate('exam_selection')} 
+            onStart={() => navigate('full_exam')} 
+          />
+        );
       case 'full_exam':
         return (
           <FullExamPage 
-            key="full_exam" 
-            year={selectedExam?.year || examResult?.year} 
-            subject={selectedExam?.subject || examResult?.subject} 
-            isRoutine={selectedExam?.isRoutine || examResult?.isRoutine}
-            setIndex={selectedExam?.setIndex || examResult?.setIndex}
-            isDarkMode={isDarkMode} 
-            isPremium={isPremium}
+            {...commonProps} 
+            year={selectedExam.year}
+            subject={selectedExam.subject}
+            isRoutine={selectedExam.isRoutine}
+            setIndex={selectedExam.setIndex}
+            mode={selectedExam.reviewMode ? 'review' : 'practice'}
+            userAnswers={selectedExam.historyAnswers}
+            savedMemo={selectedExam.memo}
+            onlyMistakes={selectedExam.onlyMistakes}
+            initialQuestions={selectedExam.initialQuestions}
             onBack={() => {
-              if (examResult?.isReview) {
-                navigate(examResult?.questions?.length > 0 ? 'exam_result' : 'wrong_note');
-              } else {
+              if (selectedExam.reviewMode) {
                 navigate('home');
+              } else {
+                navigate(selectedExam.isRoutine ? 'routine_selection' : 'exam_selection');
               }
             }} 
             onFinish={handleFinishExam} 
-            mode={examResult?.isReview ? 'review' : 'practice'}
-            userAnswers={examResult?.answers}
-            savedMemo={examResult?.memo}
-            initialQuestions={examResult?.questions}
-            user={user}
-            onlyMistakes={examResult?.onlyMistakes}
+            enableMemo={settings.feature_flags.enable_memo}
           />
         );
       case 'exam_result':
         return (
           <ExamResultPage 
-            key="exam_result" 
+            {...commonProps} 
             result={examResult} 
-            isRoutine={examResult?.isRoutine}
-            isDarkMode={isDarkMode} 
-            isPremium={isPremium} 
             onHome={() => navigate('home')} 
-            onRetry={() => {
-              setExamResult(null);
-              navigate('full_exam', {}, { replace: true });
-            }} 
-            onReview={() => {
-              setExamResult(prev => ({ ...prev, isReview: true }));
-              navigate('full_exam', {}, { replace: true });
-            }}
-            user={user} 
-            onRequireAuthForSave={() => setShowGatingModal(true)} 
+            onReview={() => navigate('full_exam', { 
+              selectedExam: { 
+                ...examResult, 
+                reviewMode: true, 
+                historyAnswers: examResult.answers,
+                initialQuestions: examResult.questions
+              } 
+            })} 
           />
         );
-      case 'quiz':
-        return <QuizPage key="quiz" onBack={() => navigate('home')} isDarkMode={isDarkMode} />;
       case 'wrong_note':
+        return <WrongAnswerNotePage 
+                  {...commonProps}
+                  wrongAnswers={wrongAnswers} 
+                  examHistory={examHistory}
+                  isPremium={isPremium}
+                  onBack={() => navigate('home')} 
+                  onRemove={handleRemoveWrongQuestion}
+                  onReviewAttempt={handleReviewAttempt}
+                  onRemoveHistory={handleRemoveHistory}
+                />;
+      case 'premium':
+        return <PremiumPage {...commonProps} onBack={() => navigate('home')} />;
+      case 'login':
+        return <LoginPage {...commonProps} onBack={() => navigate('home')} />;
+      default:
         return (
-          <WrongAnswerNotePage 
-            key="wrong_note" 
-            wrongAnswers={wrongAnswers} 
-            examHistory={examHistory}
-            isDarkMode={isDarkMode} 
-            isPremium={isPremium}
-            onBack={() => navigate('home')} 
-            onRemove={handleRemoveWrongQuestion}
-            onRemoveHistory={handleRemoveHistory}
-            onReviewAttempt={(attempt, onlyMistakes = false) => {
-              setExamResult({
-                answers: attempt.answers,
-                memo: attempt.memo,
-                year: attempt.year,
-                subject: attempt.subject,
-                isReview: true,
-                onlyMistakes: onlyMistakes
-              });
-              setSelectedExam({
-                year: attempt.year,
-                subject: attempt.subject,
-                isRoutine: attempt.is_routine,
-                setIndex: attempt.set_index
-              });
-              navigate('full_exam');
-            }}
+          <HomePage 
+            {...commonProps} 
+            onToggleTheme={() => setIsDarkMode(!isDarkMode)} 
+            onGoToExamSelection={() => navigate('exam_selection')}
+            onGoToQuiz={() => navigate('routine_selection')} 
           />
         );
-      case 'premium':
-        return <PremiumPage key="premium" isDarkMode={isDarkMode} onBack={() => navigate('home')} onUpgrade={() => { setIsPremium(true); navigate('home'); }} />;
-      default:
-        return <HomePage key="default" isDarkMode={isDarkMode} onToggleTheme={toggleDarkMode} onGoToExamSelection={() => navigate('exam_selection')} onGoToWrongNote={() => requireAuth(() => navigate('home'))} />;
     }
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-midnight text-white' : 'bg-offwhite text-midnight'}`}>
       <AnimatePresence mode="wait">
-        {renderPage()}
+        {renderContent()}
       </AnimatePresence>
 
       <AnimatePresence>
         {showGatingModal && (
           <AuthGatingModal 
             isDarkMode={isDarkMode} 
-            onClose={() => setShowGatingModal(false)}
+            onClose={() => setShowGatingModal(false)} 
             onLogin={() => { setShowGatingModal(false); navigate('login'); }}
           />
         )}
       </AnimatePresence>
+
+      {settings.feature_flags.show_ads && (
+        <div className="fixed bottom-0 w-full bg-gold/10 py-2 text-center text-[10px] font-bold text-gold uppercase tracking-widest border-t border-gold/20 backdrop-blur-md">
+          Premium 회원이 되어 광고 없이 학습하세요
+        </div>
+      )}
     </div>
   );
 };

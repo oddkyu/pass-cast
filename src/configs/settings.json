@@ -1,0 +1,26 @@
+{
+  "site_name": "Pass-Cast",
+  "theme": {
+    "primary": "#D4AF37",
+    "secondary": "#1A1A1A",
+    "background_dark": "#0A0A0A",
+    "background_light": "#F8F9FA"
+  },
+  "exam_settings": {
+    "routine_question_count": 10,
+    "default_year": 2025,
+    "default_subject": "부동산학개론",
+    "subjects": [
+      "부동산학개론",
+      "민법 및 민사특별법",
+      "공인중개사법",
+      "부동산공법",
+      "부동산공시법 및 세법"
+    ]
+  },
+  "feature_flags": {
+    "show_ads": false,
+    "enable_memo": true,
+    "enable_premium_sync": true
+  }
+}

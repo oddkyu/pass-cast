@@ -35,7 +35,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
     // 현재 존재하는 시험 기록(History)에 포함된 문항들만 '누적 오답'으로 인정
     const validMistakes = (wrongAnswers || []).filter(q => 
       q.subject === subjectName && 
-      subjectHistory.some(h => h.year === q.year && h.wrong_question_numbers?.includes(q.number))
+      subjectHistory.some(h => h.wrong_question_numbers?.includes(q.number))
     );
     
     const lastDate = subjectHistory.length > 0 ? new Date(subjectHistory[0].created_at) : null;
@@ -61,7 +61,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
 
   // 특정 번호의 문제를 wrongAnswers에서 찾아 반환
   const getQuestion = (number, year, subject) => {
-    return (wrongAnswers || []).find(q => q.number === number && q.year === year && q.subject === subject);
+    return (wrongAnswers || []).find(q => q.number === number && q.subject === subject);
   };
 
   const currentQuestion = modalData ? getQuestion(modalData.numbers[modalData.currentIndex], modalData.year, modalData.subject) : null;
@@ -137,8 +137,8 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                        
                        <div className="flex items-end justify-between border-t border-black/5 dark:border-white/5 pt-5 md:pt-6">
                           <div className="flex flex-col">
-                             <span className="text-[9px] md:text-[10px] font-black opacity-20 uppercase tracking-tighter">누적 오답</span>
-                             <span className="text-xl md:text-2xl font-black text-gold">{stats.mistakes}</span>
+                             <span className="text-[9px] md:text-[10px] font-black opacity-20 uppercase tracking-tighter">저장된 시험지</span>
+                             <span className="text-xl md:text-2xl font-black text-gold">{stats.attemptCount}개</span>
                           </div>
                           <div className="text-right">
                              <span className="text-[9px] md:text-[10px] font-black opacity-20 uppercase tracking-tighter">최근 풀이</span>
@@ -207,26 +207,26 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                         </div>
 
                         {/* 🧭 Action Section (Horizontal Row) */}
-                        <div className="flex flex-wrap items-center gap-3 shrink-0">
+                        <div className="flex w-full md:w-auto items-stretch gap-2 md:gap-3 shrink-0 mt-6 md:mt-0">
                            <button 
                              onClick={() => onReviewAttempt(h, true)}
-                             className="px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter"
+                             className="flex-1 md:flex-none px-2 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[13px] sm:text-base md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter break-keep text-center"
                            >
                              오답 리뷰
                            </button>
                            <button 
                              onClick={() => onReviewAttempt(h, false)}
-                             className="px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter"
+                             className="flex-1 md:flex-none px-2 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[13px] sm:text-base md:text-xl transition-all duration-300 border border-gold/30 bg-gold/10 text-gold hover:bg-gold hover:text-midnight shadow-lg shadow-gold/5 uppercase tracking-tighter break-keep text-center"
                            >
                              시험지 전체 리뷰
                            </button>
                            <button 
                              onClick={() => confirm('이 기록을 삭제할까요?') && onRemoveHistory(h.id)}
-                             className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center transition-all duration-300
+                             className={`w-[48px] md:w-16 shrink-0 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300
                                ${isDarkMode ? 'bg-white/5 text-white/20 hover:text-red-500 hover:bg-red-500/10' : 'bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50'}
                              `}
                            >
-                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                             <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                            </button>
                         </div>
                       </div>
@@ -241,12 +241,8 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                             
                             <div className="flex flex-wrap gap-2 md:gap-4">
                               {(() => {
-                                 const filteredWrongOnes = (h.wrong_question_numbers || []).filter(num => {
-                                    const startIndex = h.is_routine ? (h.set_index * 10) : 0;
-                                    const idx = h.is_routine ? (num - (startIndex + 1)) : (num - 1);
-                                    const ans = h.answers ? h.answers[idx] : null;
-                                    return ans !== null && ans !== undefined && ans !== '';
-                                 });
+                                 // 미응시 필터를 제거하여 모든 오답(틀린 문제 + 찍지 않은 문제)을 보여줍니다.
+                                 const filteredWrongOnes = h.wrong_question_numbers || [];
 
                                  if (filteredWrongOnes.length > 0) {
                                     return filteredWrongOnes.map((num, mIdx) => (

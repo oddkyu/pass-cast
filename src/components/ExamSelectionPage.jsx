@@ -103,7 +103,10 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
                       key={sub.id} 
                       subject={sub} 
                       isDarkMode={isDarkMode} 
-                      onClick={() => onSelectExam(selectedYear, sub.name)}
+                      onClick={() => {
+                        console.log("Subject clicked:", selectedYear, sub.name);
+                        onSelectExam(selectedYear, sub.name);
+                      }}
                       index={i}
                     />
                   ))}
@@ -123,7 +126,10 @@ const ExamSelectionPage = ({ isDarkMode, onBack, onSelectExam }) => {
                       key={sub.id} 
                       subject={sub} 
                       isDarkMode={isDarkMode} 
-                      onClick={() => onSelectExam(selectedYear, sub.name)}
+                      onClick={() => {
+                        console.log("Subject clicked:", selectedYear, sub.name);
+                        onSelectExam(selectedYear, sub.name);
+                      }}
                       index={i}
                     />
                   ))}
