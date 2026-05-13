@@ -325,36 +325,53 @@ const App = () => {
 
   const handleRemoveHistory = async (historyId) => {
     if (!user) return;
+    const target = examHistory.find(h => String(h.id) === String(historyId));
+    if (!target) return;
+
     try {
-      // 1. DB에서 삭제 시도 (ID 타입을 유연하게 처리하기 위해 String 변환 사용)
+      // 1. DB에서 시험 기록 삭제
       const { data, error } = await supabase
         .from('user_exam_history')
         .delete()
         .eq('id', historyId)
-        .match({ user_id: user.id })
+        .eq('user_id', user.id)
         .select();
       
       if (error) throw error;
 
-      // 2. DB 삭제 결과와 관계없이 로컬 상태에서 즉시 제거하여 UI 동기화
-      // (이미 DB에서 사라졌더라도 화면에서 계속 보이는 현상을 방지)
-      setExamHistory(prev => prev.filter(h => String(h.id) !== String(historyId)));
-
-      // 3. 만약 DB에서 실제로 삭제된 데이터가 있다면 최신 목록 다시 불러오기 (선택 사항)
       if (data && data.length > 0) {
-        const { data: refreshedData } = await supabase
-          .from('user_exam_history')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        if (refreshedData) {
-          setExamHistory(refreshedData);
+        // 2. 해당 기록에 포함된 오답 문항들도 함께 정리 (카운트 동기화)
+        const { year, subject, wrong_question_numbers } = target;
+        if (wrong_question_numbers && wrong_question_numbers.length > 0) {
+          // 현재 오답 목록(wrongAnswers)에서 해당 시험의 문항들을 찾음
+          const itemsToRemove = wrongAnswers.filter(q => 
+            q.year === year && 
+            q.subject === subject && 
+            wrong_question_numbers.includes(q.number)
+          );
+
+          if (itemsToRemove.length > 0) {
+            const dbIdsToRemove = itemsToRemove.map(item => item.db_id).filter(Boolean);
+            if (dbIdsToRemove.length > 0) {
+              await supabase
+                .from('user_incorrect_questions')
+                .delete()
+                .in('id', dbIdsToRemove)
+                .eq('user_id', user.id);
+            }
+            // 로컬 오답 상태 업데이트
+            setWrongAnswers(prev => prev.filter(q => !itemsToRemove.some(rem => rem.id === q.id)));
+          }
         }
+
+        // 3. UI에서 시험 기록 제거
+        setExamHistory(prev => prev.filter(h => String(h.id) !== String(historyId)));
+      } else {
+        alert('삭제할 기록을 찾지 못했거나 권한이 없습니다.');
       }
     } catch (err) {
       console.error('Failed to delete exam history:', err);
-      alert('기록 삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      alert('기록 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -362,19 +379,31 @@ const App = () => {
     const target = wrongAnswers.find(q => q.id === id);
     if (isPremium && user && target?.db_id) {
       try {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('user_incorrect_questions')
           .delete()
-          .match({ id: target.db_id, user_id: user.id });
+          .eq('id', target.db_id)
+          .eq('user_id', user.id)
+          .select();
         
         if (error) throw error;
+
+        // 실제 삭제 성공 시에만 UI 업데이트
+        if (data && data.length > 0) {
+          setWrongAnswers(prev => prev.filter(q => q.id !== id));
+        } else {
+          alert('오답 데이터를 삭제하지 못했습니다. 권한을 확인해주세요.');
+          return;
+        }
       } catch (err) {
         console.error('Failed to delete incorrect question:', err);
         alert('오답 삭제 중 오류가 발생했습니다.');
         return;
       }
+    } else {
+      // 로컬/비회원 모드일 경우 기존 방식 유지
+      setWrongAnswers(prev => prev.filter(q => q.id !== id));
     }
-    setWrongAnswers(prev => prev.filter(q => q.id !== id));
   };
 
   const requireAuth = (callback) => {
