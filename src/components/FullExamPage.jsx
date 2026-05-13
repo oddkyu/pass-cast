@@ -222,7 +222,7 @@ const FullExamPage = ({
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3 md:space-x-4">
                     <span className="shrink-0 w-8 h-8 md:w-10 md:h-10 mt-0.5 md:mt-1 rounded-xl bg-gold flex items-center justify-center text-midnight font-black text-sm md:text-lg shadow-lg shadow-gold/20">Q</span>
-                    <h2 className={`text-[18px] md:text-[25px] font-black tracking-tight leading-[1.4] break-keep whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
+                    <h2 className={`text-[17px] md:text-[25px] font-black tracking-tight leading-[1.4] break-keep whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-midnight'}`}>
                       <span className="text-gold mr-2">{currentQuestion?.number}.</span>
                       {formatMathText(currentQuestion?.title)}
                     </h2>
@@ -235,13 +235,13 @@ const FullExamPage = ({
            </div>
            
              {currentQuestion?.content_box && currentQuestion.content_box.length > 0 && (
-               <div className={`mt-6 md:mt-8 p-6 md:p-10 rounded-2xl md:rounded-3xl border relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50/50 border-slate-200'}`}>
+               <div className={`mt-6 md:mt-8 p-4 md:p-10 rounded-2xl md:rounded-3xl border relative transition-all duration-500 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50/50 border-slate-200'}`}>
                  <div className="absolute -top-3 left-6 md:left-10 px-3 md:px-4 py-0.5 md:py-1 bg-midnight text-gold text-[10px] md:text-[11px] font-black rounded-full uppercase tracking-[0.2em] shadow-lg border border-gold/20">보기</div>
                  <div className="space-y-3 md:space-y-4">
                    {currentQuestion.content_box.map((line, idx) => (
                      <p 
                        key={idx} 
-                       className={`text-[15px] md:text-[19px] leading-relaxed break-keep font-bold whitespace-pre-line ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
+                       className={`text-[14px] md:text-[19px] leading-relaxed break-keep font-bold whitespace-pre-line ${isDarkMode ? 'text-white/80' : 'text-midnight/70'}`}
                      >
                        {formatMathText(line)}
                      </p>
@@ -257,7 +257,7 @@ const FullExamPage = ({
                   <button
                     key={idx}
                     onClick={() => !isReviewMode && handleSelectAnswer(idx + 1)}
-                    className={`group w-full p-5 md:p-8 rounded-[1.8rem] md:rounded-[3rem] border-2 text-left transition-all duration-500 flex items-start space-x-3 md:space-x-6 min-h-[70px] md:min-h-[80px]
+                    className={`group w-full p-4 md:p-8 rounded-[1.5rem] md:rounded-[3rem] border-2 text-left transition-all duration-500 flex items-start space-x-3 md:space-x-6 min-h-[60px] md:min-h-[80px]
                       ${isReviewMode 
                         ? (idx + 1 === currentQuestion?.answer ? 'border-green-500 bg-green-500/5' : (answers[currentIndex] === idx + 1 ? 'border-red-500 bg-red-500/5' : 'border-transparent opacity-40'))
                         : (answers[currentIndex] === idx + 1 ? 'border-gold bg-gold/5 shadow-2xl shadow-gold/10' : 'border-transparent hover:border-gold/30')
@@ -272,7 +272,7 @@ const FullExamPage = ({
                     `}>
                       {idx + 1}
                     </div>
-                    <span className={`text-[16px] md:text-[20px] font-bold leading-relaxed break-keep whitespace-pre-line pt-1 md:pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
+                    <span className={`text-[15px] md:text-[20px] font-bold leading-relaxed break-keep whitespace-pre-line pt-1 md:pt-2 ${answers[currentIndex] === idx + 1 ? 'text-gold' : ''} ${isReviewMode && idx + 1 === currentQuestion?.answer ? 'text-green-500' : ''}`}>
                       {formatMathText(opt)}
                     </span>
                   </button>

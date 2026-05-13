@@ -173,14 +173,14 @@ const QuizPage = ({ onBack, isDarkMode }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
-            className="glass-card rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-14 min-h-[450px] md:min-h-[500px] flex flex-col relative overflow-hidden"
+            className="glass-card rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-14 min-h-[400px] md:min-h-[500px] flex flex-col relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-8">
                <span className="text-slate-200 font-black text-8xl opacity-20">0{currentIndex + 1}</span>
             </div>
 
             <div className="space-y-6 relative z-10">
-              <h2 className="text-[20px] md:text-[25px] font-black leading-tight text-midnight mb-6 break-keep">
+              <h2 className="text-[18px] md:text-[25px] font-black leading-tight text-midnight mb-6 break-keep">
                 {currentQuestion?.title}
               </h2>
 
@@ -189,7 +189,7 @@ const QuizPage = ({ onBack, isDarkMode }) => {
                 <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                   <div className="space-y-2">
                     {currentQuestion.content_box.map((line, idx) => (
-                      <p key={idx} className="text-[15px] md:text-[17px] font-medium opacity-70 leading-relaxed">{line}</p>
+                      <p key={idx} className="text-[14px] md:text-[17px] font-medium opacity-70 leading-relaxed break-keep">{line}</p>
                     ))}
                   </div>
                 </div>
@@ -217,12 +217,12 @@ const QuizPage = ({ onBack, isDarkMode }) => {
                     key={index}
                     onClick={() => handleSelect(index)}
                     disabled={selectedOption !== null}
-                    className={`group w-full text-left p-5 md:p-8 rounded-[1.8rem] md:rounded-[2rem] border-2 transition-all duration-300 flex items-center active:scale-[0.98] ${stateClass}`}
+                    className={`group w-full text-left p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 transition-all duration-300 flex items-center active:scale-[0.98] ${stateClass}`}
                   >
                     <span className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mr-4 md:mr-6 font-black text-sm md:text-lg transition-all ${isSelected ? 'bg-gold text-midnight' : 'bg-slate-50 text-slate-300 group-hover:bg-gold/10 group-hover:text-gold'}`}>
                       {index + 1}
                     </span>
-                    <span className="flex-1 font-bold text-[17px] md:text-[21px] leading-tight">
+                    <span className="flex-1 font-bold text-[15px] md:text-[21px] leading-tight break-keep">
                       {option}
                     </span>
                   </button>

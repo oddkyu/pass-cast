@@ -12,6 +12,8 @@
     @apply antialiased min-h-screen transition-colors duration-500;
     font-family: 'Pretendard Variable', Pretendard, 'Inter', 'Noto Sans KR', sans-serif;
     word-break: keep-all;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 }
 
@@ -80,6 +82,12 @@
   .lift-hover:hover {
     transform: translateY(-10px) scale(1.01);
     @apply shadow-2xl;
+  }
+
+  .break-keep {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 }
 

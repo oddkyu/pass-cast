@@ -286,7 +286,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
             <motion.div 
               ref={modalScrollRef}
               initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] md:rounded-[4rem] shadow-2xl p-8 md:p-20 space-y-10 md:space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
+              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] md:rounded-[4rem] shadow-2xl p-6 md:p-20 space-y-8 md:space-y-12 scrollbar-hide ${isDarkMode ? 'bg-midnight border border-white/10 text-white' : 'bg-white text-midnight'}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
@@ -303,7 +303,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
 
               <div className="space-y-10">
                 <div className="space-y-8">
-                  <h2 className="text-[18px] md:text-[25px] font-black leading-tight break-keep whitespace-pre-line">
+                  <h2 className="text-[17px] md:text-[25px] font-black leading-tight break-keep whitespace-pre-line">
                     <span className="text-gold mr-3">{currentQuestion.number}.</span>
                     {formatMathText(currentQuestion.title)}
                   </h2>
@@ -312,7 +312,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                     <div className={`p-6 md:p-8 rounded-2xl md:rounded-3xl border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="space-y-3">
                         {currentQuestion.content_box.map((line, idx) => (
-                          <p key={idx} className="text-[15px] md:text-[18px] font-medium opacity-60 leading-relaxed whitespace-pre-line">{formatMathText(line)}</p>
+                          <p key={idx} className="text-[14px] md:text-[18px] font-medium opacity-60 leading-relaxed whitespace-pre-line break-keep">{formatMathText(line)}</p>
                         ))}
                       </div>
                     </div>
@@ -323,9 +323,9 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                   {currentQuestion.options.map((opt, idx) => {
                     const isCorrect = (idx + 1) === currentQuestion.answer;
                     return (
-                      <div key={idx} className={`p-5 md:p-8 rounded-[1.8rem] md:rounded-[2rem] border-2 flex items-center space-x-4 md:space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : (isDarkMode ? 'border-white/5 opacity-40' : 'border-slate-50 opacity-30')}`}>
+                      <div key={idx} className={`p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 flex items-center space-x-4 md:space-x-6 transition-all ${isCorrect ? 'border-green-500 bg-green-500/5 text-green-500 shadow-lg' : (isDarkMode ? 'border-white/5 opacity-40' : 'border-slate-50 opacity-30')}`}>
                         <span className="font-black text-xl md:text-2xl w-6 md:w-8 text-center">{idx + 1}</span>
-                        <span className="font-bold text-[16px] md:text-[20px] flex-1 break-keep whitespace-pre-line">{formatMathText(opt)}</span>
+                        <span className="font-bold text-[15px] md:text-[20px] flex-1 break-keep whitespace-pre-line">{formatMathText(opt)}</span>
                         {isCorrect && (
                           <div className="text-green-500 shrink-0">
                             <svg width="20" height="20" md:width="24" md:height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
@@ -342,7 +342,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                   <h4 className="text-2xl font-black">심층 정답 해설</h4>
                 </div>
-                <p className="font-bold text-xl md:text-2xl leading-relaxed opacity-80 break-keep">{currentQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
+                <p className="font-bold text-lg md:text-2xl leading-relaxed opacity-80 break-keep">{currentQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
               </div>
 
               {/* 🧭 Navigation Buttons inside Modal (Redesigned to match FullExamPage) */}
