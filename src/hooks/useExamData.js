@@ -5,8 +5,12 @@ import settings from '../configs/settings.json';
 export const useExamData = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'home';
+  });
   const [selectedExam, setSelectedExam] = useState({ 
     year: settings.exam_settings.default_year, 
     subject: settings.exam_settings.default_subject, 
@@ -18,6 +22,78 @@ export const useExamData = () => {
   const [examHistory, setExamHistory] = useState([]);
   const [routineTodayCount, setRoutineTodayCount] = useState(0);
   const [showGatingModal, setShowGatingModal] = useState(false);
+  const [appSettings, setAppSettings] = useState({
+    show_ads: false,
+    enable_memo: true,
+    routine_question_count: 10
+  });
+
+  const [activePopups, setActivePopups] = useState([]);
+
+  // Fetch & Subscribe App Settings (Realtime)
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase.from('app_settings').select('*').single();
+        if (data && !error) {
+          setAppSettings({
+            show_ads: data.show_ads,
+            enable_memo: data.enable_memo,
+            routine_question_count: data.routine_question_count
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load initial app_settings:', err);
+      }
+    };
+    fetchSettings();
+
+    const channel = supabase.channel('public:app_settings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
+        if (payload.new) {
+          setAppSettings({
+          show_ads: payload.new.show_ads,
+          enable_memo: payload.new.enable_memo,
+          routine_question_count: payload.new.routine_question_count
+        });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Fetch & Subscribe Popups (Realtime)
+  useEffect(() => {
+    const fetchPopups = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('popups')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        if (data && !error) {
+          setActivePopups(data);
+        }
+      } catch (err) {
+        console.error('Error fetching popups:', err);
+      }
+    };
+
+    fetchPopups();
+
+    const popupSubscription = supabase.channel('popups_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'popups' }, () => {
+        fetchPopups(); // 변경 발생 시 전체 리스트 재조회
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(popupSubscription);
+    };
+  }, []);
 
   // 🔀 Navigation helper
   const navigate = useCallback((page, state = {}, options = {}) => {
@@ -34,7 +110,8 @@ export const useExamData = () => {
   // Sync with browser history
   useEffect(() => {
     const handlePopState = (e) => {
-      const page = e.state?.page || 'home';
+      const hashPage = window.location.hash.replace('#', '');
+      const page = e.state?.page || hashPage || 'home';
       setCurrentPage(page);
       if (e.state?.selectedExam) setSelectedExam(e.state.selectedExam);
       if (e.state?.examResult) setExamResult(e.state.examResult);
@@ -66,18 +143,17 @@ export const useExamData = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) fetchMembership(session.user.id);
+      setIsAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchMembership(session.user.id);
-        if (event === 'SIGNED_IN') {
-          navigate('home', {}, { replace: true });
-        }
       } else {
         setIsPremium(false);
       }
+      setIsAuthLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -304,6 +380,7 @@ export const useExamData = () => {
   return {
     isDarkMode, setIsDarkMode,
     user, setUser,
+    isAuthLoading,
     isPremium,
     currentPage,
     selectedExam, setSelectedExam,
@@ -312,6 +389,8 @@ export const useExamData = () => {
     examHistory,
     routineTodayCount,
     showGatingModal, setShowGatingModal,
+    appSettings,
+    activePopups,
     navigate,
     handleFinishExam,
     handleRemoveHistory,

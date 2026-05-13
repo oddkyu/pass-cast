@@ -1,5 +1,9 @@
 {
   "site_name": "Pass-Cast",
+  "admin_emails": [
+    "earthbook@gmail.com",
+    "earthtbook@gmail.com"
+  ],
   "theme": {
     "primary": "#D4AF37",
     "secondary": "#1A1A1A",

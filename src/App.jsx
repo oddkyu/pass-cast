@@ -2,7 +2,6 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from './lib/supabase';
 import { useExamData } from './hooks/useExamData';
-import settings from './configs/settings.json';
 
 // Components
 import HomePage from './components/HomePage';
@@ -16,6 +15,8 @@ import PremiumPage from './components/PremiumPage';
 import LoginPage from './components/LoginPage';
 import TestPreviewPage from './components/TestPreviewPage';
 import RoutineSelectionPage from './components/RoutineSelectionPage';
+import AdminPage from './components/AdminPage';
+import AdminUserManagementPage from './components/AdminUserManagementPage';
 
 const AuthGatingModal = ({ isDarkMode, onClose, onLogin }) => (
   <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 md:p-12">
@@ -51,6 +52,7 @@ const App = () => {
   const {
     isDarkMode, setIsDarkMode,
     user, setUser,
+    isAuthLoading,
     isPremium,
     currentPage,
     selectedExam,
@@ -59,6 +61,8 @@ const App = () => {
     examHistory,
     routineTodayCount,
     showGatingModal, setShowGatingModal,
+    appSettings,
+    activePopups,
     navigate,
     handleFinishExam,
     handleRemoveHistory,
@@ -67,7 +71,7 @@ const App = () => {
   } = useExamData();
 
   const renderContent = () => {
-    const commonProps = { isDarkMode, user, navigate };
+    const commonProps = { isDarkMode, user, isAuthLoading, navigate, appSettings, activePopups, isPremium };
 
     switch (currentPage) {
       case 'home':
@@ -149,7 +153,7 @@ const App = () => {
               }
             }} 
             onFinish={handleFinishExam} 
-            enableMemo={settings.feature_flags.enable_memo}
+            enableMemo={appSettings.enable_memo}
           />
         );
       case 'exam_result':
@@ -181,8 +185,12 @@ const App = () => {
                 />;
       case 'premium':
         return <PremiumPage {...commonProps} onBack={() => navigate('home')} />;
+      case 'admin':
+        return <AdminPage {...commonProps} />;
+      case 'admin_users':
+        return <AdminUserManagementPage {...commonProps} />;
       case 'login':
-        return <LoginPage {...commonProps} onBack={() => navigate('home')} />;
+        return <LoginPage {...commonProps} onBack={() => navigate('home')} onLoginSuccess={() => navigate('home', {}, { replace: true })} />;
       default:
         return (
           <HomePage 
@@ -211,7 +219,7 @@ const App = () => {
         )}
       </AnimatePresence>
 
-      {settings.feature_flags.show_ads && (
+      {appSettings.show_ads && (
         <div className="fixed bottom-0 w-full bg-gold/10 py-2 text-center text-[10px] font-bold text-gold uppercase tracking-widest border-t border-gold/20 backdrop-blur-md">
           Premium 회원이 되어 광고 없이 학습하세요
         </div>

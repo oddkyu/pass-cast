@@ -9,11 +9,13 @@ const formatMathText = (text) => {
   return formatted;
 };
 
-const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory }) => {
+const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory, appSettings = {} }) => {
   const [step, setStep] = useState('subject'); // 'subject' or 'details'
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [modalData, setModalData] = useState(null); // { numbers: [], currentIndex: 0, year, subject }
   const modalScrollRef = useRef(null);
+  
+  const showAds = appSettings?.show_ads && !isPremium;
 
   // 문항 변경 시 모달 상단으로 자동 스크롤
   useEffect(() => {
@@ -156,6 +158,19 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               className="space-y-8"
             >
+              {/* 📢 스마트 오답노트 상단 광고 */}
+              {showAds && (
+                <div className="flex flex-col items-center mb-4 md:mb-8">
+                   <div className={`w-full max-w-[728px] min-h-[70px] md:min-h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
+                     ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
+                   `}>
+                      <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
+                      <p className="text-[10px] md:text-xs font-bold opacity-40 tracking-tight text-center px-4 mt-3">Google AdSense - Top Placement</p>
+                      <p className="text-[8px] md:text-[9px] font-black opacity-30 mt-1 uppercase">프리미엄 구독 시 광고가 제거됩니다.</p>
+                   </div>
+                </div>
+              )}
+
               {filteredHistory.length === 0 ? (
                 <div className="h-96 flex flex-col items-center justify-center space-y-6 opacity-20 text-center">
                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>

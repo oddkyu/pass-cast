@@ -1,10 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const MOTIVATIONAL_QUOTES = [
+  "오늘의 노력이 내일의 합격이 됩니다",
+  "포기하지 않으면 반드시 합격합니다",
+  "꾸준함은 모든 것을 이깁니다",
+  "잘하고 계십니다! 조금만 더 힘내세요",
+  "합격의 그날까지, 항상 응원합니다",
+  "오늘 흘린 땀방울이 곧 합격증서가 됩니다",
+  "틀린 문제는 내일의 확실한 정답이 됩니다",
+  "지칠 땐 크게 심호흡 한 번 하세요",
+  "스스로를 믿으세요, 해낼 수 있습니다",
+  "끝까지 완주하는 당신이 진짜 승자입니다",
+  "실수는 성공을 위한 가장 좋은 연습입니다",
+  "한 번 더 반복한 만큼 합격에 가까워집니다",
+  "자신감은 완벽한 준비에서 나옵니다",
+  "오늘 공부한 한 페이지가 당락을 결정할 수 있습니다",
+  "당신의 노력을 가장 잘 아는 것은 당신 자신입니다",
+  "흔들리지 않고 피는 꽃은 없습니다",
+  "힘든 시간은 지나가고 영광은 남습니다",
+  "남들과 비교하지 말고 어제의 나와 비교하세요",
+  "당신의 목표는 생각보다 가까이 있습니다",
+  "오늘도 책상에 앉은 당신이 이미 자랑스럽습니다"
+];
 
 const HomePage = ({ 
   user,
   isPremium,
   isDarkMode, 
+  appSettings = {}, 
+  activePopups = [],
   onToggleTheme, 
   onGoToLanding, 
   onGoToExamSelection,
@@ -20,6 +45,45 @@ const HomePage = ({
   const isGuest = !user;
   const showAds = !isPremium;
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '예비';
+
+  const [visiblePopups, setVisiblePopups] = useState([]);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  useEffect(() => {
+    // 0. 랜덤 격려 문구 초기 세팅 및 타이머 설정 (6초마다 경기장 배너처럼 회전)
+    const initialIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+    setQuoteIndex(initialIndex);
+
+    const interval = setInterval(() => {
+      setQuoteIndex(prev => (prev + 1) % MOTIVATIONAL_QUOTES.length);
+    }, 10000); // 10초마다 변경
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // 1. 활성 팝업 필터링 (로컬 스토리지 확인)
+    if (activePopups && activePopups.length > 0) {
+      const filtered = activePopups.filter(popup => {
+        const hideUntil = localStorage.getItem(`hide_popup_${popup.id}`);
+        if (!hideUntil) return true;
+        return new Date(hideUntil) < new Date(); // 오늘 하루가 지났는지 체크
+      });
+      setVisiblePopups(filtered);
+    } else {
+      setVisiblePopups([]);
+    }
+  }, [activePopups]);
+
+  const handleClosePopup = (popupId, hideForToday) => {
+    if (hideForToday) {
+      const tomorrow = new Date();
+      tomorrow.setHours(24, 0, 0, 0); // 다음날 자정
+      localStorage.setItem(`hide_popup_${popupId}`, tomorrow.toISOString());
+    }
+    // 창을 닫으면 visible 목록에서만 제거
+    setVisiblePopups(prev => prev.filter(p => p.id !== popupId));
+  };
 
   return (
     <div className={`flex-1 flex flex-col min-h-screen transition-all duration-500 noise-texture ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
@@ -106,7 +170,23 @@ const HomePage = ({
             {isGuest ? (
               <>공인중개사 합격을 위한 <br className="hidden md:block" /> <span className="text-gold glow-gold">최신 5개년 기출 분석</span></>
             ) : (
-              <>{displayName} 사장님, <br className="hidden md:block" /> 합격 확률 <span className="text-gold glow-gold">85.4%</span></>
+              <div className="h-[80px] md:h-[120px] flex flex-col justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.h3 
+                    key={quoteIndex}
+                    initial={{ opacity: 0, rotateX: 90, y: 30 }}
+                    animate={{ opacity: 1, rotateX: 0, y: 0 }}
+                    exit={{ opacity: 0, rotateX: -90, y: -30 }}
+                    transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
+                    style={{ transformPerspective: 1200 }}
+                    className={`font-black text-[clamp(22px,4vw,44px)] tracking-tight leading-[1.3] break-keep drop-shadow-sm ${isDarkMode ? 'text-white' : 'text-midnight'}`}
+                  >
+                    <span className="text-gold mr-1 md:mr-2">"</span>
+                    {MOTIVATIONAL_QUOTES[quoteIndex]}
+                    <span className="text-gold ml-1 md:ml-2">"</span>
+                  </motion.h3>
+                </AnimatePresence>
+              </div>
             )}
           </motion.h2>
           
@@ -189,6 +269,77 @@ const HomePage = ({
           </div>
         </div>
       </footer>
+
+      {/* 📣 전역 다중 공지사항 팝업 (Popup CMS) */}
+      <AnimatePresence>
+        {visiblePopups.length > 0 && (
+          <div className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-end pt-24 px-4 md:px-8 gap-4 overflow-hidden">
+            {visiblePopups.map((popup, index) => (
+              <motion.div 
+                key={popup.id}
+                drag
+                dragMomentum={false}
+                initial={{ opacity: 0, scale: 0.9, x: 50 }} 
+                animate={{ opacity: 1, scale: 1, x: 0 }} 
+                exit={{ opacity: 0, scale: 0.9, x: 50 }}
+                transition={{ delay: index * 0.1 }}
+                className={`pointer-events-auto cursor-grab active:cursor-grabbing relative w-[calc(100vw-2rem)] md:w-[360px] shrink-0 p-7 md:p-8 rounded-[2rem] shadow-2xl overflow-hidden ${isDarkMode ? 'bg-midnight border border-white/20 text-white shadow-black/50' : 'bg-white border border-black/10 text-midnight shadow-black/10'}`}
+              >
+                  <div className="space-y-5 relative z-10">
+                    <div className="w-10 h-10 rounded-2xl bg-gold/10 text-gold flex items-center justify-center mb-1">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    
+                    <h3 className="text-xl md:text-2xl font-black break-keep leading-tight">{popup.title}</h3>
+                    {popup.content && (
+                      <p className="text-sm font-bold opacity-70 whitespace-pre-line leading-relaxed break-keep">
+                        {popup.content}
+                      </p>
+                    )}
+
+                    {popup.image_url && (
+                      <div className="mt-3 rounded-2xl overflow-hidden shadow-lg border border-black/5 dark:border-white/5">
+                        <img 
+                          src={popup.image_url} 
+                          alt="팝업 이미지" 
+                          className="w-full h-auto object-cover max-h-[250px] hover:scale-105 transition-transform duration-500" 
+                        />
+                      </div>
+                    )}
+
+                    <div className="pt-4 space-y-3">
+                      {popup.link_url && (
+                        <a 
+                          href={popup.link_url} target="_blank" rel="noopener noreferrer"
+                          className="block w-full py-3.5 text-center bg-gold text-midnight rounded-2xl font-black text-base transition-transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/20"
+                        >
+                          자세히 보기
+                        </a>
+                      )}
+                      <div className="flex items-center gap-2 pt-1 relative z-20">
+                        <button 
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={() => handleClosePopup(popup.id, true)}
+                          className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white/50' : 'bg-slate-100 hover:bg-slate-200 text-slate-500'}`}
+                        >
+                          오늘 하루 보지 않기
+                        </button>
+                        <button 
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={() => handleClosePopup(popup.id, false)}
+                          className={`w-16 shrink-0 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-midnight text-white hover:bg-midnight/90'}`}
+                        >
+                          닫기
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -top-20 -right-20 w-48 h-48 bg-gold/5 rounded-full blur-[50px] pointer-events-none" />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

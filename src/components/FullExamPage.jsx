@@ -27,7 +27,9 @@ const FullExamPage = ({
   setIndex = null,
   savedMemo = '',
   initialQuestions = null,
-  onlyMistakes = false
+  onlyMistakes = false,
+  enableMemo = true,
+  appSettings = {}
 }) => {
   const [questions, setQuestions] = useState(initialQuestions || []);
   const [isLoading, setIsLoading] = useState(!initialQuestions || initialQuestions.length === 0);
@@ -40,7 +42,7 @@ const FullExamPage = ({
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [isMemoOpen, setIsMemoOpen] = useState(false);
   const isReviewMode = mode === 'review';
-  const showAds = !isPremium;
+  const showAds = appSettings?.show_ads && !isPremium;
   const questionTopRef = useRef(null);
 
   // Fetch Questions from Supabase
@@ -236,6 +238,19 @@ const FullExamPage = ({
       `}>
         <div ref={questionTopRef} className="scroll-mt-36" />
 
+        {/* 📢 문제지 상단 광고 (모바일 & PC 공통) */}
+        {showAds && (
+          <div className="flex flex-col items-center mb-4 md:mb-8">
+             <div className={`w-full max-w-[728px] min-h-[70px] md:min-h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
+               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
+             `}>
+                <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
+                <p className="text-[10px] md:text-xs font-bold opacity-40 tracking-tight text-center px-4 mt-3">Google AdSense - Top Placement</p>
+                <p className="text-[8px] md:text-[9px] font-black opacity-30 mt-1 uppercase">프리미엄 구독 시 광고가 제거됩니다.</p>
+             </div>
+          </div>
+        )}
+
         <section className="space-y-6 md:space-y-8">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3 md:space-x-4">
@@ -344,64 +359,9 @@ const FullExamPage = ({
           </section>
         )}
 
-        {isPremium ? (
-          <section className={`rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 space-y-4 ${isDarkMode ? 'bg-gold/5 border-gold/20' : 'bg-amber-50 border-amber-200'}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gold rounded-lg flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a0a23" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              </div>
-              <span className="text-sm font-black text-gold uppercase tracking-widest">AI 핵심 키워드 가이드</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className={`rounded-xl p-4 space-y-1 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gold opacity-70">관련 법령</p>
-                <p className="text-sm font-bold break-keep">공인중개사법 §2 · 민법 §99 · 입목에 관한 법률 §2</p>
-              </div>
-              <div className={`rounded-xl p-4 space-y-1 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gold opacity-70">출제 포인트</p>
-                <p className="text-sm font-bold break-keep">중개대상물의 범위, 입목·광업재단 해당 여부</p>
-              </div>
-              <div className={`rounded-xl p-4 space-y-1 md:col-span-2 ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gold opacity-70">빈출 오답 패턴</p>
-                <p className="text-sm font-bold break-keep">입목은 대상물 제외라고 착각하는 경우 多 · 공장재단은 포함됨을 암기</p>
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section className={`rounded-2xl p-5 border border-dashed flex items-center gap-4 ${isDarkMode ? 'border-gold/20 bg-gold/3' : 'border-amber-200 bg-amber-50/50'}`}>
-            <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gold"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-gold">AI 핵심 키워드 가이드</p>
-              <p className="text-xs font-bold opacity-40 break-keep">관련 법령 번호와 출제 포인트를 바로 확인하세요. Premium 전용 기능입니다.</p>
-            </div>
-          </section>
-        )}
 
-        {/* 📢 💡 '다음 문제로' 버튼 바로 밑에 전략적으로 배치된 수익형 광고 */}
-        {showAds && (
-          <div className="pt-10 flex flex-col items-center">
-             <div className={`w-full max-w-[728px] h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
-             `}>
-                <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
-                <p className="text-xs font-bold opacity-30 tracking-tight text-center px-4">Google AdSense - Commercial Space</p>
-                <p className="text-[9px] font-black opacity-20 mt-1 uppercase">프리미엄 패스 가입 시 이 광고는 제거됩니다.</p>
-             </div>
-          </div>
-        )}
 
-        {/* 📢 Bottom Ad Slot */}
-        {showAds && (
-          <div className="pt-16 md:pt-24 flex justify-center">
-             <div className={`w-full max-w-[728px] h-[90px] rounded-xl border border-dashed flex flex-col items-center justify-center transition-all
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/10' : 'bg-slate-50 border-slate-200 text-slate-300'}
-             `}>
-                <span className="text-[9px] font-black uppercase opacity-30">Ad Slot</span>
-             </div>
-          </div>
-        )}
+
       </main>
 
       {/* 🧭 Re-designed Navigation Bar (Ultra-Compact) */}
@@ -504,13 +464,15 @@ const FullExamPage = ({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .break-keep { word-break: keep-all; }
       `}</style>
-      <MemoSheet 
-        isDarkMode={isDarkMode} 
-        memo={memo} 
-        onMemoChange={setMemo} 
-        isOpen={isMemoOpen}
-        setIsOpen={setIsMemoOpen}
-      />
+      {enableMemo && (
+        <MemoSheet 
+          isDarkMode={isDarkMode} 
+          memo={memo} 
+          onMemoChange={setMemo} 
+          isOpen={isMemoOpen}
+          setIsOpen={setIsMemoOpen}
+        />
+      )}
     </div>
   );
 };
