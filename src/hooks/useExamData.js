@@ -9,15 +9,36 @@ export const useExamData = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [currentPage, setCurrentPage] = useState(() => {
     const hash = window.location.hash.replace('#', '');
-    return hash || 'home';
+    const savedPage = sessionStorage.getItem('pass-cast-currentPage');
+    return hash || savedPage || 'home';
   });
-  const [selectedExam, setSelectedExam] = useState({ 
-    year: settings.exam_settings.default_year, 
-    subject: settings.exam_settings.default_subject, 
-    isRoutine: false, 
-    setIndex: null 
+  const [selectedExam, setSelectedExam] = useState(() => {
+    const savedExam = sessionStorage.getItem('pass-cast-selectedExam');
+    if (savedExam) {
+      try {
+        return JSON.parse(savedExam);
+      } catch (e) {
+        console.error('Failed to parse saved selectedExam:', e);
+      }
+    }
+    return { 
+      year: settings.exam_settings.default_year, 
+      subject: settings.exam_settings.default_subject, 
+      isRoutine: false, 
+      setIndex: null 
+    };
   });
-  const [examResult, setExamResult] = useState(null);
+  const [examResult, setExamResult] = useState(() => {
+    const savedResult = sessionStorage.getItem('pass-cast-examResult');
+    if (savedResult) {
+      try {
+        return JSON.parse(savedResult);
+      } catch (e) {
+        console.error('Failed to parse saved examResult:', e);
+      }
+    }
+    return null;
+  });
   const [wrongAnswers, setWrongAnswers] = useState([]);
   const [examHistory, setExamHistory] = useState([]);
   const [routineTodayCount, setRoutineTodayCount] = useState(0);
@@ -25,10 +46,28 @@ export const useExamData = () => {
   const [appSettings, setAppSettings] = useState({
     show_ads: false,
     enable_memo: true,
-    routine_question_count: 10
+    routine_question_count: 10,
+    force_gating: false
   });
 
   const [activePopups, setActivePopups] = useState([]);
+
+  // Sync state to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('pass-cast-currentPage', currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    sessionStorage.setItem('pass-cast-selectedExam', JSON.stringify(selectedExam));
+  }, [selectedExam]);
+
+  useEffect(() => {
+    if (examResult) {
+      sessionStorage.setItem('pass-cast-examResult', JSON.stringify(examResult));
+    } else {
+      sessionStorage.removeItem('pass-cast-examResult');
+    }
+  }, [examResult]);
 
   // Fetch & Subscribe App Settings (Realtime)
   useEffect(() => {
@@ -39,7 +78,8 @@ export const useExamData = () => {
           setAppSettings({
             show_ads: data.show_ads,
             enable_memo: data.enable_memo,
-            routine_question_count: data.routine_question_count
+            routine_question_count: data.routine_question_count,
+            force_gating: data.force_gating || false
           });
         }
       } catch (err) {
@@ -52,10 +92,11 @@ export const useExamData = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, (payload) => {
         if (payload.new) {
           setAppSettings({
-          show_ads: payload.new.show_ads,
-          enable_memo: payload.new.enable_memo,
-          routine_question_count: payload.new.routine_question_count
-        });
+            show_ads: payload.new.show_ads,
+            enable_memo: payload.new.enable_memo,
+            routine_question_count: payload.new.routine_question_count,
+            force_gating: payload.new.force_gating || false
+          });
         }
       })
       .subscribe();
@@ -129,13 +170,51 @@ export const useExamData = () => {
           .select('membership_type')
           .eq('id', userId)
           .single();
+        
+        let isUserPremium = false;
+        
         if (!error && data) {
-          setIsPremium(data.membership_type === 'premium');
+          isUserPremium = data.membership_type === 'premium';
+          
+          // PREMIUM 유저인 경우 추가로 만료기한 검증 후 자동 강등 수행
+          if (isUserPremium) {
+            const { data: subs, error: subError } = await supabase
+              .from('subscriptions')
+              .select('expires_at')
+              .eq('user_id', userId)
+              .eq('status', 'active')
+              .order('created_at', { ascending: false })
+              .limit(1);
+            
+            if (!subError && subs && subs.length > 0) {
+              const expiry = new Date(subs[0].expires_at);
+              if (expiry < new Date()) {
+                console.log(`[Auto-Downgrade] User premium expired at ${expiry}. Downgrading to basic.`);
+                
+                // 1. 프로필 강등
+                await supabase
+                  .from('profiles')
+                  .update({ membership_type: 'basic' })
+                  .eq('id', userId);
+                
+                // 2. 구독 정보 종료 처리
+                await supabase
+                  .from('subscriptions')
+                  .update({ status: 'ended' })
+                  .eq('id', subs[0].id);
+                
+                isUserPremium = false;
+              }
+            }
+          }
+          
+          setIsPremium(isUserPremium);
         } else {
           const { data: { user: authUser } } = await supabase.auth.getUser();
           setIsPremium(authUser?.user_metadata?.is_premium || false);
         }
-      } catch {
+      } catch (err) {
+        console.error('Fetch membership error:', err);
         setIsPremium(false);
       }
     };
@@ -219,27 +298,44 @@ export const useExamData = () => {
 
   // Action Handlers
   const handleFinishExam = async (results) => {
-    const { questions, answers, score, year, subject, isRoutine, setIndex, timeSpent, memo } = results;
+    // 1. 보안을 위한 입력값 정제 (XSS 방지)
+    const sanitize = (text) => {
+      if (typeof text !== 'string') return '';
+      return text.replace(/<[^>]*>?/gm, '').trim(); 
+    };
 
+    const { questions, answers, year, subject, isRoutine, setIndex, timeSpent, memo } = results;
+    const cleanMemo = sanitize(memo);
+
+    // 2. 클라이언트 점수 조작 방지 (내부 재계산)
+    const totalQuestions = questions?.length || 0;
+    let correctCount = 0;
+    
     const isCorrect = (q, ans) => {
       return ans !== null && ans !== undefined && ans !== '' && String(ans) === String(q.answer);
     };
 
+    questions.forEach((q, idx) => {
+      if (isCorrect(q, answers[idx])) correctCount++;
+    });
+
+    const verifiedScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const wrongQuestions = questions.filter((q, idx) => !isCorrect(q, answers[idx]));
     const wrongQuestionNumbers = wrongQuestions.map(q => q.number);
 
+    // 3. 로컬 상태용 객체 (엄격한 타입 캐스팅)
     const newHistory = {
       id: crypto.randomUUID(),
       user_id: user?.id || null,
-      year,
-      subject,
-      is_routine: isRoutine,
-      set_index: setIndex,
-      answers,
-      score,
-      total_questions: questions.length,
-      time_spent: timeSpent,
-      memo: memo || '',
+      year: Number(year),
+      subject: String(subject),
+      is_routine: Boolean(isRoutine),
+      set_index: isRoutine ? Number(setIndex) : null,
+      answers: answers || {},
+      score: verifiedScore,
+      total_questions: totalQuestions,
+      time_spent: Number(timeSpent) || 0,
+      memo: cleanMemo,
       wrong_question_numbers: wrongQuestionNumbers,
       created_at: new Date().toISOString()
     };
@@ -248,7 +344,7 @@ export const useExamData = () => {
       try {
         console.log('Attempting to save to cloud for user:', user.id);
         
-        // 데이터 전송 객체 최적화
+        // 4. Supabase 페이로드 (보안 및 타입 안정성 확보)
         const historyPayload = {
           user_id: user.id,
           year: Number(year),
@@ -256,8 +352,8 @@ export const useExamData = () => {
           is_routine: Boolean(isRoutine),
           set_index: isRoutine ? Number(setIndex) : null,
           answers: answers,
-          score: Number(score),
-          memo: String(memo || ''),
+          score: verifiedScore, // 검증된 점수 사용
+          memo: cleanMemo,
           wrong_question_numbers: wrongQuestionNumbers,
         };
 
@@ -273,7 +369,7 @@ export const useExamData = () => {
 
         if (wrongQuestions.length > 0) {
           try {
-            // 1. 이미 DB에 등록된 오답인지 확인 (중복 저장으로 인한 Conflict/Forbidden 방지)
+            // 오답 중복 저장 방지 로직
             const { data: existingWrongs } = await supabase
               .from('user_incorrect_questions')
               .select('question_id')
@@ -295,8 +391,6 @@ export const useExamData = () => {
               
               if (insertError) throw insertError;
               console.log(`${newToSave.length} new wrong answers saved to cloud.`);
-            } else {
-              console.log('No new unique wrong answers to save.');
             }
           } catch (innerErr) {
             console.error('Failed to save wrong answers to cloud:', innerErr);
@@ -308,7 +402,7 @@ export const useExamData = () => {
       }
     }
     
-    // 로컬 상태 즉시 반영 (기존 코드 유지)
+    // 5. 로컬 상태 즉시 반영
     setExamHistory(prev => [newHistory, ...prev]);
     if (wrongQuestions.length > 0) {
       setWrongAnswers(prev => {
@@ -318,7 +412,8 @@ export const useExamData = () => {
       });
     }
 
-    setExamResult(results);
+    setExamResult({ ...results, score: verifiedScore, memo: cleanMemo }); 
+    navigate('home', {}, { replace: true });
     navigate('exam_result');
   };
 
@@ -377,11 +472,14 @@ export const useExamData = () => {
     });
   };
 
+  const userStatus = !user ? 'guest' : (isPremium ? 'premium' : 'basic');
+
   return {
     isDarkMode, setIsDarkMode,
     user, setUser,
     isAuthLoading,
     isPremium,
+    userStatus,
     currentPage,
     selectedExam, setSelectedExam,
     examResult, setExamResult,

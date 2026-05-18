@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import MemoSheet from './MemoSheet';
+import AdSense from './AdSense';
 
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
 const formatMathText = (text) => {
@@ -11,6 +12,102 @@ const formatMathText = (text) => {
   // 2. 이스케이프된 문자열 '\n'을 실제 줄바꿈 문자로 변환
   formatted = formatted.replace(/\\n/g, '\n');
   return formatted;
+};
+
+const renderBeautifulExplanation = (explanation, isDarkMode) => {
+  if (!explanation) return null;
+  
+  const lines = explanation.split('\n');
+  
+  let currentSection = 'normal'; // 'normal', 'feedback', 'summary'
+  let normalBlocks = [];
+  let feedbackLines = [];
+  let summaryLines = [];
+  
+  for (let line of lines) {
+    const trimmed = line.trim();
+    
+    if (trimmed.includes('(오답 피드백):') || trimmed.includes('(오답 피드백)') || trimmed.includes('오답 피드백')) {
+      currentSection = 'feedback';
+      continue;
+    } else if (trimmed.includes('💡 합격자 핵심 요약:') || trimmed.includes('💡 합격자 핵심 요약') || trimmed.includes('합격자 핵심 요약')) {
+      currentSection = 'summary';
+      continue;
+    }
+    
+    if (currentSection === 'normal') {
+      normalBlocks.push(line);
+    } else if (currentSection === 'feedback') {
+      feedbackLines.push(line);
+    } else if (currentSection === 'summary') {
+      summaryLines.push(line);
+    }
+  }
+  
+  return (
+    <div className="space-y-8 text-[15px] md:text-[18px] leading-relaxed font-normal mt-4 text-left">
+      {/* 1. 일반 설명 구역 */}
+      {normalBlocks.length > 0 && (
+        <div className={`space-y-4 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+          {normalBlocks.map((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return <div key={idx} className="h-2" />;
+            return (
+              <p key={idx} className="break-keep leading-relaxed font-medium opacity-90">
+                {line}
+              </p>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* 2. 오답 피드백 구역 */}
+      {feedbackLines.length > 0 && (
+        <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.03] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200/80 text-slate-600'}`}>
+          <h5 className="font-black text-base md:text-lg mb-3 flex items-center gap-2 text-red-500/80">
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+            오답 피드백
+          </h5>
+          <div className="space-y-2">
+            {feedbackLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*');
+              return (
+                <p key={idx} className={`break-keep leading-relaxed ${isBullet ? 'pl-4 -indent-4 opacity-80' : 'opacity-90'}`}>
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      
+      {/* 3. 합격자 핵심 요약 구역 (황금빛 골드 카드로 프리미엄하게 강조!) */}
+      {summaryLines.length > 0 && (
+        <div className={`p-6 md:p-8 rounded-[2rem] border-2 shadow-lg ${
+          isDarkMode 
+            ? 'bg-gold/5 border-gold/20 text-gold shadow-gold/5' 
+            : 'bg-gold/5 border-gold/30 text-midnight shadow-gold/5'
+        }`}>
+          <h5 className="font-black text-[16px] md:text-[20px] mb-3 flex items-center gap-2 text-gold">
+            💡 합격자 핵심 요약
+          </h5>
+          <div className="space-y-2 font-bold text-[15px] md:text-[19px]">
+            {summaryLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              return (
+                <p key={idx} className="break-keep leading-relaxed">
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const FullExamPage = ({ 
@@ -29,7 +126,8 @@ const FullExamPage = ({
   initialQuestions = null,
   onlyMistakes = false,
   enableMemo = true,
-  appSettings = {}
+  appSettings = {},
+  setShowGatingModal
 }) => {
   const [questions, setQuestions] = useState(initialQuestions || []);
   const [isLoading, setIsLoading] = useState(!initialQuestions || initialQuestions.length === 0);
@@ -44,6 +142,17 @@ const FullExamPage = ({
   const isReviewMode = mode === 'review';
   const showAds = appSettings?.show_ads && !isPremium;
   const questionTopRef = useRef(null);
+  const navContainerRef = useRef(null);
+
+  const handleSetCurrentIndex = (newIndex) => {
+    if (newIndex !== currentIndex) {
+      // force_gating이 켜져 있고 비프리미엄인 경우 5의 배수 번째 문항 이동 시 결제창 강제 노출
+      if (appSettings?.force_gating && !isPremium && newIndex > 0 && newIndex % 5 === 0) {
+        setShowGatingModal(true);
+      }
+      setCurrentIndex(newIndex);
+    }
+  };
 
   // Fetch Questions from Supabase
   const fetchQuestions = async () => {
@@ -147,6 +256,20 @@ const FullExamPage = ({
     }
   }, [currentIndex]);
 
+  // 하단 문항 번호 네비게이션 바 자동 스크롤
+  useEffect(() => {
+    if (navContainerRef.current) {
+      const activeBtn = navContainerRef.current.children[currentIndex];
+      if (activeBtn) {
+        activeBtn.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }
+  }, [currentIndex]);
+
   const handleSelectAnswer = (idx) => {
     if (isReviewMode) return;
     setAnswers(prev => ({ ...prev, [currentIndex]: idx }));
@@ -239,17 +362,7 @@ const FullExamPage = ({
         <div ref={questionTopRef} className="scroll-mt-36" />
 
         {/* 📢 문제지 상단 광고 (모바일 & PC 공통) */}
-        {showAds && (
-          <div className="flex flex-col items-center mb-4 md:mb-8">
-             <div className={`w-full max-w-[728px] min-h-[70px] md:min-h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
-             `}>
-                <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
-                <p className="text-[10px] md:text-xs font-bold opacity-40 tracking-tight text-center px-4 mt-3">Google AdSense - Top Placement</p>
-                <p className="text-[8px] md:text-[9px] font-black opacity-30 mt-1 uppercase">프리미엄 구독 시 광고가 제거됩니다.</p>
-             </div>
-          </div>
-        )}
+        <AdSense key={currentQuestion?.id} isPremium={isPremium} isDarkMode={isDarkMode} placement="top" />
 
         <section className="space-y-6 md:space-y-8">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -336,24 +449,21 @@ const FullExamPage = ({
 
         {isReviewMode && (
           <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
-            <div className="flex items-center gap-4 text-gold">
-               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-               <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center gap-4 text-gold">
+                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                 <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
+              </div>
+              {currentQuestion?.explanation && !currentQuestion?.explanation_verified && (
+                <div className="badge-ai w-fit">💡 AI 생성 해설 (검수 전)</div>
+              )}
             </div>
             
-            {!isPremium ? (
-              <div className="space-y-4">
-                <p className="text-lg font-bold opacity-60">상세 해설은 프리미엄 회원에게만 제공됩니다.</p>
-                <button 
-                  onClick={() => alert('준비 중입니다. 곧 정식 출시될 예정입니다!')} 
-                  className="px-6 py-3 bg-gold text-midnight rounded-xl font-black text-sm transition-all hover:scale-105"
-                >
-                  프리미엄 혜택 확인하기
-                </button>
-              </div>
+            {currentQuestion?.explanation ? (
+              renderBeautifulExplanation(formatMathText(currentQuestion.explanation), isDarkMode)
             ) : (
-              <p className="text-lg md:text-xl font-bold leading-relaxed opacity-80 break-keep">
-                {currentQuestion?.explanation || "현재 이 문항에 등록된 해설이 없습니다."}
+              <p className="text-lg md:text-xl font-bold leading-relaxed opacity-40 italic">
+                현재 이 문항에 등록된 해설이 없습니다.
               </p>
             )}
           </section>
@@ -369,8 +479,11 @@ const FullExamPage = ({
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 md:py-4">
            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               
-              {/* 🔢 문항 칩 스트립 (더 얇고 세련되게) */}
-              <div className="w-full md:w-auto flex overflow-x-auto scrollbar-hide space-x-1.5 md:space-x-2 px-2 py-1 bg-midnight/5 rounded-xl md:rounded-2xl border border-white/5">
+              {/* 🔢 문항 칩 스트립 (자동 스크롤 및 가로 스크롤 강화) */}
+              <div 
+                ref={navContainerRef}
+                className="w-full md:w-auto flex overflow-x-auto scrollbar-hide space-x-1.5 md:space-x-2 px-2 py-1 bg-midnight/5 rounded-xl md:rounded-2xl border border-white/5 scroll-smooth"
+              >
                 {questions.map((q, i) => {
                   const isSelected = currentIndex === i;
                   const isAnswered = answers[i] !== undefined;
@@ -378,7 +491,7 @@ const FullExamPage = ({
                   return (
                     <button
                       key={i}
-                      onClick={() => setCurrentIndex(i)}
+                      onClick={() => handleSetCurrentIndex(i)}
                       className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl font-black text-[10px] md:text-[12px] relative transition-all
                         ${isSelected ? 'bg-midnight text-gold scale-105 shadow-md border border-gold/30 z-10' : isAnswered ? 'bg-gold/20 text-gold' : 'opacity-30'}
                       `}
@@ -393,10 +506,10 @@ const FullExamPage = ({
               {/* 🕹️ 액션 그룹 */}
               <div className="flex items-center justify-between w-full md:w-auto gap-3 md:gap-4 border-t md:border-0 pt-3 md:pt-0">
                 <div className="flex items-center space-x-2">
-                  <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
+                  <button onClick={() => handleSetCurrentIndex(Math.max(0, currentIndex - 1))} disabled={currentIndex === 0} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6"/></svg>
                   </button>
-                  <button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentIndex === questions.length - 1} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
+                  <button onClick={() => handleSetCurrentIndex(Math.min(questions.length - 1, currentIndex + 1))} disabled={currentIndex === questions.length - 1} className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center disabled:opacity-10 transition-all ${isDarkMode ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-midnight/5 hover:bg-midnight/10 text-midnight'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6"/></svg>
                   </button>
                 </div>

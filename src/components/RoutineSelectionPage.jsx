@@ -61,8 +61,8 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-gold uppercase tracking-widest">Daily Routine 10</span>
-          <h1 className="text-sm md:text-lg font-black tracking-tight">데일리 루틴 세트 선택</h1>
+          <span className="text-[10px] font-black text-gold uppercase tracking-widest">10-Quest Pass Challenge</span>
+          <h1 className="text-sm md:text-lg font-black tracking-tight">10문제 합격 챌린지 세트 선택</h1>
         </div>
         <div className="w-10 md:w-12" />
       </header>
@@ -144,7 +144,7 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
                       {set.range}
                     </h4>
                     <p className="text-sm font-bold opacity-30 uppercase tracking-widest">
-                      Daily Routine Stage {set.id + 1}
+                      10-Quest Challenge Stage {set.id + 1}
                     </p>
                   </div>
 
@@ -171,10 +171,10 @@ const RoutineSelectionPage = ({ isDarkMode, onBack, onStartRoutine, user }) => {
       {/* 💡 Info Section */}
       <footer className="max-w-4xl mx-auto w-full px-8 pb-20">
          <div className={`p-10 rounded-[3rem] border-l-8 border-gold space-y-4 ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
-            <h4 className="text-xl font-black text-gold">데일리 루틴이란?</h4>
+            <h4 className="text-xl font-black text-gold">10문제 합격 챌린지란?</h4>
             <p className="text-base font-bold opacity-60 leading-relaxed break-keep">
-              바쁜 수험생 여러분을 위해 40문항의 기출문제를 10문제씩 4개 세트로 나누었습니다. <br/>
-              매일 한 세트씩 꾸준히 학습하는 습관이 합격의 가장 빠른 지름길입니다.
+              바쁜 수험생 여러분이 시간을 쪼개어 학습할 수 있도록 40문항의 기출문제를 10문제씩 4개 세트로 나누었습니다. <br/>
+              매일 10문제씩 도전하는 작은 습관이 합격이라는 큰 결과를 만듭니다.
             </p>
          </div>
       </footer>

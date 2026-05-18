@@ -40,10 +40,20 @@ const HomePage = ({
   onLogin,
   onLogout,
   wrongCount = 0,
-  routineCount = 0 
+  routineCount = 0,
+  setShowGatingModal
 }) => {
   const isGuest = !user;
   const showAds = !isPremium;
+
+  const handleGatedAction = (originalAction) => {
+    if (appSettings?.force_gating && !isPremium) {
+      setShowGatingModal(true);
+    } else {
+      originalAction();
+    }
+  };
+
   const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '예비';
 
   const [visiblePopups, setVisiblePopups] = useState([]);
@@ -170,7 +180,7 @@ const HomePage = ({
             {isGuest ? (
               <>공인중개사 합격을 위한 <br className="hidden md:block" /> <span className="text-gold glow-gold">최신 5개년 기출 분석</span></>
             ) : (
-              <div className="h-[80px] md:h-[120px] flex flex-col justify-center">
+              <div className="min-h-[100px] md:min-h-[120px] flex flex-col justify-center pb-4 md:pb-0">
                 <AnimatePresence mode="wait">
                   <motion.h3 
                     key={quoteIndex}
@@ -179,7 +189,7 @@ const HomePage = ({
                     exit={{ opacity: 0, rotateX: -90, y: -30 }}
                     transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
                     style={{ transformPerspective: 1200 }}
-                    className={`font-black text-[clamp(22px,4vw,44px)] tracking-tight leading-[1.3] break-keep drop-shadow-sm ${isDarkMode ? 'text-white' : 'text-midnight'}`}
+                    className={`font-black text-[clamp(20px,5vw,44px)] tracking-tight leading-[1.5] md:leading-[1.3] break-keep drop-shadow-sm ${isDarkMode ? 'text-white' : 'text-midnight'}`}
                   >
                     <span className="text-gold mr-1 md:mr-2">"</span>
                     {MOTIVATIONAL_QUOTES[quoteIndex]}
@@ -206,16 +216,16 @@ const HomePage = ({
             title={isGuest ? "무료 기출문제 풀기" : "회차별 기출 풀기"}
             subtitle="연도별/과목별 실전 데이터"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
-            onClick={onGoToExamSelection}
+            onClick={() => handleGatedAction(onGoToExamSelection)}
             isDarkMode={isDarkMode}
             delay={0.4}
             highlight="FREE"
           />
           <ActionButton 
-            title={<span className={isDarkMode ? 'text-[#FEE500]' : 'text-blue-600'}>데일리 루틴 10</span>}
-            subtitle={!isGuest ? (routineCount >= 4 ? "오늘의 루틴 완료! ✅" : `${routineCount}/4 세트 완료`) : "매일 10문제로 다지는 합격 습관"}
+            title={<span className={isDarkMode ? 'text-[#FEE500]' : 'text-blue-600'}>10문제 합격 챌린지</span>}
+            subtitle={!isGuest ? (routineCount >= 4 ? "오늘의 챌린지 완료! ✅" : `${routineCount}/4 세트 완료`) : "바쁜 시간을 쪼개서 다지는 합격 습관"}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
-            onClick={onGoToQuiz}
+            onClick={() => handleGatedAction(onGoToQuiz)}
             isDarkMode={isDarkMode}
             delay={0.5}
             highlight={routineCount >= 4 ? "COMPLETE" : "추천"}
@@ -223,10 +233,10 @@ const HomePage = ({
           />
           <ActionButton 
             title="스마트 오답노트"
-            subtitle={isGuest ? "가입 후 관리 가능" : `${wrongCount}개의 취약 문항 관리`}
+            subtitle={isGuest ? "가입 후 관리 가능" : "틀린 문제 자동 저장 및 과목별 취약점 분석"}
             badge={!isGuest && wrongCount > 0 ? wrongCount : null}
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}
-            onClick={onGoToWrongNote}
+            onClick={isGuest ? () => setShowGatingModal(true) : () => handleGatedAction(onGoToWrongNote)}
             isDarkMode={isDarkMode}
             delay={0.6}
             isLocked={isGuest}
@@ -235,7 +245,7 @@ const HomePage = ({
             title="프리미엄 결제"
             subtitle="광고제거로 쾌적한 문제풀기"
             icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>}
-            onClick={onGoToPremium}
+            onClick={() => setShowGatingModal(true)}
             isDarkMode={isDarkMode}
             delay={0.7}
             highlight="PRO"

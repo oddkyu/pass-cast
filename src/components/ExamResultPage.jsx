@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import AdSense from './AdSense';
 
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
 const formatMathText = (text) => {
@@ -10,7 +11,103 @@ const formatMathText = (text) => {
   return formatted;
 };
 
-const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, onRequireAuthForSave, isRoutine = false, appSettings = {} }) => {
+const renderBeautifulExplanation = (explanation, isDarkMode) => {
+  if (!explanation) return null;
+  
+  const lines = explanation.split('\n');
+  
+  let currentSection = 'normal'; // 'normal', 'feedback', 'summary'
+  let normalBlocks = [];
+  let feedbackLines = [];
+  let summaryLines = [];
+  
+  for (let line of lines) {
+    const trimmed = line.trim();
+    
+    if (trimmed.includes('(오답 피드백):') || trimmed.includes('(오답 피드백)') || trimmed.includes('오답 피드백')) {
+      currentSection = 'feedback';
+      continue;
+    } else if (trimmed.includes('💡 합격자 핵심 요약:') || trimmed.includes('💡 합격자 핵심 요약') || trimmed.includes('합격자 핵심 요약')) {
+      currentSection = 'summary';
+      continue;
+    }
+    
+    if (currentSection === 'normal') {
+      normalBlocks.push(line);
+    } else if (currentSection === 'feedback') {
+      feedbackLines.push(line);
+    } else if (currentSection === 'summary') {
+      summaryLines.push(line);
+    }
+  }
+  
+  return (
+    <div className="space-y-8 text-[15px] md:text-[18px] leading-relaxed font-normal mt-4 text-left">
+      {/* 1. 일반 설명 구역 */}
+      {normalBlocks.length > 0 && (
+        <div className={`space-y-4 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+          {normalBlocks.map((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return <div key={idx} className="h-2" />;
+            return (
+              <p key={idx} className="break-keep leading-relaxed font-medium opacity-90">
+                {line}
+              </p>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* 2. 오답 피드백 구역 */}
+      {feedbackLines.length > 0 && (
+        <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.03] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200/80 text-slate-600'}`}>
+          <h5 className="font-black text-base md:text-lg mb-3 flex items-center gap-2 text-red-500/80">
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+            오답 피드백
+          </h5>
+          <div className="space-y-2">
+            {feedbackLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*');
+              return (
+                <p key={idx} className={`break-keep leading-relaxed ${isBullet ? 'pl-4 -indent-4 opacity-80' : 'opacity-90'}`}>
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      
+      {/* 3. 합격자 핵심 요약 구역 (황금빛 골드 카드로 프리미엄하게 강조!) */}
+      {summaryLines.length > 0 && (
+        <div className={`p-6 md:p-8 rounded-[2rem] border-2 shadow-lg ${
+          isDarkMode 
+            ? 'bg-gold/5 border-gold/20 text-gold shadow-gold/5' 
+            : 'bg-gold/5 border-gold/30 text-midnight shadow-gold/5'
+        }`}>
+          <h5 className="font-black text-[16px] md:text-[20px] mb-3 flex items-center gap-2 text-gold">
+            💡 합격자 핵심 요약
+          </h5>
+          <div className="space-y-2 font-bold text-[15px] md:text-[19px]">
+            {summaryLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              return (
+                <p key={idx} className="break-keep leading-relaxed">
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onReview, user, setShowGatingModal, isRoutine = false, appSettings = {} }) => {
   const [reviewIndex, setReviewIndex] = useState(null);
   const [randomMessage, setRandomMessage] = useState('');
 
@@ -76,17 +173,7 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
       <main className="flex-1 max-w-5xl mx-auto w-full px-8 md:px-16 py-12 md:py-24 space-y-12">
         
         {/* 📢 728x90 Ad Area (점수 상단 배치, 유료 회원 제외) */}
-        {showAds && (
-          <section className="flex justify-center mb-8">
-             <div className={`w-full max-w-[728px] h-[70px] md:h-[90px] rounded-2xl flex flex-col items-center justify-center border-2 border-dashed relative overflow-hidden transition-all
-               ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-300'}
-             `}>
-               <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded-full text-[8px] font-black tracking-widest uppercase">AD</div>
-               <p className="text-[10px] md:text-xs font-bold opacity-40 text-center uppercase tracking-widest mt-3">Google AdSense - Result Page Placement</p>
-               <p className="text-[8px] md:text-[9px] font-black opacity-30 mt-1 uppercase">프리미엄 구독 시 광고가 제거됩니다.</p>
-             </div>
-          </section>
-        )}
+        <AdSense isPremium={isPremium} isDarkMode={isDarkMode} placement="result" />
 
         {/* 🏆 Result Card */}
         <section className={`rounded-[4rem] p-12 md:p-24 relative overflow-hidden flex flex-col items-center justify-center text-center ${isDarkMode ? 'glass-card border-white/10' : 'bg-white shadow-2xl shadow-slate-200 border-white'}`}>
@@ -113,6 +200,21 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
           </div>
           <div className={`absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 ${isPass ? 'bg-gold' : 'bg-slate-400'}`} />
         </section>
+
+        {isGuest && (
+          <section className={`p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col md:flex-row items-center justify-between gap-6 my-8 ${isDarkMode ? 'bg-gold/5 border-gold/30 text-gold shadow-lg shadow-gold/5' : 'bg-gold/[0.03] border-gold/40 text-amber-900 shadow-lg shadow-gold/5'}`}>
+            <div className="space-y-1 text-center md:text-left">
+              <h4 className="text-xl font-black">⚠️ 현재 오답과 점수는 임시 저장 상태입니다.</h4>
+              <p className="text-sm font-bold opacity-60">브라우저를 닫으면 기록이 소멸됩니다. 가입하고 영구 보관하세요!</p>
+            </div>
+            <button 
+              onClick={() => setShowGatingModal(true)} 
+              className="px-8 py-4 bg-midnight text-gold rounded-2xl font-black text-sm transition-all hover:scale-105 active:scale-95 shadow-xl shadow-gold/10 shrink-0"
+            >
+              1초 가입 및 영구 저장하기
+            </button>
+          </section>
+        )}
 
 
 
@@ -214,22 +316,19 @@ const ExamResultPage = ({ result, isDarkMode, isPremium, onHome, onRetry, onRevi
               </div>
 
               <div className={`p-12 rounded-[2.5rem] space-y-6 border-l-8 border-gold ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
-                <div className="flex items-center space-x-4 text-gold">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9.663 17h4.674M12 3v1m0 16v1m5.657-13.657l-.707.707m-10.606 8.485l-.707.707M3 12h1m16 0h1M5.657 5.657l.707.707m8.485 10.606l.707.707M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5z"/></svg>
-                  <h4 className="text-2xl font-black">비공개 정답 해설</h4>
-                </div>
-                {isPremium ? (
-                  <p className="font-bold text-2xl leading-relaxed opacity-80 break-keep">{questions[reviewIndex].explanation || "상세 해설을 불러오는 중입니다."}</p>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="font-bold text-xl opacity-40 italic">해설 보기는 프리미엄 회원 전용 기능입니다.</p>
-                    <button 
-                      onClick={() => { setReviewIndex(null); window.location.hash = '#premium'; }}
-                      className="px-6 py-3 bg-midnight text-gold rounded-xl font-black text-sm"
-                    >
-                      프리미엄 업그레이드 하기
-                    </button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-4 text-gold">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9.663 17h4.674M12 3v1m0 16v1m5.657-13.657l-.707.707m-10.606 8.485l-.707.707M3 12h1m16 0h1M5.657 5.657l.707.707m8.485 10.606l.707.707M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5z"/></svg>
+                    <h4 className="text-2xl font-black">심층 정답 해설</h4>
                   </div>
+                  {questions[reviewIndex].explanation && !questions[reviewIndex].explanation_verified && (
+                    <div className="badge-ai w-fit">💡 AI 생성 해설 (검수 전)</div>
+                  )}
+                </div>
+                {questions[reviewIndex].explanation ? (
+                  renderBeautifulExplanation(formatMathText(questions[reviewIndex].explanation), isDarkMode)
+                ) : (
+                  <p className="font-bold text-xl opacity-40 italic">상세 해설을 불러오는 중입니다.</p>
                 )}
               </div>
             </motion.div>

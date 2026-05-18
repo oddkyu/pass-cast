@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const PremiumPage = ({ isDarkMode, onBack }) => {
+const PremiumPage = ({ isDarkMode, onBack, setShowGatingModal }) => {
   const benefits = [
     {
       title: "광고 없는 쾌적한 학습",
@@ -63,7 +63,10 @@ const PremiumPage = ({ isDarkMode, onBack }) => {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <button className="w-full py-8 bg-midnight text-gold rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-gold/20 hover:scale-105 active:scale-95 transition-all">
+          <button 
+            onClick={() => setShowGatingModal(true)}
+            className="w-full py-8 bg-midnight text-gold rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-gold/20 hover:scale-105 active:scale-95 transition-all"
+          >
             지금 프리미엄 패스 구독하기
           </button>
           <p className="text-center mt-8 text-sm font-black opacity-20 tracking-widest uppercase">Special Offer: 49,900 / Lifetime Access</p>

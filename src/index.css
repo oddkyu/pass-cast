@@ -89,6 +89,10 @@
     overflow-wrap: break-word;
     word-wrap: break-word;
   }
+
+  .badge-ai {
+    @apply inline-flex items-center px-2 py-1 rounded-lg text-[10px] md:text-[11px] font-black bg-gold/10 text-gold border border-gold/20 uppercase tracking-widest mb-2;
+  }
 }
 
 p, span, h1, h2, h3 {

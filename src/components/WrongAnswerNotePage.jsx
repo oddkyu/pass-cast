@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdSense from './AdSense';
 
 // DB에 저장된 수학 기호 마커($)를 일반 텍스트로 자연스럽게 변환
 const formatMathText = (text) => {
@@ -9,7 +10,103 @@ const formatMathText = (text) => {
   return formatted;
 };
 
-const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory, appSettings = {} }) => {
+const renderBeautifulExplanation = (explanation, isDarkMode) => {
+  if (!explanation) return null;
+  
+  const lines = explanation.split('\n');
+  
+  let currentSection = 'normal'; // 'normal', 'feedback', 'summary'
+  let normalBlocks = [];
+  let feedbackLines = [];
+  let summaryLines = [];
+  
+  for (let line of lines) {
+    const trimmed = line.trim();
+    
+    if (trimmed.includes('(오답 피드백):') || trimmed.includes('(오답 피드백)') || trimmed.includes('오답 피드백')) {
+      currentSection = 'feedback';
+      continue;
+    } else if (trimmed.includes('💡 합격자 핵심 요약:') || trimmed.includes('💡 합격자 핵심 요약') || trimmed.includes('합격자 핵심 요약')) {
+      currentSection = 'summary';
+      continue;
+    }
+    
+    if (currentSection === 'normal') {
+      normalBlocks.push(line);
+    } else if (currentSection === 'feedback') {
+      feedbackLines.push(line);
+    } else if (currentSection === 'summary') {
+      summaryLines.push(line);
+    }
+  }
+  
+  return (
+    <div className="space-y-8 text-[15px] md:text-[18px] leading-relaxed font-normal mt-4 text-left">
+      {/* 1. 일반 설명 구역 */}
+      {normalBlocks.length > 0 && (
+        <div className={`space-y-4 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+          {normalBlocks.map((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return <div key={idx} className="h-2" />;
+            return (
+              <p key={idx} className="break-keep leading-relaxed font-medium opacity-90">
+                {line}
+              </p>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* 2. 오답 피드백 구역 */}
+      {feedbackLines.length > 0 && (
+        <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-white/[0.03] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200/80 text-slate-600'}`}>
+          <h5 className="font-black text-base md:text-lg mb-3 flex items-center gap-2 text-red-500/80">
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+            오답 피드백
+          </h5>
+          <div className="space-y-2">
+            {feedbackLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*');
+              return (
+                <p key={idx} className={`break-keep leading-relaxed ${isBullet ? 'pl-4 -indent-4 opacity-80' : 'opacity-90'}`}>
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      
+      {/* 3. 합격자 핵심 요약 구역 (황금빛 골드 카드로 프리미엄하게 강조!) */}
+      {summaryLines.length > 0 && (
+        <div className={`p-6 md:p-8 rounded-[2rem] border-2 shadow-lg ${
+          isDarkMode 
+            ? 'bg-gold/5 border-gold/20 text-gold shadow-gold/5' 
+            : 'bg-gold/5 border-gold/30 text-midnight shadow-gold/5'
+        }`}>
+          <h5 className="font-black text-[16px] md:text-[20px] mb-3 flex items-center gap-2 text-gold">
+            💡 합격자 핵심 요약
+          </h5>
+          <div className="space-y-2 font-bold text-[15px] md:text-[19px]">
+            {summaryLines.map((line, idx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+              return (
+                <p key={idx} className="break-keep leading-relaxed">
+                  {line}
+                </p>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium, onBack, onRemove, onReviewAttempt, onRemoveHistory, appSettings = {}, setShowGatingModal }) => {
   const [step, setStep] = useState('subject'); // 'subject' or 'details'
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [modalData, setModalData] = useState(null); // { numbers: [], currentIndex: 0, year, subject }
@@ -159,17 +256,7 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
               className="space-y-8"
             >
               {/* 📢 스마트 오답노트 상단 광고 */}
-              {showAds && (
-                <div className="flex flex-col items-center mb-4 md:mb-8">
-                   <div className={`w-full max-w-[728px] min-h-[70px] md:min-h-[90px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden
-                     ${isDarkMode ? 'bg-white/5 border-white/10 text-white/20' : 'bg-slate-50 border-slate-200 text-slate-400'}
-                   `}>
-                      <div className="absolute top-2 left-4 px-2 py-0.5 bg-midnight/10 rounded text-[8px] font-black tracking-widest uppercase">AD Slot</div>
-                      <p className="text-[10px] md:text-xs font-bold opacity-40 tracking-tight text-center px-4 mt-3">Google AdSense - Top Placement</p>
-                      <p className="text-[8px] md:text-[9px] font-black opacity-30 mt-1 uppercase">프리미엄 구독 시 광고가 제거됩니다.</p>
-                   </div>
-                </div>
-              )}
+              <AdSense key={selectedSubject} isPremium={isPremium} isDarkMode={isDarkMode} placement="top" />
 
               {filteredHistory.length === 0 ? (
                 <div className="h-96 flex flex-col items-center justify-center space-y-6 opacity-20 text-center">
@@ -293,6 +380,18 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
           )}
         </AnimatePresence>
       </main>
+      
+      {/* 💡 Info Section */}
+      <footer className="max-w-7xl mx-auto w-full px-8 md:px-12 pb-20">
+         <div className={`p-10 rounded-[3rem] border-l-8 border-gold space-y-4 ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
+            <h4 className="text-xl md:text-2xl font-black text-gold">스마트 오답노트 활용 가이드</h4>
+            <p className="text-base md:text-lg font-bold opacity-60 leading-relaxed break-keep">
+               틀린 문제는 단순한 실수가 아니라 당신의 합격을 방해하는 '구멍'입니다. <br className="hidden md:block" />
+               스마트 오답노트는 당신이 푼 모든 시험지에서 오답만을 자동으로 추출하여 과목별로 모아줍니다. <br className="hidden md:block" />
+               리뷰 기능을 통해 해설을 확인하고, 완벽히 이해한 문제는 오답 리스트에서 지워나가며 취약점을 정복해 보세요.
+            </p>
+         </div>
+      </footer>
 
       {/* 🔍 Question Details Modal */}
       <AnimatePresence>
@@ -316,6 +415,9 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
+
+              {/* 📢 오답 상세 팝업 내 동적 애드센스 (문제 전환 시 key 기반 실시간 리프레시) */}
+              <AdSense key={currentQuestion.id} isPremium={isPremium} isDarkMode={isDarkMode} placement="top" />
 
               <div className="space-y-10">
                 <div className="space-y-8">
@@ -354,11 +456,20 @@ const WrongAnswerNotePage = ({ wrongAnswers, examHistory, isDarkMode, isPremium,
               </div>
 
               <div className={`p-12 rounded-[2.5rem] space-y-6 border-l-8 border-gold ${isDarkMode ? 'bg-white/5' : 'bg-gold/5'}`}>
-                <div className="flex items-center space-x-4 text-gold">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                  <h4 className="text-2xl font-black">심층 정답 해설</h4>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-4 text-gold">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <h4 className="text-2xl font-black">심층 정답 해설</h4>
+                  </div>
+                  {currentQuestion.explanation && !currentQuestion.explanation_verified && (
+                    <div className="badge-ai w-fit">💡 AI 생성 해설 (검수 전)</div>
+                  )}
                 </div>
-                <p className="font-bold text-lg md:text-2xl leading-relaxed opacity-80 break-keep">{currentQuestion.explanation || "상세 해설 데이터를 불러오는 중입니다."}</p>
+                {currentQuestion.explanation ? (
+                  renderBeautifulExplanation(formatMathText(currentQuestion.explanation), isDarkMode)
+                ) : (
+                  <p className="font-bold text-xl opacity-40 italic">상세 해설 데이터를 불러오는 중입니다.</p>
+                )}
               </div>
 
               {/* 🧭 Navigation Buttons inside Modal (Redesigned to match FullExamPage) */}

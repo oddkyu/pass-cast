@@ -15,12 +15,25 @@ const ToggleSwitch = ({ checked, onChange, isDarkMode }) => (
 const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: globalSettings }) => {
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [localSettings, setLocalSettings] = useState(globalSettings);
+  const [localSettings, setLocalSettings] = useState({
+    show_ads: false,
+    enable_memo: true,
+    routine_question_count: 10,
+    force_gating: false,
+    ...globalSettings
+  });
   
   // 전역 설정이 백그라운드에서 바뀌면 로컬 설정도 동기화
   useEffect(() => {
-    setLocalSettings(globalSettings);
+    setLocalSettings({
+      show_ads: false,
+      enable_memo: true,
+      routine_question_count: 10,
+      force_gating: false,
+      ...globalSettings
+    });
   }, [globalSettings]);
+
   const [profiles, setProfiles] = useState([]);
   const [adminPopups, setAdminPopups] = useState([]);
   const [isCreatingPopup, setIsCreatingPopup] = useState(false);
@@ -29,6 +42,8 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
     totalUsers: 0,
     premiumUsers: 0,
     todayExams: 0,
+    monthlySales: 0,
+    todayImpressions: 0
   });
 
   useEffect(() => {
@@ -67,8 +82,40 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
 
       if (examsError) throw examsError;
 
-      // 3. 앱 설정 데이터 로드는 이제 App.jsx(useExamData)에서 전역으로 처리됨
-      // 따라서 별도로 fetch 하지 않음
+      // 2.1 오늘 실시간 광고 노출 카운트 로드
+      const { count: adCount, error: adError } = await supabase
+        .from('ad_impressions')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', todayISO);
+
+      // 2.2 이번 달 누적 구독 매출 로드 (구독 레코드 집계)
+      const firstDayOfMonth = new Date();
+      firstDayOfMonth.setDate(1);
+      firstDayOfMonth.setHours(0, 0, 0, 0);
+      const firstDayOfMonthISO = firstDayOfMonth.toISOString();
+
+      const { data: subsThisMonth, error: subStatsError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .gte('created_at', firstDayOfMonthISO);
+
+      let calculatedRevenue = 0;
+      if (!subStatsError && subsThisMonth) {
+        subsThisMonth.forEach(s => {
+          if (s.expires_at && s.created_at) {
+            const diffTime = Math.abs(new Date(s.expires_at) - new Date(s.created_at));
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            // 150일 이상이면 6개월 패스로 간주(19,000원), 미만이면 1개월 패스(3,900원)
+            if (diffDays >= 150) {
+              calculatedRevenue += 19000;
+            } else {
+              calculatedRevenue += 3900;
+            }
+          } else {
+            calculatedRevenue += 3900;
+          }
+        });
+      }
 
       // 4. 팝업 히스토리 로드
       const { data: popupsData, error: popupsError } = await supabase
@@ -84,6 +131,8 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
         totalUsers: profilesData?.length || 0,
         premiumUsers: profilesData?.filter(p => p.membership_type === 'premium').length || 0,
         todayExams: todayExamsCount || 0,
+        monthlySales: calculatedRevenue || 0,
+        todayImpressions: adCount || 0
       });
 
     } catch (error) {
@@ -114,6 +163,7 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
           show_ads: localSettings.show_ads,
           enable_memo: localSettings.enable_memo,
           routine_question_count: localSettings.routine_question_count,
+          force_gating: localSettings.force_gating || false,
           updated_at: new Date().toISOString()
         }]);
 
@@ -249,35 +299,57 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
       </div>
       
       {/* 실시간 통계 대시보드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className={`p-8 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+        <div className={`p-6 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
-            <p className="text-sm opacity-60 font-black uppercase tracking-widest">총 가입자</p>
+            <p className="text-xs opacity-60 font-black uppercase tracking-widest">총 가입자</p>
           </div>
-          <p className="text-4xl font-black tracking-tighter">{stats.totalUsers.toLocaleString()}<span className="text-xl ml-1 opacity-50">명</span></p>
+          <p className="text-3xl font-black tracking-tighter">{stats.totalUsers.toLocaleString()}<span className="text-lg ml-1 opacity-50">명</span></p>
         </div>
         
-        <div className={`p-8 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
+        <div className={`p-6 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
-            <p className="text-sm opacity-60 font-black uppercase tracking-widest">프리미엄 유저</p>
+            <p className="text-xs opacity-60 font-black uppercase tracking-widest">프리미엄 유저</p>
           </div>
-          <p className="text-4xl font-black tracking-tighter text-gold">{stats.premiumUsers.toLocaleString()}<span className="text-xl ml-1 opacity-50">명</span></p>
+          <p className="text-3xl font-black tracking-tighter text-gold">{stats.premiumUsers.toLocaleString()}<span className="text-lg ml-1 opacity-50">명</span></p>
         </div>
         
-        <div className={`p-8 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
+        <div className={`p-6 rounded-3xl border flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-midnight/10 shadow-xl'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
-            <p className="text-sm opacity-60 font-black uppercase tracking-widest">오늘 학습량 (시험 응시)</p>
+            <p className="text-xs opacity-60 font-black uppercase tracking-widest">오늘 학습량</p>
           </div>
-          <p className="text-4xl font-black tracking-tighter text-green-500">{stats.todayExams.toLocaleString()}<span className="text-xl ml-1 opacity-50">회</span></p>
+          <p className="text-3xl font-black tracking-tighter text-green-500">{stats.todayExams.toLocaleString()}<span className="text-lg ml-1 opacity-50">회</span></p>
+        </div>
+
+        {/* ₩ 이번 달 누적 구독 매출 */}
+        <div className={`p-6 rounded-3xl border border-gold/30 flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-gold/5' : 'bg-gold/5 shadow-xl'}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold shadow-sm shadow-gold/20">
+              <span className="text-sm font-black">₩</span>
+            </div>
+            <p className="text-xs opacity-60 font-black uppercase tracking-widest text-gold">당월 구독 매출</p>
+          </div>
+          <p className="text-3xl font-black tracking-tighter text-gold">₩ {stats.monthlySales.toLocaleString()}</p>
+        </div>
+
+        {/* 📊 오늘 실시간 광고 노출 */}
+        <div className={`p-6 rounded-3xl border border-purple-500/30 flex flex-col justify-center transition-transform hover:-translate-y-1 ${isDarkMode ? 'bg-purple-500/5' : 'bg-purple-50/80 shadow-xl'}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <p className="text-xs opacity-60 font-black uppercase tracking-widest text-purple-500">오늘 광고 노출</p>
+          </div>
+          <p className="text-3xl font-black tracking-tighter text-purple-500">{stats.todayImpressions.toLocaleString()}<span className="text-lg ml-1 opacity-50">회</span></p>
         </div>
       </div>
 
@@ -328,8 +400,8 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
                     )}
                   </td>
                   <td className="p-5">
-                    <span className={`px-4 py-1.5 text-xs font-black rounded-full uppercase tracking-widest ${p.membership_type === 'premium' ? 'bg-gold/20 text-gold' : isDarkMode ? 'bg-white/10 text-white/70' : 'bg-midnight/10 text-midnight/70'}`}>
-                      {p.membership_type || 'basic'}
+                    <span className={`px-4 py-1.5 text-xs font-black rounded-full uppercase tracking-widest ${p.membership_type === 'premium' ? 'bg-gold/20 text-gold shadow-md shadow-gold/10' : isDarkMode ? 'bg-white/10 text-white/70' : 'bg-midnight/10 text-midnight/70'}`}>
+                      {(p.membership_type || 'basic').toUpperCase()}
                     </span>
                   </td>
                   <td className="p-5 text-right">
@@ -399,6 +471,18 @@ const AdminPage = ({ isDarkMode, user, isAuthLoading, navigate, appSettings: glo
                 isDarkMode={isDarkMode}
                 checked={localSettings.enable_memo} 
                 onChange={() => setLocalSettings(prev => ({ ...prev, enable_memo: !prev.enable_memo }))} 
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="pr-6">
+                <p className="font-black text-lg text-gold">구독 유도 모달 공격적 노출 (force_gating)</p>
+                <p className="text-sm opacity-60 mt-1 font-medium text-gold/80">ON 설정 시, 일반/비회원 유저들이 홈 메인 진입 및 기출문제 풀이 중 매 5문항 이동 시 결제 모달을 강제 팝업합니다.</p>
+              </div>
+              <ToggleSwitch 
+                isDarkMode={isDarkMode}
+                checked={localSettings.force_gating} 
+                onChange={() => setLocalSettings(prev => ({ ...prev, force_gating: !prev.force_gating }))} 
               />
             </div>
           </div>
