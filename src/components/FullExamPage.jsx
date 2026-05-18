@@ -303,6 +303,28 @@ const FullExamPage = ({
 
   const isCorrect = answers[currentIndex] === currentQuestion.answer;
 
+  const navigationButtons = (
+    <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-black/5 dark:border-white/5">
+       <button 
+         onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+         disabled={currentIndex === 0}
+         className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-0"
+       >
+         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+         <span className="text-base md:text-lg font-black uppercase tracking-widest">이전 문제로</span>
+       </button>
+       
+       <button 
+         onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+         disabled={currentIndex === questions.length - 1}
+         className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
+       >
+         <span className="text-base md:text-lg font-black uppercase tracking-widest">다음 문제로</span>
+         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+       </button>
+    </div>
+  );
+
   return (
     <div className={`min-h-screen flex flex-col transition-all duration-500 noise-texture pb-28 md:pb-32 ${isDarkMode ? 'mesh-bg text-white' : 'bg-offwhite text-midnight'}`}>
       
@@ -426,47 +448,33 @@ const FullExamPage = ({
           })}
         </section>
 
-        {/* 🧭 Content Navigation Buttons (보기 하단 배치) */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-black/5 dark:border-white/5">
-           <button 
-             onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-             disabled={currentIndex === 0}
-             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-0"
-           >
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-             <span className="text-base md:text-lg font-black uppercase tracking-widest">이전 문제로</span>
-           </button>
-           
-           <button 
-             onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-             disabled={currentIndex === questions.length - 1}
-             className="group flex items-center space-x-3 px-8 py-4 bg-gold/10 hover:bg-gold text-gold hover:text-midnight border border-gold/30 rounded-2xl transition-all duration-300 disabled:opacity-30"
-           >
-             <span className="text-base md:text-lg font-black uppercase tracking-widest">다음 문제로</span>
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-           </button>
-        </div>
+        {/* In Practice Mode: render below options */}
+        {!isReviewMode && navigationButtons}
 
+        {/* In Review Mode: render Explanation Card and then Navigation Buttons below it */}
         {isReviewMode && (
-          <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center gap-4 text-gold">
-                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                 <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
+          <>
+            <section className={`rounded-[2.5rem] p-10 md:p-12 border-l-8 border-gold shadow-2xl space-y-6 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-amber-50/50 border-amber-200'}`}>
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center gap-4 text-gold">
+                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                   <h4 className="text-2xl font-black uppercase tracking-tight">문항 해설 및 분석</h4>
+                </div>
+                {currentQuestion?.explanation && !currentQuestion?.explanation_verified && (
+                  <div className="badge-ai w-fit">💡 AI 생성 해설 (검수 전)</div>
+                )}
               </div>
-              {currentQuestion?.explanation && !currentQuestion?.explanation_verified && (
-                <div className="badge-ai w-fit">💡 AI 생성 해설 (검수 전)</div>
+              
+              {currentQuestion?.explanation ? (
+                renderBeautifulExplanation(formatMathText(currentQuestion.explanation), isDarkMode)
+              ) : (
+                <p className="text-lg md:text-xl font-bold leading-relaxed opacity-40 italic">
+                  현재 이 문항에 등록된 해설이 없습니다.
+                </p>
               )}
-            </div>
-            
-            {currentQuestion?.explanation ? (
-              renderBeautifulExplanation(formatMathText(currentQuestion.explanation), isDarkMode)
-            ) : (
-              <p className="text-lg md:text-xl font-bold leading-relaxed opacity-40 italic">
-                현재 이 문항에 등록된 해설이 없습니다.
-              </p>
-            )}
-          </section>
+            </section>
+            {navigationButtons}
+          </>
         )}
 
 
